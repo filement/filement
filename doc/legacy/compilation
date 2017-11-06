@@ -1,0 +1,62 @@
+make
+	device (gnutls, jpeg, upnp, av, etc.)
+		protocol.h
+	proxy_device
+		proxy/notify.c http.h
+	proxy_ftp
+	proxy_cloud
+	distribute
+	?etc.
+
+
+
+
+
+
+
+
+
+device:
+	linux (x86, x86_64)
+		universal
+		dpkg
+		rpm
+	mac
+
+compilation:
+	dependent libraries:
+		libgnutls
+		libavutils
+		libavcodec
+		libavformat
+	main library:
+		libfilement
+	executables:
+		filement_debug
+		failsafe
+		filement
+		filement-gtk
+		filement-cocoa
+
+
+Steps:
+- Compile dependent libraries.
+	libgnutls, libav, libjpeg
+- Compile libfilement
+	libfilement :: libgnutls, libav
+- Compile failsafe
+	failsafe
+- Compile filement_debug
+	device_debug :: libfilement
+- Compile filement
+	device :: libfilement
+- Compile filement-gtk
+	device_gtk :: libfilement
+- Compile filement-cocoa
+	device_cocoa :: libfilement
+- Pack for <platform> [architecture]
+	device, failsafe, <device_gtk | device_cocoa>
+- Compile device proxy
+- Compile distribute server
+- Compile cloud proxy
+- Compile FTP proxy

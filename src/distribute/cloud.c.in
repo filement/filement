@@ -1,0 +1,47 @@
+#include <arpa/inet.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "types.h"
+#include "log.h"
+#include "json.h"
+#include "format.h"
+#include "filement.h"
+#include "geolocation.h"
+
+static const struct
+{
+	int32_t coords[2];
+	struct string host;
+	char *port;
+} cloud_list[] = {@{CLOUD_LIST}};
+
+#define cloud_count (sizeof(cloud_list) / sizeof(*cloud_list))
+
+union json *cloud_address(uint32_t address, const struct string *hostname)
+{
+	struct host *hosts = malloc(sizeof(struct host) * cloud_count);
+	if (!hosts) return 0;
+
+	size_t i;
+	for(i = 0; i < cloud_count; ++i)
+	{
+		hosts[i].coords[0] = cloud_list[i].coords[0];
+		hosts[i].coords[1] = cloud_list[i].coords[1];
+		hosts[i].name = &cloud_list[i].host;
+		hosts[i].port = htons(strtol(cloud_list[i].port, 0, 10));
+	}
+
+	if (!closest(address, hosts, cloud_count, 1)) ; // TODO handle this
+
+	char result_data[LOCATION_SIZE_MAX + 1];
+	struct string result;
+
+	format_bytes(result_data, hosts->name->data, hosts->name->length);
+	result.length = hosts->name->length;
+	result_data[result.length++] = ':';
+	result = string(result_data, format_int(result_data + result.length, ntohs(hosts->port)) - result_data);
+
+	free(hosts);
+	return json_string_old(&result);
+}

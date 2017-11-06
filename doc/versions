@@ -1,0 +1,81 @@
+Devices before 0.14.0 send bytes before they receive request. This is no longer necessary so new devices don't need to do this. But not sending the last 0x00 byte will require changes to the proxy that break compatibility. So new devices will send 0x00 byte for the old protocol values (0x01 and 0x02) but will support new protocol values (0x03 and 0x04). For the new values the devices won't send 0x00 bytes. When the support for versions before 0.14.0 is dropped, proxies can start using the new protocol and new devices won't need to support the old protocol. These new devices will interpret 0x01 as 0x03 and 0x02 as 0x04. This will allow later versions to work with the 0x01 and 0x02 values with the new protocol.
+
+device		<->		proxy
+-------------------------------
+CURRENT
+- - - - - - - - - - - - - - - -
+UUID		 ->
+0xff ...	 ->
+			<-		0x01 (http) || 0x02 (https)
+0x00		 ->
+-------------------------------
+device 0.14.0
+- - - - - - - - - - - - - - - -
+UUID		 ->
+			<-		0x01 (http) || 0x03 (http) || 0x02 (https) || 0x04 (https)			// proxies send 0x01 or 0x02
+0x00		 ->																			// only if last byte was 0x01 or 0x02
+-------------------------------
+device 0.17.0 (support for 0.13 is dropped)
+- - - - - - - - - - - - - - - -
+UUID		 ->
+			<-		0x01 (http) || 0x03 (http) || 0x02 (https) || 0x04 (https)			// proxies send 0x03 or 0x04
+-------------------------------
+finally (when support for 0.16 is dropped)
+- - - - - - - - - - - - - - - -
+UUID		 ->
+			<-		0x01 (http) || 0x02 (https)											// proxies send 0x01 or 0x02
+
+
+==============================================================
+
+
+Most hostnames and ports are changed in version 0.15. Old hostnames and ports are supported via netfilter (NAT). When the support for versions prior to 0.15 is dropped, these settings can be removed
+
+Devices before 0.15 expect the distribute command CMD_PROXY_LIST to return proxies in the form (ip, port). For more flexibility and in order to support TLS, the form (hostname, port) is necessary. For compatibility, the distribute server sends ip to devices older than 0.15. This requires some additional data structures and functions. When the support for versions before 0.15 is dropped, this code will be removed.
+
+
+==============================================================
+
+device 0.16.4
+config.info now returns device version
+
+==============================================================
+
+0.17.0
+
+Devices use new response format for CMD_UPGRADE_LIST for security reasons. When the support for older versions is dropped, the distribute server will stop supporting the old response format.
+After upgrade, the FILEMENT_SETUP environment variable stores the old version number, instead of the number 1.
+Dropped support for devices before 0.15
+
+==============================================================
+
+0.18.0
+
+Device transfer continuation is now supported. The old temporary transfer implementation was substituted with a new more sophisticated one (that supports transfer continuation). When one of the sides of a transfer is < 0.18, the transfer is done with the old implementation. When the support for versions < 0.18 is dropped, the old implementation will no longer be necessary.
+
+fs.find now uses the cache system and returns string (cache key) instead of number
+
+filement internal certificate authority added to devices; when the support for devices < 0.18 is dropped, distribute1 can start using a certificate signed by the filement internal certificate authority
+
+Distribute upgrade list paths are relative for devices >= 0.18. This allows Filement to be installed at different locations in the filesystem. the relative path is / on all systems but MacOS X due to unsolved problems (explained as TODOs in src/distribute/upgrade.c)
+
+==============================================================
+
+0.19.0
+
+removed fs.move and fs.copy
+
+==============================================================
+
+0.20.0
+
+device <-> distribute protocol changes:
+* new command: NAME
+* new command: RENAME
+* REGISTER_EMAIL and REGISTER_AUTH now return error code
+
+ffs.download support for zip64
+
+changed default visible blocks set during registration under linux and mac
+
+dlna support

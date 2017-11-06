@@ -1,0 +1,491 @@
+#include <pthread.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#if !defined(OS_WINDOWS)
+# include <arpa/inet.h>
+#else
+# include <sys/stat.h>
+# define WINVER 0x0501
+# include <windows.h>
+# include <winsock2.h>
+# include <ws2tcpip.h>
+# include "mingw.h"
+# include <stdio.h>
+# undef close
+# define close CLOSE
+#endif
+
+#include "types.h"
+#include "format.h"
+#include "stream.h"
+#include "log.h"
+#include "upgrade.h"
+#include "distribute.h"
+#include "startup.h"
+#include "proxy.h"
+
+#if !defined(OS_WINDOWS)
+# include "security.h"
+# include "cache.h"
+# include "server.h"
+# include "storage.h"
+# if defined(DEVICE)
+#  include "dlna/ssdp.h"
+# endif
+#else
+# include <stdio.h>
+# include "../security.h"
+# include "../cache.h"
+# include "../server.h"
+# include "../storage.h"
+# include "../dlna/ssdp.h"
+# include "../io.h"
+# include "../access.h"
+#endif
+
+#define UUID_BLANK "00000000" "00000000" "00000000" "00000000"
+
+#if defined(DEVICE)
+# define NAME "Filement"
+#else
+# define NAME "FilementCloud"
+#endif
+
+#if !defined(OS_WINDOWS)
+// Global variable holding the UUID of the device. Once set, it is never changed.
+struct string UUID;
+#else
+struct string UUID_WINDOWS;
+
+char *tls_location=0;
+
+struct string app_location = {.data = 0};
+struct string app_location_name = {.data = 0};
+
+extern int do_upgrade;
+#endif
+
+// Pipe used for communication with the connection handling thread.
+// TODO change this
+int pipe_proxy[2];
+
+// Global variable storing whether DLNA is enabled.
+volatile int DLNA;
+
+// Global variable holding the name of the device. Once set, it is never changed.
+struct string DEVICE_NAME;
+
+extern struct string SECRET;
+
+const struct string app_name = {.data = NAME, .length = sizeof(NAME) - 1};
+const struct string app_version = {.data = "@{VERSION}", .length = @{VERSION_LENGTH}};
+
+// TODO: pubcloud storage creation
+
+static void *storage;
+
+// Pipe used to control the behavior of the proxy thread.
+int control[2];
+
+bool filement_init(void)
+{
+	struct string key;
+	char *value;
+
+#if defined(DEVICE) && !defined(OS_WINDOWS)
+	if (!startup_init()) fail(0, "Filement already started");
+
+	// Cancel process execution if an upgrade procedure is started but not finished.
+	// failsafe existence indicates that an upgrade procedure is started.
+	// The FILEMENT_SETUP environment variable indicates that the upgrade procedure finished.
+	if (!getenv("FILEMENT_SETUP"))
+	{
+		struct string *failsafe = upgrade_failsafe();
+		if (!failsafe) fail(21, "Cannot generate failsafe name");
+		bool upgrade = !access(failsafe->data, X_OK);
+		free(failsafe);
+		if (upgrade) fail(0, "There is unfinished upgrade. Terminating.");
+	}
+#endif
+
+	server_init();
+
+#if defined(DEVICE)
+	storage = storage_init();
+	if (!storage) fail(21, "Unable to initialize storage");
+#endif
+
+#if defined(DEVICE)
+	// Get device UUID.
+	key = string("UUID");
+	value = storage_local_settings_get_value(storage, &key);
+	if (!value)
+	{
+# if !defined(OS_WINDOWS)
+		UUID = string(UUID_BLANK);
+# else
+		UUID_WINDOWS = string(UUID_BLANK);
+# endif
+		debug(logs("Device not registered"));
+		return false;
+	}
+# if !defined(OS_WINDOWS)
+	UUID = string(value, UUID_LENGTH);
+# else
+	UUID_WINDOWS = string(value, UUID_LENGTH);
+# endif
+#else
+	UUID = string(@{UUID});
+#endif
+
+	// Get device SECRET.
+	key = string("SECRET");
+	value = storage_local_settings_get_value(storage, &key);
+	SECRET.length = strlen(value); // TODO: strlen is slow
+	SECRET.data = malloc(SECRET.length + 1);
+	if (!SECRET.data) fail(21, "Memory error");
+	SECRET.length = hex2bin(SECRET.data, value, SECRET.length);
+	SECRET.data[SECRET.length] = 0;
+	free(value);
+
+	// Some devices' storage can change. Make sure the current storage is visible.
+#if defined(OS_QNX) || defined(OS_ANDROID)
+	int index;
+	struct blocks_array *blocks_array;
+
+	blocks_array = access_granted_get_blocks_array(); 
+	if (!blocks_array || !blocks_array->blocks_size) return false;
+
+	storage_blocks_reinit(storage);
+
+	for(index = 0; index < blocks_array->blocks_size; index++)
+		if (!storage_blocks_add(storage,blocks_array->blocks[index]->block_id, 1, blocks_array->blocks[index]->location, 0))
+		{
+			free_blocks_array(blocks_array);
+			return false;
+		}
+	free_blocks_array(blocks_array);
+#endif
+
+	// Initialize a struct string holding the SECRET.
+	struct string buffer;
+	uint32_t size = SECRET.length;
+	char request[sizeof(uint32_t) + SECRET_SIZE_MAX];
+	endian_big32(request, &size);
+	format_bytes(request + sizeof(uint32_t), SECRET.data, SECRET.length);
+	buffer = string(request, sizeof(uint32_t) + SECRET.length);
+
+	// Retrieve device name from the distribute server.
+	bool success = false;
+	do
+	{
+		struct string response;
+		struct stream *stream = distribute_request_start(0, CMD_NAME, &buffer);
+		if (!stream) break;
+
+		if (stream_read(stream, &response, sizeof(uint32_t))) break;
+		endian_big32(&size, response.data);
+		stream_read_flush(stream, sizeof(uint32_t));
+
+		if (size > DEVNAME_LENGTH_MAX) break;
+
+		if (stream_read(stream, &response, size)) break;
+		DEVICE_NAME.data = malloc(size + 1);
+		if (!DEVICE_NAME.data) break;
+		*format_bytes(DEVICE_NAME.data, response.data, size) = 0;
+		stream_read_flush(stream, size);
+		DEVICE_NAME.length = size;
+
+		success = true;
+	} while (0);
+#if !defined(OS_WINDOWS)
+	if (!success) DEVICE_NAME = UUID; // use UUID as device name on error.
+#else
+	if (!success) DEVICE_NAME = UUID_WINDOWS; // use UUID as device name on error.
+#endif
+	distribute_request_finish(success);
+
+#if defined(DEVICE)
+	// Perform setup the first time a new version is launched.
+	// If the setup fails, upgrading will be retried on restart.
+	while (!storage_latest(storage))
+	{
+		// Notify the distribute server about the version change.
+		struct stream *stream = distribute_request_start(0, CMD_UPGRADE_FINISH, &buffer);
+		if (!stream)
+		{
+			error(logs("Upgrade setup failed"));
+			break;
+		}
+
+# if !defined(OS_WINDOWS)
+		success = !stream_read(stream, &buffer, 1) && buffer.data[0];
+		stream_read_flush(stream, 1);
+		distribute_request_finish(success);
+
+		if (!success)
+		{
+			error(logs("Upgrade setup error"));
+			break;
+		}
+
+		// Remove failsafe.
+		struct string *failsafe_dest = upgrade_failsafe();
+		startup_remove(failsafe_dest);
+		unlink(failsafe_dest->data);
+		free(failsafe_dest);
+
+		storage_setup(storage);
+# else
+		distribute_request_finish(true);
+		//TODO rewrite, error checks
+		char *path=(char *)malloc(sizeof(char)*(app_location.length+sizeof("backup")));
+		sprintf(path,"%s%s",app_location.data,"backup");
+		remove_directory(path);
+		free(path);
+		storage_setup(storage);
+# endif
+
+		debug(logs("Upgrade finished"));
+		break;
+	}
+#endif
+
+	return true;
+}
+
+#if !defined(OS_WINDOWS)
+void filement_daemon(void)
+{
+	server_daemon();
+}
+#endif
+
+#if defined(DEVICE)
+
+bool filement_register(const struct string *email, const struct string *devname, const struct string *password)
+{
+	struct string key, value;
+	int index;
+	unsigned client_id;
+	struct blocks_array *blocks_array;
+
+	if (!storage_create(storage))
+	{
+		error_("Storage creation error");
+		return false;
+	}
+
+	// Generate salt and password hash.
+	char result[SALT_SIZE + HASH_SIZE + 1];
+	security_password(password, result);
+	result[sizeof(result) - 1] = 0;
+
+	// Register device in distribute server.
+	char *uuid = distribute_register_email(email, devname, &client_id);
+	if (!uuid) goto error;
+
+	// TODO: revert everything on error
+
+	if (!storage_passport_users_add(storage, client_id)) goto error;
+
+	key = string("admin");
+	value = string(result);
+	if (!storage_local_users_add(storage, &key, &value)) goto error;
+
+	key = string("UUID");
+	value = string(uuid, UUID_LENGTH);
+	if (!storage_local_settings_add_value(storage, &key, &value)) goto error;
+
+	char hex[SECRET_SIZE_MAX * 2 + 1];
+	*format_hex(hex, SECRET.data, SECRET.length) = 0;
+	key = string("SECRET");
+	value = string(hex, SECRET.length * 2);
+	if (!storage_local_settings_add_value(storage, &key, &value)) goto error;
+
+# if defined(OS_IOS)
+	struct string location = string("/");
+	if (!storage_blocks_add(storage, 1, 1, &location, 0)) goto error;
+# elif defined(OS_MAC) || defined(OS_LINUX)
+	char *home = getenv("HOME");
+	struct string *location = string_alloc(home, strlen(home));
+	if (!storage_blocks_add(storage, 1, 1, location, 0))
+	{
+		free(location);
+		goto error;
+	}
+	free(location);
+# elif !defined(OS_QNX)
+	blocks_array = access_granted_get_blocks_array();
+	if (!blocks_array) goto error;
+	for(index = 0; index < blocks_array->blocks_size; index++)
+		if (!storage_blocks_add(storage, blocks_array->blocks[index]->block_id, 1, blocks_array->blocks[index]->location, 0))
+		{
+			free_blocks_array(blocks_array);
+			goto error;
+		}
+	free_blocks_array(blocks_array);
+# endif
+
+	// TODO UUID may be used by another thread at this moment. mutex?
+# if !defined(OS_WINDOWS)
+	UUID = string(uuid, UUID_LENGTH);
+# else
+	UUID_WINDOWS = string(uuid, UUID_LENGTH);
+# endif
+
+	// Set device name.
+	DEVICE_NAME.data = malloc(devname->length + 1);
+	if (!DEVICE_NAME.data) goto error;
+	*format_bytes(DEVICE_NAME.data, devname->data, devname->length) = 0;
+	DEVICE_NAME.length = devname->length;
+
+	debug(logs("Device registered"));
+	return true;
+
+error:
+	free(uuid);
+	error(logs("Registration error"));
+	return false;
+}
+
+#if !defined(OS_WINDOWS)
+void filement_reset(void)
+{
+	// Ask distribute server to delete the device. This isn't critical so don't cancel if this step fails.
+	uint32_t size = SECRET.length;
+	char request[sizeof(uint32_t) + SECRET_SIZE_MAX + 1];
+	struct string buffer;
+	endian_big32(request, &size);
+	buffer.length = format_bytes(request + sizeof(uint32_t), SECRET.data, SECRET.length) - request;
+	buffer.data = request;
+	struct stream *stream = distribute_request_start(0, CMD_UNREGISTER, &buffer);
+	if (stream)
+	{
+		struct string buffer;
+		bool success = !stream_read(stream, &buffer, 1) && buffer.data[0];
+		stream_read_flush(stream, 1);
+		distribute_request_finish(success);
+		if (!success) warning(logs("Device deletion failed."));
+	}
+	else warning(logs("Unable to delete the device."));
+
+	// TODO: what if something is using the database at this moment ?
+	storage_reset(storage);
+
+	_exit(0);
+}
+#endif
+
+// TODO fix possible race conditions in the functions below
+
+// TODO these two with the proxy code can be moved into a separate file EDIT: one problem - storage must be passed as an argument
+bool filement_start(void)
+{
+	pthread_t thread_id;
+
+#if !defined(OS_WINDOWS)
+	if (pipe(control) < 0) return false;
+#endif
+
+#if defined(DEVICE)
+	DLNAEnable(storage);
+
+	// Connect the device to a proxy.
+# if !defined(OS_WINDOWS)
+	pthread_create(&thread_id, 0, &main_proxy, storage);
+# else
+	pthread_create(&thread_id, 0, &main_proxy_windows, storage);
+# endif
+	pthread_detach(thread_id);
+#endif
+
+	return true;
+}
+void filement_stop(void)
+{
+	char message = 0;
+
+	write(control[1], &message, 1);
+	close(control[1]);
+	// TODO send signal to cancel current system call?
+
+#if defined(DEVICE)
+	DLNADisable(storage); // TODO something may be using DLNA at the moment
+#endif
+}
+
+#endif /* DEVICE */
+
+#if !defined(FAILSAFE)
+void filement_serve(void)
+{
+#if defined(OS_IOS)
+	extern int evfs_index(void);
+	evfs_index(); // TODO error check
+#endif
+
+#if defined(DEVICE)
+	// Initialize a pipe for communication with the connection handling thread.
+	pipe(pipe_proxy); // TODO error check
+#endif
+
+	struct string UUID_TMP = string("00000000000000000000000000000000");
+#if !defined(OS_WINDOWS)
+# if defined(DEVICE)
+	if (UUID.data && !string_equal(&UUID, &UUID_TMP)) filement_start();
+# endif
+	server_listen(storage);
+#else
+	if(UUID_WINDOWS.data && !string_equal(&UUID_WINDOWS,&UUID_TMP))filement_start();
+	server_listen_windows(storage);
+#endif
+}
+#endif
+
+void filement_term(void)
+{
+	free(SECRET.data);
+
+#if !defined(OS_WINDOWS)
+	if (DEVICE_NAME.data != UUID.data) free(DEVICE_NAME.data);
+	free(UUID.data);
+#else
+	if (DEVICE_NAME.data != UUID_WINDOWS.data) free(DEVICE_NAME.data);
+	free(UUID_WINDOWS.data);
+#endif
+ 
+	// TODO: kill threads?
+	// pthread_cancel();
+
+	storage_term(storage);
+	distribute_term();
+	server_term();
+#if defined(DEVICE)
+	startup_term();
+#endif
+}
+
+#ifdef OS_WINDOWS
+struct string *filement_get_version()
+{
+return string_alloc(app_version.data,app_version.length);
+}
+
+void filement_set_location(struct string *location)
+{
+	int i = location->length;
+	for(;i>0 && *(location->data+i)!='\\';i--);
+	app_location_name = *string_alloc(location->data+i+1,location->length-i-1);
+	*(location->data+i+1)='\0';
+	location->length=i +1;
+	app_location = *location;
+	struct string *tmp=string_alloc(location->data,location->length-1);
+	fflush(stderr);
+	tls_location=malloc(location->length+sizeof("external\\ca.crt"));
+	sprintf(tls_location,"%sexternal\\ca.crt",location->data);
+	chdir(tmp->data);
+	free(tmp);
+}
+#endif

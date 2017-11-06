@@ -1,0 +1,127 @@
+ping
+
+#if defined(DISTRIBUTE)
+
+location
+login
+subscribe_client
+//subscribe_uuid
+
+// TODO deprecated; use subscribe_client() instead
+subscribe
+
+#elif defined(FTP)
+
+session.actions
+session.check
+session.login
+session.logout
+config.info
+fs.get_blocks
+fs.list
+fs.mkdir
+fs.mkfile
+fs.download
+fs.remove
+fs.upload
+fs.get_status
+fs.move
+
+#else
+
+tinyurl
+
+session.actions
+session.login
+session.logout
+
+auth.grant
+auth.list
+auth.revoke
+auth.add
+auth.remove
+
+cache.list
+cache.get
+cache.flush
+
+config.get_interfaces
+config.info
+
+process.pause
+process.resume
+process.cancel
+
+fs.get_blocks
+fs.get_status
+fs.find
+fs.find_get_results
+fs.stat
+
+#if !defined(OS_IOS)
+	fs.list
+	fs.granted_get_blocks
+	fs.granted_list
+
+	// TODO IOS
+	fs.create_thumb
+	fs.mkfile
+	fs.mkdir
+	fs.remove
+	fs.upload
+	fs.save
+	fs.find_index
+#endif
+
+ffs.list
+ffs.download
+ffs.archive
+ffs.size
+
+#if !defined(OS_IOS)
+	ffs.copy
+	ffs.transfer
+	ffs.move
+#endif
+
+reachable
+
+#if defined(DEVICE)
+
+	session.grant
+	session.grant_login
+
+# if !defined(OS_IOS)
+		// TODO iOS
+		session.upnp_nearby
+# endif
+
+	config.change_password
+
+# if !defined(OS_IOS)
+		config.blocks
+		config.blocks_add
+		config.blocks_del
+		config.register
+# endif
+
+# if !defined(OS_ANDROID) && !defined(OS_QNX) && !defined(OS_IOS)
+		// TODO iOS
+		media.stream
+		media.convert
+		media.info
+# endif
+
+	proxy.forward
+	proxy.reset
+
+# if !defined(OS_IOS)
+		// TODO iOS
+		fs.storage_info
+# endif
+
+dlna.change_availability
+
+#endif
+
+#endif /* !DISTRIBUTE */

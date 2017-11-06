@@ -1,0 +1,62 @@
+src/actions_*
+	Functions for handling actions specific for a given filement node type (actions are described in dynamic_api).
+
+src/device
+	Code specific to client devices.
+
+src/distribute
+	Code specific to distribute servers (including event server).
+
+src/dlna
+	Code specific to the DLNA functionality provided by some filement node types.
+
+src/ftp
+	Code specific to FTP proxies.
+
+src/lib
+	Internal libraries used by the project.
+
+src/proxy
+	The code of device proxies (independent from the rest, except for libraries).
+
+src/tar.c, src/zip.c, src/earchive.c, src/evfs.c, src/download.c, src/upload.c
+	Code related to interactions with files
+
+src/server.c, src/http_parse.c, src/http_response.c
+	Code related to handling network requests
+
+src/magic.c
+	File type recognition
+
+src/actions.c
+	Dynamically-generated file with the dynamic API actions for the specific filement node type
+
+src/cache.c
+	In-memory JSON-based cache system used to hold metadata (documented in cache).
+
+src/status.c
+	Legacy in-memory cache system used to hold metadata.
+
+src/operations.c
+	In-memory system storing information about operations currently in progress.
+
+src/storage_*.c
+	Persistent storage used for metadata.
+
+src/remote.c
+	Functions for retrieving persistent storage over the network.
+
+src/io.c, src/security.c
+	Utility functions.
+
+src/main.c.in
+	Source used to generate an entry point for the device server when started from the command line.
+
+linux
+	Linux-specific code.
+
+mac
+	Mac-specific code.
+
+windows
+	Windows-specific code.

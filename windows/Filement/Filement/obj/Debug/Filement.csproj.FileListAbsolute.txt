@@ -1,0 +1,12 @@
+c:\users\nikola\documents\visual studio 2012\Projects\Filement\Filement\bin\Debug\Filement.exe.config
+c:\users\nikola\documents\visual studio 2012\Projects\Filement\Filement\obj\Debug\Filement.Properties.Resources.resources
+c:\users\nikola\documents\visual studio 2012\Projects\Filement\Filement\obj\Debug\Filement.csproj.GenerateResource.Cache
+c:\users\nikola\documents\visual studio 2012\Projects\Filement\Filement\bin\Debug\Filement.exe
+c:\users\nikola\documents\visual studio 2012\Projects\Filement\Filement\bin\Debug\Filement.pdb
+c:\users\nikola\documents\visual studio 2012\Projects\Filement\Filement\obj\Debug\Filement.exe
+c:\users\nikola\documents\visual studio 2012\Projects\Filement\Filement\obj\Debug\Filement.pdb
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\obj\Debug\Filement.Form1.resources
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\obj\Debug\Filement.g.resources
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\bin\Debug\yo\Filement.resources.dll
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\obj\Debug\Filement.Form1.yo.resources
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\obj\Debug\yo\Filement.resources.dll

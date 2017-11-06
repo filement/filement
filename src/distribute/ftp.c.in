@@ -1,0 +1,47 @@
+#include <arpa/inet.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "types.h"
+#include "log.h"
+#include "json.h"
+#include "format.h"
+#include "filement.h"
+#include "geolocation.h"
+
+static const struct
+{
+	int32_t coords[2];
+	struct string host;
+	char *port;
+} ftp_list[] = {@{FTP_LIST}};
+
+#define ftp_count (sizeof(ftp_list) / sizeof(*ftp_list))
+
+union json *ftp_address(uint32_t address, const struct string *hostname)
+{
+	struct host *hosts = malloc(sizeof(struct host) * ftp_count);
+	if (!hosts) return 0;
+
+	size_t i;
+	for(i = 0; i < ftp_count; ++i)
+	{
+		hosts[i].coords[0] = ftp_list[i].coords[0];
+		hosts[i].coords[1] = ftp_list[i].coords[1];
+		hosts[i].name = &ftp_list[i].host;
+		hosts[i].port = htons(strtol(ftp_list[i].port, 0, 10));
+	}
+
+	if (!closest(address, hosts, ftp_count, 1)) ; // TODO handle this
+
+	char result_data[LOCATION_SIZE_MAX + 1];
+	struct string result;
+
+	format_bytes(result_data, hosts->name->data, hosts->name->length);
+	result.length = hosts->name->length;
+	result_data[result.length++] = ':';
+	result = string(result_data, format_int(result_data + result.length, ntohs(hosts->port)) - result_data);
+
+	free(hosts);
+	return json_string_old(&result);
+}

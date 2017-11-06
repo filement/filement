@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# TODO this is only for linux
+export CC=gcc
+
+src='miniupnpc_filement'
+
+tar xfj "${src}.tar.bz2" && \
+cd "$src" && \
+make clean > /dev/null && \
+make > /dev/null
+cp libminiupnpc_filement.a ../../lib/ && \
+cd .. && \
+rm -r "$src"

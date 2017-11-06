@@ -1,0 +1,15 @@
+// Each line contains the name of a single action
+session.actions
+session.login
+session.logout
+session.check
+fs.get_blocks
+fs.list
+fs.mkdir
+fs.mkfile
+fs.remove
+fs.download
+fs.upload
+fs.get_status
+fs.move
+config.info

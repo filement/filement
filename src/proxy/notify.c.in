@@ -1,0 +1,146 @@
+#include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
+
+#include <pthread.h>		// libpthread
+
+#include "types.h"
+#include "format.h"
+#include "io.h"
+#include "stream.h"
+#include "http.h"
+#include "notify.h"
+
+#define DISTRIBUTE_HOST "@{DISTRIBUTE_HOST}"
+#define DISTRIBUTE_PORT @{DISTRIBUTE_PORT}
+
+#define MESSAGE_NOT_FOUND 0
+
+#define RETRY 5
+
+#define RESET "X\n\n"
+
+// TODO: what if the pipe fills up?
+// TODO what if the proxy can't connect the distribute server?
+
+static int notify[2];
+
+// Notify the web interface that a device is not connected to this proxy.
+void notify_not_found(struct stream *restrict stream)
+{
+	char message[sizeof(struct stream *) + sizeof(unsigned)];
+	*(struct stream **)message = stream;
+	*(unsigned *)(message + sizeof(struct stream *)) = MESSAGE_NOT_FOUND;
+	writeall(notify[1], message, sizeof(message));
+}
+
+// Notify the distribute server that a device has changed its state.
+void notify_distribute(const struct string *uuid, char event)
+{
+	char message[sizeof(struct stream *) + sizeof(unsigned) + 1 + 1 + UUID_LENGTH + 1 + 1], *start = message;
+	*(struct stream **)start = 0;
+	start += sizeof(struct stream *);
+	*(unsigned *)start = 1 + 1 + UUID_LENGTH + 1 + 1;
+	start += sizeof(unsigned);
+
+	*start++ = event;
+	*start++ = '\n';
+	start = format_bytes(start, uuid->data, UUID_LENGTH);
+	*start++ = '\n';
+	*start = '\n';
+	writeall(notify[1], message, sizeof(message));
+}
+
+static void *main_notify(void *arg)
+{
+	struct string not_found_start = string("HTTP/1.1 502 Bad Gateway\r\nDate: ");
+	struct string not_found_end = string("\r\n"
+		"Server: " NAME "/" VERSION "\r\n"
+		"Content-Length: 0\r\n"
+		"Connection: close\r\n"
+		"Access-Control-Allow-Origin: *\r\n"
+		"Access-Control-Expose-Headers: Server, UUID\r\n"
+		"Access-Control-Allow-Headers: Cache-Control, X-Requested-With, Filename, Filesize, Content-Type, Content-Length\r\n"
+		"Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n\r\n"
+	);
+
+	char message[NOTIFY_BUFFER], *start;
+	struct string body;
+	struct stream *stream;
+	int sock;
+	size_t size;
+
+	body.data = message + sizeof(struct stream *) + sizeof(unsigned);
+
+	// Assume no errors occur here.
+	while (1)
+	{
+		readall(notify[0], message, sizeof(struct stream *) + sizeof(unsigned));
+		stream = *(struct stream **)message;
+		size = *(unsigned *)(message + sizeof(struct stream *));
+
+		if (size == MESSAGE_NOT_FOUND)
+		{
+			// TODO: this can be optimized - body can be written just once (only date is mutable).
+			// Generate the body of a NotFound message.
+			start = format_bytes(body.data, not_found_start.data, not_found_start.length);
+			http_date(start, time(0));
+			start += HTTP_DATE_LENGTH;
+			start = format_bytes(start, not_found_end.data, not_found_end.length);
+			size = start - body.data;
+		}
+		else readall(notify[0], body.data, size);
+
+		// Send notification.
+		if (stream) // there is an existing connection
+		{
+			body.length = size;
+			stream_write(stream, &body);
+			stream_write_flush(stream);
+			stream_term(stream);
+			close(stream->fd);
+			free(stream);
+		}
+		else
+		{
+			// Connect to the distribute server if there is no open stream.
+			bool success;
+			do
+			{
+				sock = socket_connect(DISTRIBUTE_HOST, DISTRIBUTE_PORT);
+				if (sock < 0)
+				{
+					sleep(RETRY);
+					continue;
+				}
+				success = (socket_write(sock, body.data, size) == size);
+				close(sock);
+			} while (!success);
+		}
+	}
+}
+
+bool notify_init(void)
+{
+	// Tell the distribute server to reset the devices for this proxy.
+	bool success;
+	int sock;
+	do
+	{
+		sock = socket_connect(DISTRIBUTE_HOST, DISTRIBUTE_PORT);
+		if (sock < 0)
+		{
+			sleep(RETRY);
+			continue;
+		}
+		success = (socket_write(sock, RESET, sizeof(RESET) - 1) == sizeof(RESET) - 1);
+		close(sock);
+	} while (!success);
+
+	if (pipe(notify) < 0) return false;
+	pthread_t thread;
+	if (pthread_create(&thread, 0, main_notify, 0)) return false;
+	pthread_detach(thread);
+
+	return true;
+}

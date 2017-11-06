@@ -1,0 +1,1 @@
+valgrind --tool=memcheck --dsymutil=yes --track-origins=yes --show-reachable=yes --track-fds=yes --leak-check=yes --time-stamp=yes --log-file=/tmp/valgrind bin/device

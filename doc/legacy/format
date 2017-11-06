@@ -1,0 +1,103 @@
+libformat allows writing data to a char buffer in a given format. It is designed for high performance and high flexibility.
+
+libformat provides functions for length calculation and for writing.
+
+libformat treats NUL characters just like any other character. If special handling is required, it has to be provided by the code using the library.
+
+The formatting functions are designed so that they can easily be chained (the output of a function can be used as the input of another one). This is useful for writing data in different formats in a single buffer (as seen from the example in the bottom).
+
+LENGTH CALCULATION
+
+WRITING
+There is one function for each supported formatting (e.g. integer, base-64, etc.). All functions have at least two arguments:
+* pointer to a char buffer; this is the buffer the data will be written to
+* value to be written to the buffer; the exact data type is function-specific
+Some functions may accept additional arguments.
+Each function starts writing from the beginning of the buffer and returns pointer to the first char after the last written char.
+
+Illustration
+	This illustrates the general behavior with the function format_bytes(). This function just copies bytes from its second argument to its first argument. The number of bytes to copy is specified in the third argument.
+
+	+-------+
+	| | | | |
+	+-------+
+	 ^
+	 buffer
+
+	char *end = format_bytes(buffer, "ab", 2);
+
+	+-------+
+	|a|b| | |
+	+-------+
+	     ^
+	     end
+
+char *format_int(char *restrict buffer, int64_t number, uint8_t base, uint16_t length, char fill);
+char *format_uint(char *restrict buffer, uint64_t number, uint8_t base, uint16_t length, char fill);
+	Both functions write a string representation of an integer.
+	format_int() works with signed integers while format_uint() works with unsigned integers
+
+	base (optional; default == 10)
+		the numeral system in which the number will be written
+	length (optional; default is the number of bytes required to fit the number)
+		number of bytes to be used to format the number; undefined behavior if the number can not fit in length bytes
+		if this is more than the bytes required to fit the number, padding will be inserted before it
+		specify this if you know the number of bytes required to fit the number to increase the performance
+		specify this if you want to put padding before the number
+	fill (optional; default == ' ')
+		ignored if length is not specified
+		character to be used as padding
+
+	example:
+		char buffer[] = "abcdefgh";
+		format_int(buffer, -42, 10, 5);
+		// now buffer is "  -42fgh"
+
+char *format_byte(char *restrict buffer, uint8_t byte, size_t size);
+	Writes a single byte one or more times.
+
+	size (optional; default == 1)
+		number of times to write the byte
+
+	This function is similar to memset().
+
+char *format_bytes(char *restrict buffer, const uint8_t *restrict bytes, size_t size);
+	Copies size bytes from bytes into buffer.
+
+	This function is similar to memcpy() and the same as the GNU extension function mempcpy().
+
+char *format_hex(char *restrict buffer, const uint8_t *restrict bin, size_t length);
+	Writes bin into buffer as hexadecimal digits. The digits used are:
+		0123456789abcdef
+
+char *format_base64(char *restrict buffer, const uint8_t *restrict bin, size_t length);
+	Writes bin into buffer as base-64 digits. The digits used are:
+		0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_
+		no padding bytes are added to round the number of characters written
+
+Examples
+This code writes """[-12,"test","ff",33333]""" to buffer and stores the length of the written data in length.
+	unsigned char bin = 255;
+	char buffer[SIZE], start = buffer;
+	size_t length;
+
+	*start++ = '[';
+	start = format_int(start, -12);
+	*start++ = ',';
+	*start++ = '"';
+	start = format_bytes(start, "test", 4);
+	*start++ = '"';
+	*start++ = ',';
+	*start++ = '"';
+	start = format_hex(start, &bin, 1);
+	*start++ = '"';
+	*start++ = ',';
+	start = format_byte(start, '3', 5);
+	*start++ = ']';
+
+	// WARNING: Add NUL terminator if necessary.
+	// *start = 0;
+
+	length = start - buffer;
+
+Current version of the library depends on the C standard library but later versions may not.

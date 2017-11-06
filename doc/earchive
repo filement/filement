@@ -1,0 +1,173 @@
+E archive
+General purpose archive format.
+
+Version 0.2
+
+---- Notation ----
+Single dash represents fixed width field. Plus signes separate individual bytes.
++--+
+|  |
++--+
+Double dash represents variable width field.
++=====+
+|     |
++=====+
+Vertical bar separates different fields.
++--+--+--+
+|  |     |
++--+--+--+
+
+---- Objectives ----
+- Easy to recognize by its content.
+- Portable:
+  - Tools for manipulation are available for different platforms.
+  - Behavior is as consistent as possible on different platforms.
+    This implies:
+    - no data duplication
+    - a single set of archive features; no platform-specific features
+- Universal:
+  - Data packing - Combining multiple files in a single one.
+  - Streamable - Suitable for cases when seeking is not desired.
+  - Suitable for backups.
+  - Suitable for data transfer.
+- Simple - easy to implement; includes only a minimal set of features.
+- Supported operations:
+  - Resource-light contents listing.
+  - Resource-light file retrieval.
+  - Resource-light file appending.
+- High performance.
+
+---- General information ----
+Bytes are 8 bits each. An E archive can be thought of as a sequence of bytes.
+All file data is stored as a sequence of bytes.
+All numbers are stored in big endian byte order.
+All strings are stored in UTF-8 and are case sensitive.
+File paths use / (UTF-8 0x2f) for delimiter. Paths must NOT contain two consecutive delimiters and must NOT start or end with a delimiter. Paths are relative. Paths must not contain "." or ".." as a path component.
+All times are stored in number of microseconds elapsed since the Unix epoch in UTC, counting leap seconds.
+
+---- File format ----
+Every E archive starts with a header, containing global information about the archive as a whole (not individual files). The rest of the file is a sequence of sections. The header specifies archive layout. The layout determines the possible types of sections and how they are ordered in the archive.
+
+Some fields have fixed length and others - variable length. For each variable length field, there is a corresponding fixed length field that stores its length in bytes.
+
+---- Header ----
++------+------+------+------+------+------+------+------+
+|  00  |  02  |  00  |LAYOUT|          RESERVED         |
++------+------+------+------+------+------+------+------+
+
+// TODO: ? version created
+
+LAYOUT
+Layout number; see the chapter about layouts
+
+RESERVED
+Reserved for future use. File with one or more non-zero bits here must be treated as unsupported.
+
+---- Sections ----
+Current version defines three types of sections.
+
+-- Metadata --
+Specifies metadata of a given file. Each such section in an archive must be uniquely identifiable by file_path.
+
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|   mode  |         |ulen|glen| pathlen |           modification_time           |              data_offset              |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
++==============+==============+==============+
+|   file_path  |  owner_user  |  owner_group |
++==============+==============+==============+
+
+the 4 high bits of mode describe file type
+	0010000		Named pipe
+	0040000		Directory
+	0100000		Regular
+	0120000		Symbolic link
+	0140000		Socket
+	All unused values are reserved for future use.
+the 12 low bits for mode describe file permissions
+	0000001		Execute permission for others
+	0000002		Write permission for others
+	0000004		Read permission for others
+	0000010		Execute permission for group
+	0000020		Write permission for group
+	0000040		Read permission for group
+	0000100		Execute permission for user
+	0000200		Write permission for user
+	0000400		Read permission for user
+	0001000		Append only
+	0002000		Set GID
+	0004000		Set UID
+
+modification_time - Time of last modification of file data.
+data_offset - Offset from the beginning of the archive of the Data section associated with this Metadata section.
+owner_user - String representing the user owner. Length is specified in ulen.
+owner_group - String representing the group owner. Length is specified in glen.
+file_path - String representing the path of the file. Length is specified in pathlen.
+
+ulen == 0 represents the system's superuser (UID == 0)
+glen == 0 represents the primary group of the system's superuser (GID == 0)
+pathlen must be greater than 0
+
+For named pipe, directory, socket or regular file with 0 length, data_offset must be 0 and there is no associated Data section.
+
+-- Data --
+Non-structured sequence of bytes with variable length. The length is provided by a Size section.
+
+-- Size --
+Specifies size of a section or a group of sections.
+
++----+----+----+----+----+----+----+----+
+|                  size                 |
++----+----+----+----+----+----+----+----+
+
+---- Layouts ----
+Each layout is identified by an 8-bit number. Current version defines two layouts. Files with unrecognized layouts should be treated as unsupported.
+
+-- Stream --
+Number: 0x00
+
+Designed for non-seekable medium. Recommended only for such mediums.
+
+<Metadata> [ <Size> <Data> ]
+<Metadata> [ <Size> <Data> ]
+...
+<Metadata> [ <Size> <Data> ]
+
+Each line as listed above describes a single file. The sections Size and Data exist only if there is a data associated with the file (data_offset is not 0).
+In case of multiple hard links to a single file, there is one Metadata section for each hard link and only the first hard link has Size and Data sections. The other hard links set data_offset to point to the Data section of the first hard link.
+
+The Metadata section of each directory must appear before the files contained in it.
+
+-- Block --
+Number: 0x01
+
+Designed for seekable medium.
+
+<Size>
+<Metadata> [ <Size> ]
+<Metadata> [ <Size> ]
+...
+<Metadata> [ <Size> ]
+<Data>
+<Data>
+...
+<Data>
+
+The first Size section specifies the total size of all the Metadata sections (including their corresponding Size sections).
+Each line with a Metadata section describes a single file. The section Size exists only if there is a data associated with the file (data_offset is not 0).
+In case of multiple hard links to a single file, there is one Metadata section for each hard link and all hard links have a Size section. If there is associated data to the file (data_offset is not 0), all hard links must point to a single Data section.
+
+The Metadata section of each directory must appear before the Metadata of the files contained in it.
+
+For performance reasons it is recommended that the Data sections are placed in the order in which they are first referenced from data_offset fields in the Metadata sections.
+
+TODO
+
+should it be extendable
+
+possible new layouts:
+- layout with paddings (easier to append and modify?, better performance?; cons: fragmentation, complexity, possibility to hide data)
+
+description how the two variants (stream and block) can be converted from one another, which one to prefer, etc.
+
+what to do if a directory 

@@ -1,0 +1,64 @@
+USER
+	Clone a remote repository
+		git clone ssh://martin@217.18.246.187/var/filement/filement.git
+	Update the local files from the remote repository
+		git pull
+	Save all the changes locally
+		git commit -a
+		# After you execute this command, a text editor will be opened. There you must write description of the commit.
+	Update the remote repository to the most recent commit
+		git push origin master
+
+TUTORIAL
+	http://git-scm.com/book/
+
+	git
+		init - create local repository
+			--bare only create meta data directory
+			--shared makes the repository writeable by the owner group
+		clone - create a local repository as a clone of a remote one. adds the repository as a remote
+			git clone git://martin@217.18.246.187/var/filement/project.git
+		add - stages file (and adds it to the repository)
+		rm - stages file for removal (and removes it)
+			--cached removes the file only from the git repository (it is kept in the filesystem)
+		reset - unstange something staged (resets what add and rm did)
+		status - shows what changed after the last commit
+		diff - shows the changes that are not going to be commited
+			--cached shows the changes that will be commited
+		commit - commits the staged (with add) changes. moves HEAD to the new commit.
+			-m the message is entered from the command line (instead of opening an editor)
+			-a all modified files are automatically staged
+			--amend modify the last commit instead of creating a new one
+		mv - moves file
+		log - shows commit log (a file may be specified to look only for changes in it)
+			--author only commits from an author
+			--committer
+			--since
+			--until
+			--all-match
+			-<n> only the last n commits
+		show - shows the changes introduced in HEAD (a commit specified as argument)
+		branch - create a new branch
+			-d delete a branch
+		checkout - change current branch (moves HEAD). checkouts the files of the branch (all uncommitted changes are lost)
+			-b create the branch and then checkout it
+			-- follows a list of files to checkout
+		merge - merge a branch with the current (HEAD) branch. creates a new commit if necessary to merge the branches
+		mergetool - starts a program to help merging the conflicts
+		remote - lists all remotes you've specified (clone specifies a remote automatically)
+			-v verbose
+			add adds a new remote
+			rm removes a remote
+		fetch - fetches all the data from a remote
+		pull - does fetch and merge
+			--rebase
+
+		TODO: push
+
+ADMIN
+	mkdir /var/filement/repo.git
+	cd /var/filement/repo.git
+	chown root:users .
+	git init --bare --shared
+	# Then the repository can be cloned with this command:
+	#  git clone ssh://martin@filement.net/var/filement/repo.git

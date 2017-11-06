@@ -1,0 +1,7 @@
+create view registered as select devices.uuid,devices.client_id,concat(os,'.',device,'.',arch,'.',format) as platform,concat(version_major,'.',version_minor,'.',revision) as version,devices.name,devices.registered,devices_locations.host as proxy from devices inner join platforms on devices.platform_id=platforms.platform_id left outer join devices_locations on devices.uuid=devices_locations.uuid;
+
+List all registered devices:
+select * from registered;
+
+List all devices which are online:
+select * from registered where proxy is not null;

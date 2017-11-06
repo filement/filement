@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=Filement
+Comment=Server that lets you access to your data from filement.com.
+Exec=filement-gtk
+Icon=filement.png
+Terminal=false

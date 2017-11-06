@@ -1,0 +1,111 @@
+#include <arpa/inet.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include "types.h"
+#include "log.h"
+#include "stream.h"
+#include "storage.h"
+#include "device/distribute.h"
+#include "device/upgrade.h"
+
+// Global variable holding the UUID of the device. Once set, it is never changed.
+#ifdef OS_BSD
+struct string UUID;
+#else
+struct string UUID_WINDOWS;
+
+extern int do_upgrade;
+#endif
+
+const struct string app_name = {.data = "Filement", .length = 8};
+const struct string app_version = {.data = "@{VERSION}", .length = @{VERSION_LENGTH}};
+
+static void *storage;
+
+// This is executed when an upgrade attempt failed and possibly left the device unusable.
+
+// TODO: is it possible that 2 failsafes are running at the same time?
+
+void filement_term(void)
+{
+	free(UUID.data);
+
+	storage_term(storage);
+	distribute_term();
+}
+
+int main(void)
+{
+	// Run the process as a daemon
+
+	#define ERROR_DAEMON "Unable to run as daemon"
+
+#if !defined(DEBUG) && !defined(OS_WINDOWS)
+	int temp = fork();
+	if (temp < 0) fail(2, ERROR_DAEMON);
+	if (temp) _exit(0); // Stop parent process
+
+	if (setsid() < 0) fail(2, ERROR_DAEMON);
+
+	if (chdir("/") < 0) fail(2, ERROR_DAEMON);
+#endif
+
+	#undef ERROR_DAEMON
+
+	umask(0);
+
+	// TODO: this is not the best solution but it works for most cases
+	// TODO: check for errors?
+	//close(0);
+	//close(1);
+	//close(2);
+
+	// TODO: check for errors?
+	//open("/dev/null", O_RDONLY);
+	//open("/dev/null", O_WRONLY);
+	//dup(1);
+
+#ifdef OS_BSD
+	struct sigaction action = {
+		.sa_handler = SIG_IGN,
+		.sa_mask = 0,
+		.sa_flags = 0
+	};
+	sigaction(SIGPIPE, &action, 0); // this never fails if properly used
+#endif
+
+	// Initialize storage. Update database on the first launch of a new version.
+	storage = storage_init();
+	if (!storage) fail(2, "Unable to initialize storage");
+
+	struct string key;
+	char *value;
+
+	// Get device UUID.
+	key = string("UUID");
+	value = storage_local_settings_get_value(storage, &key);
+	if (!value) fail(4, "Device not registered");
+#ifdef OS_BSD
+	UUID = string(value, UUID_LENGTH);
+#else
+	UUID_WINDOWS = string(value, UUID_LENGTH);
+#endif
+
+	// Perform device upgrade.
+	// TODO: better handling for upgrade fail
+	bool success;
+#if defined(OS_MAC)
+	success = filement_upgrade();
+#elif defined(OS_LINUX)
+	success = filement_upgrade();
+#elif defined(OS_WINDOWS)
+	if (!do_upgrade) windows_upgrade();
+	return 0;
+#endif
+	if (!success) error(logs("Upgrade failed"));
+
+	return 0;
+}

@@ -1,0 +1,145 @@
+There are 3 main aspects (like the CIA triad) that should be considered to provide security for the Filement services:
+
+Reliability (availability)
+Ensure that users can access their data all the time from every place. Make it hard to flood or crash any of the nodes of the Filement network. Ensure that sent data arrives to the destination.
+
+Authenticity (integrity)
+Make sure that data is not modified between the source and the destination. Non-repudiation. Check reliably whether recevied data really comes from where it is supposed to come.
+
+Privacy (confidentiality)
+Make sure that stored data can be read and modified only when access rights permit that. Transferred data should be readable only by the endpoints. Data access should be under the control of the users to whom this data belongs.
+
+----
+
+On registration, the distribute server generates UUID and SECRET for the device. UUID is a unique identifier of the device while SECRET is a private value used to prove device identity. Once generated these values are sent to the device and are never changed during the device's lifecycle. Device's UUID is publicly known while SECRET is known only by the device and the distribute server. Each one of them stores SECRET value in a database.
+
+UUID is stored as AES-128 encrypted value of a 16-byte string:
+xxxxxxxxyyyyzzrr
+xxxxxxxx     lowest 64 bits of current UNIX time (in microseconds)
+yyyy         32b client_id
+zz           16b platform_id
+rr           16b random number
+
+SECRET is a 128 bit pseudo-random number.
+
+In order to perform most dynamic requests, a web client needs to be authenticated. Authentication is done by auth_grant or session_login. These actions generate temporary session_id that is associated with given permissions. The session_id is stored in the device (in the memory for session_login or in the storage for auth_grant). The web client can retrieve its value from session_login's response or by a call to auth_list. The session_id is not publicly known. The session_id expires and becomes invalid after a given time, a number of uses, a call to auth_revoke, device restart (for IDs stored in memory) or by some other mechanism.
+
+session_id is stored as AES-128 encrypted value of a 16-byte string:
+xxxxxxxxyyyyyyyy
+xxxxxxxx         lowest 64 bits of current UNIX time (in microseconds)
+yyyyyyyy         64b pseudo-random number
+
+Each device user has a password. The device's database stores a 64 bit salt and a hash that is calculated by:
+- Store in HASH the SHA-256 hash value of the string obtained by concatenating the password with the salt.
+- Perform key stretching on the string obtained by the concatenation of HASH and the salt.
+
+========
+
+---- Generating random numbers ----
+Since von Neumann computers are designed to be deterministic, there is no way to generate a truly random number by using software. Software generated random numbers will have very low entropy.
+
+----
+
+distribute
+- DOS
+	requests that make database connections
+	registration spam
+- proxies with spoofed addresses
+- event server messages authenticity
+- device authenticty: UPGRADE_FINISH, UNREGISTER														FIXED
+- SECRET generation																						FIXED
+- network input validation
+
+device, router
+- DOS
+	memory leak response headers on error																FIXED
+	memory leak upload error																			FIXED
+	password check flood (since each check waits for the previous ones)									FIXED
+- device UUID can be used for various attacks
+- device SECRET is stored in db and so can be read by a random application on the device system
+- device database can be retrieved with download requests on its parent directory
+- weak session_id																						FIXED
+- storage_remote
+- proxy authenticity
+- distribute authenticity
+- network input validation
+	CMD_PROXY_LIST_OLD																					FIXED
+- readdir() thread safety																				FIXED
+- simultaneous filesystem access race conditions
+	http://en.wikipedia.org/wiki/Symlink_race
+- failsafe uses plain HTTP
+- auto-upgrade (maybe add checksums for the file transfers)												FIXED
+
+device proxy
+- DOS
+	notify_distribute()																					FIXED
+- network input validation
+- certificate on each proxy in order to support TLS
+
+cloud proxy
+- DOS
+- network input validation
+
+FTP proxy
+- DOS
+- network input validation
+
+Filement cloud
+- DOS
+- network input validation
+
+----
+https://www.securecoding.cert.org/confluence/pages/viewpage.action?pageId=637
+
+Why not hash passwords befre sending them:
+http://stackoverflow.com/questions/2742749/is-sending-a-hashed-password-over-the-wire-a-security-hole?rq=1
+
+Password security
+http://throwingfire.com/storing-passwords-securely/
+http://security.stackexchange.com/questions/3959/recommended-of-iterations-when-using-pkbdf2-sha256/3993#3993
+
+TODO: protect against replay attack:
+http://en.wikipedia.org/wiki/Replay_attack
+
+Benefits of using salt:
+http://stackoverflow.com/questions/4983915/is-time-a-good-salt?lq=1
+
+http://en.wikipedia.org/wiki/Security_through_obscurity#Arguments_against
+
+Benefits of Security by design
+http://en.wikipedia.org/wiki/Security_by_design
+----
+
+TODO: consider using TLS or AES-encryption using SECRET as a key
+TLS: slow, resource heavy, complex
+AES: SECRET is partially exposed, won't solve all security problems
+
+#define CMD_REGISTER_EMAIL          1
+	sensitive data: email, password, secret, client_id
+
+#define CMD_REGISTER_AUTH           2
+	sensitive data: auth_id, password, secret, client_id
+
+#define CMD_UPGRADE_LIST            3
+
+#define CMD_UPGRADE_FINISH          4
+	no authorization
+
+#define CMD_PROXY_LIST				7																	DONE
+
+#define CMD_ADDUSER_OLD             32763
+	sensitive data: secret, auth_id, client_id
+	no authorization																					FIXED
+
+#define CMD_RMUSER_OLD              32764
+	sensitive data: secret, client_id
+	no authorization																					FIXED
+
+#define CMD_TOKEN_AUTH_OLD          32765
+	sensitive data: auth_id, client_id
+
+//#define CMD_RENAME                5
+	no authorization
+
+//#define CMD_UNREGISTER            6
+	no authorization

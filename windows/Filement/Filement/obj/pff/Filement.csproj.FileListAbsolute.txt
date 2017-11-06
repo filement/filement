@@ -1,0 +1,10 @@
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\bin\pff\Filement.exe.config
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\bin\pff\Filement.exe
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\bin\pff\yo\Filement.resources.dll
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\obj\pff\Filement.Form1.resources
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\obj\pff\Filement.Properties.Resources.resources
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\obj\pff\Filement.Form1.yo.resources
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\obj\pff\Filement.csproj.GenerateResource.Cache
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\obj\pff\yo\Filement.resources.dll
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\obj\pff\Filement.exe
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\obj\pff\Filement.csprojResolveAssemblyReference.cache

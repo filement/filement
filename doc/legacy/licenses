@@ -1,0 +1,39 @@
+package				| description													| linkage
+--------------------+---------------------------------------------------------------+---------
+JSON				| Public domain. Don't use for evil.							| static
+SQLite				| public domain													| static
+sha2				| BSD (from OpenBSD)											| static
+GNU MP				| LGPL															| dynamic
+nettle				| LGPL															| dynamic
+GNU TLS				| LGPL															| dynamic
+zlib				| zlib															| dynamic / static
+aes					| public domain													| static
+mingw				|
+curl
+IP database
+md5					| BSD (from OpenBSD)
+miniupnpc
+libjpeg
+libepeg
+libav*
+ffmpeg
+ifaddrs
+
+
+
+
+TODO: it appears that BSD-licensed code should be listed as used:
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. Neither the name of the copyright holder nor the names of contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+so the documentation should mention using such software

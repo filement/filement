@@ -1,0 +1,148 @@
+---- HIGH ----
+goals: publish device source code
+
+Title																				Status
+send RST on download error															partial
+	Doesn't work for connections through proxy
+remove upgrade-related code															done
+
+compilation
+	improve deployment infrastructure (make sure other people can compile the application on mac and linux)
+	linux rpm package
+	add --prefix option to configure
+
+packaging
+	documentation (both developer and user)
+	read about optional library dependencies (libavformat.so appears to have such)
+		are there optional dynamic libraries? (ldd behaves strangely on gentoo while on centos it's okay)
+	license should be distributed with the device
+
+daemonization
+	(file descriptors, logs, ?error reports, etc.). logs & statistics
+
+{-make code strict aliasing comliant
+http://cellperformance.beyond3d.com/articles/2006/06/understanding-strict-aliasing.html
+http://web.archive.org/web/20080107035604/http://www.cellperformance.com/mike_acton/2006/05/demystifying_the_restrict_keyw.html-}
+
+fix detection of multiple instances of filement
+fix linux filement auto-start
+
+separate device code from the rest
+	storage_mysql - not used in device
+	actions.in
+
+finish the new compilation stuff
+linux
+	rpm
+	use the installed gnutls
+	maybe re-register a device if registration arguments are specified (or/and add reset argument)
+	reset button in gui?
+	library names; what to do with libva?
+
+distribute error:
+	[06 Jul 2014 07:28:30] Unable to accept (errno=24)
+
+fix certificate authorities (at the moment storage_json can not verify cloudflare's certificate when fetching storage)
+
+blocks can be seen without entering device password
+
+session_login is slow on token with wrong length (probably the distirubte server does not return error immediately)
+
+libfilement.so soname
+
+? possible bug when copying symlink to a directory
+
+handle soft links better (at the moment one of the pubclouds returns 500 when trying to ffs.download a soft link)
+
+don't truncate files; instead unlink and create new ones (fixes nikov's bug)
+
+---- MEDIUM ----
+
+iOS
+	M	add application icon
+	M	write support
+	M	don't load whole videos in memory
+	L	?audio support
+			see https://developer.apple.com/library/ios/documentation/mediaplayer/reference/MPMediaQuery_ClassReference/Reference/Reference.html
+	L	background support; remove the disable call for screen locking
+	separate blocks for Video, Audio, Private
+
+mac
+	developer ID to fix gatekeeper "Unregistered developer" error
+
+add Location header to the response of "tinyurl" (/uuid/~....)
+
+upload behavior (fs.upload, fs.save):
+	when overwriting a file, upload the new file with a different name and then rename it on success or delete it on failure
+	when appending to a file, on error truncate the file to the size it was before
+
+cache permissions
+
+use lint
+	https://en.wikipedia.org/wiki/Lint_programming_tool
+
+linux indexed search
+
+centralized cache file handling
+	extracted file cache should expire after certain time
+
+multiple devices on a single system
+
+use FD_CLOEXEC in open() (useful for device upgrade)
+	http://www.linuxprogrammingblog.com/threads-and-fork-think-twice-before-using-them
+
+(pending)
+	.tar.xz archives are not recognized by the interface
+	svg should be opened directly by the image viewer
+	qt should be recognized as video/quicktime
+
+device <-> distribute protocol logging
+
+interface:
+	status bar - number of selected entries, total size, etc.
+
+replace random() and srandom() with random_r() and srandom_r()
+http://www.evanjones.ca/random-thread-safe.html
+
+event server security
+
+---- LOW ----
+
+write tests
+
+tls
+	browsers can connect to the proxy only on port 80 (without TLS) because 443 is used for device connections to the proxy. fix this (device should connect to the proxy on a different port)
+
+make filement shell usable
+
+non-latin stuff support (e.g. case-insensitive search by name in cyrillic)
+
+miniupnpc ipv6 on tplink
+	two comments with "martinkunev" in them in 192.168.2.29:/root/filement_openwrt/external/miniupnpc_filement/miniupnpc.c
+
+better database design for distribute server
+
+compression
+HTTP error pages
+
+evfs
+	error detection and reporting
+	? use separate functions (instead of one huge function)
+	tests
+	remove code duplication in tar and zip
+	design core functions for handling file paths. these functions must make sure the path is normalized, there is always one additional byte available (in case putting / is necessary), etc.
+
+improve log functions
+
+memory optimizations
+	proxy: store only char arrays for UUIDs since length is known; store uuids in binary form
+		48B -> 16B
+
+better library implementations
+	bytearray
+	dictionary: resize, use bytearray, better hash, etc.
+	vector, queue: more sophisticated implementations
+	priority_queue: more general implementation
+	format: more arguments for string formatting, memory allocation; format_sint?
+	parse: hex2bin, strtol, base64, etc.
+	stream: faster tls (resume handshake, buffer size); more secure tls (rehandshake, regenerate prime numbers); think about the limit on read length

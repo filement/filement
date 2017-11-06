@@ -1,0 +1,1 @@
+# for file in $(grep -rwl response_entity *); do sed -e 's/response_entity(/response_entity_send(/g' < "$file" > temp &&  mv temp "$file"; done

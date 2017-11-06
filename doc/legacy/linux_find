@@ -1,0 +1,118 @@
+cache database
+	indexes files and stores name, size, type (detected by file content), etc.
+	creates file previews (thumbnails for images, etc.)
+	a database entry is stored for each user in each filesystem
+	allows fast search, fast file preview, fast file type detection, etc.
+	makes sure each user can see only the files for which they have permissions - this solves the security problems of locate
+	data is stored in the form of device name and inode so that a moved file will be recognized to be the old one
+
+~/.cache/
+	this seems like a good location to place data
+
+purpose:
+	indexed search
+		better than locate because: security, works well in multiuser environments, file types support, various search criteria
+		handles renamed files and links well
+	file manager usability
+		file types support
+		file previews
+		handles renamed files and links well
+	centralized cache system
+
+there should be a library for using the system
+there should be an indexing daemon
+	configuration
+	option to use inotify
+
+operations:
+	generate cache of a file by path or by file descriptor
+	retrieve cache of a file by path or by file descriptor
+	search file by criteria
+
+	-- after a file is stat()ed, its inode number can be used to lookup the cache of the file
+
+file information:
+	hard link names
+	soft link names
+	? localized names
+	inode number
+	preview
+	file type (regular, directory, etc.)
+	MIME type (major type, subtype)
+	size
+	mtime
+	? permissions
+	? case-sensitivity
+
+	? encoding
+	? image size
+	? audio/video duration
+	? email/html title
+	? version
+	? hashsums (to find duplicates?)
+
+how to handle changing storage (e.g. different flash storages that appear as the same device and at the same mount point)?
+
+==== plan ====
+initial version:
+creating database and searching in the database
+
+as a start, use KMP since I have a working implementation of it
+
+a database is created for a specific user in ~/.cache/filement.find
+
+function that creates a database file
+
+==== Database layout ====
+
+<header>
+<file entry>
+<file entry>
+...
+<file entry>
+
+---- header ----
+
++------+------+------+------+------+------+------+------+
+|  00  |  03  |  00  |  00  |          RESERVED         |
++------+------+------+------+------+------+------+------+
+
+00 - binary file
+	the idea is the file can be easily distinguished from text file; the treating of 00 by some applications and the fact that it's all 0 makes it a good choice
+... - type category
+	00 - executable
+	01 - ?
+	02 - filesystem (archive)
+	03 - ?database
+... - type
+... - variant (e.g. different layouts for earchive
+
+each byte is more specific than the previous.
+some application may register itself as supporting a given type. for example it can specify 3B type. this indicates that it supports these types for all values of the fourth byte
+
+00 02 00 - earchive
+00 02 01 - file index // TODO is this a good idea?
+
+---- file entry ----
+
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|   mode  | pathlen |       format      |           modification_time           |                  size                 |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+
++==============+
+|   file_path  |
++==============+
+
+mode - same as in earchive
+pathlen - same as in earchive
+format - file format (the first 4 bytes of the file for compatible format)
+modification_time - same as earchive
+size - same as earchive
+file_path - same as earchive
+
+TODO should I store permissions in mode? should I store user and group?
+
+==== future ====
+
+think about case-insensitive search, unicode and different locales (e vs é vs è vs ê; SS vs ß; etc.)
+database optimizations (entry sorting, storing in the form of some data structure, etc.)

@@ -1,0 +1,40 @@
+#!/bin/sh
+
+usage()
+{
+	echo "Usage: $0 < dev | production >"
+	exit
+}
+
+if [ $# -gt 1 ]
+then usage
+fi
+
+if [ -n "$1" ]
+then target="$1"
+else target=production
+fi
+
+case "$target" in
+dev)
+	echo 'target: Development'
+	host='distribute.flmntdev.com'
+	port='110'
+	e='proxy_dev'
+	options='-g -DDEBUG -DRUN_MODE=1'
+	;;
+production)
+	echo 'target: Production'
+	host='eventserver.distribute.filement.com'
+	port='110'
+	e='proxy_production'
+	options='-O2 -DRUN_MODE=2'
+	;;
+*)
+	usage
+esac
+
+echo 'Setting event server location...'
+sed -e "s/@{DISTRIBUTE_HOST}/$host/" -e "s/@{DISTRIBUTE_PORT}/$port/" < notify.c.in > notify.c
+sed -e "s/@{EXEC}/$e/" -e "s/@{OPTIONS}/$options/" < Makefile.in > Makefile
+echo 'done.'

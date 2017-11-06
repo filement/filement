@@ -1,0 +1,262 @@
+bool filement_init(void);
+	Performs device initialization. Must be called exactly once by the application. Returns whether the device is registered.
+
+void filement_daemon(void);
+	Daemonizes the application. The damonization process involves calling fork() and _exit()ing the parent process. This may cause some libraries to malfunction so this function must be called before any calls to such libraries.
+
+bool filement_register(const struct string *email, const char *pin, const struct string *name, const struct string *password);
+	Registers the device in the account specified by email. The device name and the password for access are supplied by name and password respectively. The argument pin is legacy and is ignored. Returns whether the registration was successful. Only safe if filement_init() returned false.
+
+bool filement_start(void);
+	Returns whether the ...
+	Only safe if filement_init() has been called.
+
+void filement_stop(void);
+	Only safe if filement_init() has been called.
+
+void filement_serve(void);
+	Starts listening for local requests. Calls filement_start() if the device is registered. Only safe if filement_init() has been called.
+
+bool filement_upgrade(void);
+	Checks for available upgrade and upgrade the device if one is found. If upgraded successfully, the application is restarted. Returns true if no upgrade is available and false if an error occured. Only safe if filement_init() has been called and both filement_start() and filement_serve() have never been called.
+
+void filement_reset(void);
+	Deletes the registration information of device. This effectively reverses the actions of filement_register(). After the operation is finished the application is stopped. Only safe if filement_init() has been called.
+
+For most devices there is no need to call filement_start() and filement_stop() since filement_serve() does all the necessary job. The former are used when it is useful for non-registered devices to listen for local requests. In such cases, filement_serve() is called at startup after filement_init() and filement_start() is called when the device is registered.
+
+OLD:
+
+==== filement ====
+A given device can be used by filement after it has application implementing the filement protocol.
+Such applications are composed of two parts:
+	libfilement - library that implements:
+		bool filement_init(void);
+		bool filement_register(const struct string *customer_id, const char *pin, const struct string *dev_name);
+		void filement_serve(void);
+
+		bool filement_upgrade(const struct string *target);
+		void filement_setup(void);
+	interface - Interface that implements:
+		const struct string app_revision;
+			Revision of the interface for current library version.
+			example:
+				const struct string app_revision = {.data = "3", .length = 1};
+
+The purpose of the interface is to interact with the user and call functions implemented by libfilement when required.
+
+0. When the application is started for the first time it must register the device in the filement network. Every time after the first time, the device is already registered and the application must initialize it.
+
+	To initialize a device, use filement_init().
+	To register a device, use filement_register().
+
+1. When application is upgraded, certain steps must be performed to set up the new version. The command line option -s specifies that filement_setup() must be called to set up the upgraded version of the application.
+
+2. The application works as a daemon. Call filement_init() to make it run as such.
+
+3. To begin handling client requests call filement_serve(). This function will never return.
+
+Simple implementation of filement interface can be found in if/main.c
+The declaration of the filement protocol can be found in if/libfilement.h
+
+Upgrade contents are available via upgrade_init().
+
+bool upgrade_init(struct stream *restrict input, struct vector *restrict download, struct vector *restrict remove);
+	input - Stream initialized to 
+
+void upgrade_term(struct vector *restrict vector);
+
+==== json =====
+
+struct json - Represents JSON object
+
+struct json *json_parse(const struct string *json);
+	Parses JSON string and returns pointer to a JSON object. On error returns NULL.
+	Return value should be freed with json_free().
+
+struct string *json_serialize(const struct json *json);
+	Creates JSON string from a JSON object. On error returns NULL.
+	Return value should be freed with free().
+
+void json_free(struct json *restrict json);
+	Frees JSON object.
+
+JSON object
+	A JSON object is a tree structure. Each node is of one of the following types:
+		BOOLEAN
+		INTEGER
+		REAL
+		STRING
+		ARRAY
+		OBJECT
+	Getting the type of a node:
+		struct json *json = json_parse(json_string);
+		json->type; // Type of the object
+		if (json->type == INTEGER) ; // The object is of type integer
+	Getting the value of a node:
+		json->boolean; // true or false
+		json->integer; // long integer number
+		json->real; // double-precision floating point number
+		json->string_node; // struct string. contains length and data members. data is null terminated
+		json->array_node; // struct vector
+		json->object; // Pointer to struct dict or NULL. NULL is used to represent JSON null.
+
+	struct dict *d = json->object;
+
+	Constructing JSON objects
+		The root JSON object is either array or object. JSON items can be inserted in arrays and non-null objects
+		There are two types of functions - the one type are functions that create JSON item and the other type are functions that insert items in arrays and non-null objects.
+		The former return pointer to the newly allocated struct on success and NULL on error. The latter return true on success and false on error.
+		All JSON elements have to be freed with json_free(). When freeing an array or object, json_free frees all items inserted into it so you don't need to free them.
+
+		struct json *json_array(void);
+			Creates JSON array
+
+		struct json *json_object(bool is_null);
+			Creates JSON object. The argument specifies whether the object is null object.
+
+		struct json *json_boolean(bool value);
+			Creates JSON boolean
+
+		struct json *json_integer(int value);
+			Creates JSON integer
+
+		struct json *json_real(bool value);
+			Creates JSON real
+
+		struct json *json_string(struct string *value);
+			Creates JSON string
+
+		bool json_array_insert(struct json *restrict parent, struct json *restrict child);
+			Inserts child as an element of parent
+
+		bool json_object_insert(struct json *restrict parent, struct string *restrict key, struct json *restrict value);
+			Inserts key : value
+
+		Example:
+			struct string s;
+			struct json *root, *temp;
+		 
+			root = json_object(false); // says it is not null
+
+			string_init(&s, "kunev", 5);
+			temp = json_string(&s);
+			string_init(&s, "martin", 6);
+			json_object_insert(root, &s, temp);
+
+			temp = json_integer(42);
+			string_init(&s, "answer", 6);
+			json_object_insert(root, &s, temp);
+
+			// Do something with the generated JSON in root
+			// Now it looks like this:
+			// {"martin": "kunev", "answer": 42}
+
+			json_free(root);
+
+===================
+
+struct dict
+	Initialize a dictionary - you can use either one of these two functions:
+		struct dict *dict_alloc(size_t size);
+			Creates a new dictionary and returns a pointer to it. On error returns NULL.
+			The returned dictionary should be freed with free().
+		bool dict_init(struct dict *restrict dict, size_t size);
+			Initializes the dictionary passed as an argument. On error returns false.
+			The dictionary should be terminated with dict_term().
+		WARNING: size must be a power of 2
+
+	bool dict_add(struct dict *restrict dict, struct string *restrict key, void *restrict value);
+		Adds an element to a dictionary.
+		Only key->data, key->length and value are stored in the dictionary. This means that if key points to a dynamically allocated memory it must be freed by other means as it is not stored in the dictionary.
+
+	void *dict_set(struct dict *restrict dict, const struct string *key, void *restrict value);
+		Sets the value of a dictionary item and returns the old value
+
+	void *dict_get(const struct dict *dict, const struct string *key);
+		Returns the value of a dictionary item
+
+	struct dict_item *dict_remove(struct dict *restrict dict, const struct string *key);
+		Removes a dictionary item from a dictionary. Returns the removed item so that memory can be freed properly
+
+	void dict_term(struct dict *restrict dict);
+		Terminates a dictionary initialized with dict_init().
+
+	How to perform an operation on each item of a dictionary
+		struct dict *d;
+		// Assume that d points to a dictionary
+		struct dict_iterator it;
+		struct dict_item *item;
+		for(item = dict_iterate(&it, d); item; item = dict_next(&it, d))
+		{
+			// Do something with item here
+			// item->key; // struct string that contains the key of the current item
+			// item->value; // void * that contains the value of the current item
+			// Example:
+			printf("%s : %d\n", item->key.data, *(int *)item->value); // Assuming that item->value is int *
+		}
+
+	This struct represents a dictionary item. It is returned by dict_remove, dict_iterate and dict_next.
+	struct dict_item
+	{
+		struct string key;
+		void *value;
+	};
+
+struct string
+	struct string
+	{
+		char *data;
+		size_t length;
+	};
+
+	data - pointer to the first character of the string. It is recommended that the string is NUL-terminated to avoid any potential problems
+	length - length of the string not including the terminating NUL.
+
+	struct string *string_alloc(const char *data, size_t length);
+		Allocates memory for a new string and its data. Copies the data from the passed pointer - this means that it's not necessary that the value pointed to by data persists afterthe function call.
+		The returned string pointer must be freed with free().
+
+	struct string *string_init(struct string *restrict s, const char *data, size_t length);
+		Initializes an existing string by copying the value pointed to by data. It's not necessary that the value pointed to by data persists afterthe function call.
+		The string must be terminated by calling free(s->data).
+
+	string_static(value)
+		Returns a string initialized with value which must be a constant (the size must be available at compile time). String data is valid as long as value persists.
+
+	string_dynamic(value, length)
+		Returns a string initialized with value which is length bytes long. String data is valid as long as value perists.
+
+	Comparison
+		If you want to allocate a string that must persist, use string_alloc() or string_init().
+			If you have an existing struct string that you want to initialize, use string_init()
+			If you don't have an existing struct string, use string_alloc()
+		If you want to temporarily set string to a static value, use string_static()
+		If you want to set string to a value just by copying the pointer (without allocating new memory), use string_dynamic()
+
+	Example 0
+		struct string *str;
+		str = string_alloc(val, val_len);
+
+		// Do something with str here
+
+		free(str);
+
+	Example 1
+		struct string str;
+		string_init(&str, val, val_len);
+
+		// Do something with str here
+
+		free(str.data);
+
+	Example 2
+		struct string key;
+
+		key = string_static("content-type");
+		dict_get(d, &key);
+
+		key = string_static("content-length");
+		dict_get(d, &key);
+
+		// You don't need to free any memory

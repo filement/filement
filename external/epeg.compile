@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# TODO this is only for linux
+export CC=gcc
+
+tar xjf thumbs.tar.bz2
+cd thumbs
+
+cd jpeg-8d && \
+./configure --enable-static --disable-shared --with-pic > /dev/null && \
+make > /dev/null && \
+cd ..
+
+cp jpeg-8d/.libs/libjpeg.a ../../lib/
+
+export CPPFLAGS="$CPPFLAGS -I$(pwd)/jpeg-8d/"
+
+cd epeg && \
+mv configure configure_orig && \
+sed 's/^my_libs="-ljpeg"$/my_libs=""/' < configure_orig > configure && \
+chmod a+x configure && \
+./configure --enable-static --disable-shared --with-pic > /dev/null && \
+make > /dev/null 2> /dev/null
+cd ..
+
+cd .. && \
+cp thumbs/epeg/src/lib/.libs/libepeg.a ../lib/ && \
+rm -rf thumbs
+
+#export JPEG_LIB_VERSION="80"
+
+#cd ../libjpeg-turbo-1.2.90
+#./configure --enable-static --disable-shared --libdir=/usr/local/lib
+#make 2> /dev/null
+#cp /usr/local/lib/libturbojpeg.a ../../../lib/
+#cp /usr/local/lib/libepeg.a ../../../lib/
+#cd ..

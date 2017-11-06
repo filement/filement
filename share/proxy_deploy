@@ -1,0 +1,17 @@
+for ip in 52.40.100.25 217.18.244.15 217.18.247.222
+do
+	ssh "$ip" rm -f /usr/local/bin/proxy_device
+	scp proxy_production "$ip":/usr/local/bin/proxy_device
+	ssh "$ip" mkdir -p /etc/filement
+	scp /root/filement/share/test.p12 "$ip":/etc/filement/
+	scp -r /usr/local/share/filement "$ip":/usr/local/share/
+	scp /usr/lib/x86_64-linux-gnu/libhogweed.so.2 "$ip":/usr/lib/x86_64-linux-gnu/
+	scp /usr/lib/x86_64-linux-gnu/libnettle.so.4 "$ip":/usr/lib/x86_64-linux-gnu/
+	scp /usr/lib/x86_64-linux-gnu/libgnutls.so.28 "$ip":/usr/lib/x86_64-linux-gnu/
+	scp /usr/lib/x86_64-linux-gnu/libtasn1.so.6 "$ip":/usr/lib/x86_64-linux-gnu/
+	scp ../../share/monitor.sh "$ip":/usr/local/bin/
+	ssh "$ip" sed -i '/^prox:/d' /etc/inittab
+	ssh "$ip" echo 'prox:2345:respawn:/usr/local/bin/monitor.sh' \>\> /etc/inittab
+	ssh "$ip" pkill -9 proxy_device
+	ssh "$ip" telinit q
+done

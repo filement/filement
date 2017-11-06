@@ -1,0 +1,114 @@
+Filement cache system provides temporary data storage. The cache is stored in the process's memory. Additionally, the filesystem may be used to store large amounts of data (like extracted archives).
+
+Applications
+- Progress of asynchronous operations (move, copy, transfer, etc.).
+- Web sessions.
+- Memoization of time consuming operations (search, extract, etc.).
+Possible future applications: scaled images
+
+The cache system functions as a key => value storage. Keys are represented by a base64-encoded string with fixed size (CACHE_KEY_SIZE after the encoding is applied). Values are stored as JSON.
+
+Caches are divided into several classes:
+CACHE_FILE			0
+	Data of file that is otherwise slow to access (like extracted archives). The key represents suffix of the filename used to store the actual extracted file in the filesystem.
+	file_size :: INTEGER
+CACHE_LIST			1
+	List of files that is otherwise slow to generate (like search results).
+CACHE_PROGRESS		2
+	Progress of an asynchronous operation.
+	{"src": source_uuid, "dest": destination_path, "size": progress, "status": status}
+	source_uuid :: STRNIG
+	destination_path :: STRING
+	progress :: INTEGER
+	status :: STRING (error code as described in types.h; the value is 1 for operations that are still in progress)
+CACHE_SESSION		3
+	Web session.
+	WARNING: Currently this value may contain binary data stored in a string unencoded. In this case the value is not a valid JSON.
+CACHE_URL			4
+	Stored URLs. Used in the implementation of tinyurl.
+CACHE_PROXY			5
+	Parameters for data forwarding.
+
+Delete conditions:
+- manual
+- expiration time
+- no space for more caches (not implemented)
+- limit of the number of uses reached (not implemented)
+
+Cache deletion
+- From the web browser (via the dynamic API)
+- From an action handler
+- After expiration (it expiration time is set)
+- If the space it takes is needed by something else (applicable only for memoization cache).
+
+The web client can manipulate the cache via the dynamic API:
+cache.list
+	Returns the keys of all caches of a given class.
+	class :: INTEGER
+cache.get
+	Returns the value of a given cache key.
+	TODO metainformation in the headers?
+	key :: STRING
+cache.flush
+	Deletes cache with a given key.
+	key :: STRING
+
+Internal cache manipulation API (used by the action handlers)
+	Existing caches can be accessed in two modes: read-only and read-write.
+	read-only
+		cache_use --------------> cache_finish
+	read-write
+		                 /------> cache_save
+		cache_load ------
+		                 \------> cache_discard
+
+	At any given moment, the cache can be accessed simultaneously in read-only mode from many places and in read-write mode from only one place (to prevent modification conflicts).
+	The read-write mode creates a copy of the cache that is available for modification. After the work with that copy is done, it can either be saved or discarded. The modified cache becomes visible only after it has been saved. The places where cache_use() was called before the copy is saved will continue to use the old cache version.
+
+	The caches of class CACHE_FILE and CACHE_LIST are used for memoization. The functions cache_enable(), cache_key() and cache_disable() allow such cache to be associated with a location. This makes it possible to retrieve the cache corresponding to a given location.
+
+	The functions cache_use() and cache_load() return struct cache. The value of the cache is accessed through the member "value". The whole struct is only necessary for calls to cache_finish(), cache_save() and cache_cancel().
+
+struct cache
+{
+	union json *value;
+	volatile unsigned _links;
+};
+
+bool cache_init(void);
+	Executed once after the server is started.
+void cache_term(void);
+	Executed once before the server is terminated.
+
+bool cache_create(char key[restrict CACHE_KEY_SIZE], uint16_t class, union json *restrict value, time_t expire);
+	Create cache of the specified class with the specified value. The expiration time is in seconds (0 means no expiration).
+	The key of the created cache is stored in key. Returns true on success and false on error.
+uint16_t cache_class(const char key[restrict CACHE_KEY_SIZE]);
+	Returns the class of a given cache key.
+union json *cache_keys(uint16_t class);
+	Returns JSON array of strings containing the keys of the given class. On error returns 0.
+	The returned array must be freed with json_free().
+void cache_destroy(const char key[restrict CACHE_KEY_SIZE]);
+	Deletes cache with the given key.
+
+const struct cache *cache_use(const char key[restrict CACHE_KEY_SIZE]);
+	Returns pointer to the cache corresponding to the given key. The cache can only be used for reading.
+void cache_finish(const struct cache *restrict data);
+	Declares that the given cache will no longer be accessed.
+	This function does what is necessary to negate the effects of a preceding call to cache_use().
+
+struct cache *restrict cache_load(const char key[restrict CACHE_KEY_SIZE]);
+	Returns pointer to a copy of the cache corresponding to the given key. The cache can be used for reading and writing. Will block if the cache is currently modified from somewhere else.
+void cache_save(const char key[restrict CACHE_KEY_SIZE], struct cache *restrict data);
+	Saves changes to the cache with a given key. Declares that the given cache will no longer be accessed.
+	This function negates the effect of a preceding call to cache_load().
+void cache_discard(const char key[restrict CACHE_KEY_SIZE], struct cache *data);
+	Discards the changes to the cache with a given key. Declares that the given cache will no longer be accessed.
+	This function negates the effect of a preceding call to cache_load().
+
+int cache_enable(uint16_t class, const struct string *restrict location, const char key[restrict CACHE_KEY_SIZE]);
+	Declares cache from the given class with the given key as corresponding to location. This enables its later retrieval with cache_key().
+const char *cache_key(uint16_t class, const struct string *restrict location);
+	Returns the key of the cache corresponding to a given location. Used for memoized data.
+char *cache_disable(uint16_t class, const struct string *restrict location);
+	Negates the effects of cache_enable().

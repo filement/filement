@@ -1,0 +1,17 @@
+UUID - Unique device identifier (bijection between a registered device and UUID) - it is designed to be used in different contexts for specifying a device. Some examples are specifying data location (web browsers do this to access device files), determining device identity (device sends its UUID to proxies and distribute server). Devices are designed to be used by anybody who is authorized. So anybody authorized to see data from a given device must know the UUID. UUIDs are sometimes sent unencrypted and thus they are vulnerable to eavesdropping. Because of this, it's reasonable to think of the UUIDs as publicly known. Since UUIDs are used to determine device identity anybody who knows a given UUID can represent as the device with that UUID. This violates the Authenticity principle and allows for security holes related to Reliability and Privacy.
+To prevent the security risks described above, SECRET is introduced.
+On registration, the distribute server generates UUID and SECRET for the device. UUID is a unique identifier of the device while SECRET is a private value used to prove device identity. Once generated these values are sent to the device and are never changed during the device's lifecycle. Device's UUID is publicly known while SECRET is known only by the device and the distribute server. Each one of them stores SECRET value in a database.
+
+SECRET is currently 128 bit random number (this can be changed relatively easy). The length 128 bits was chosen because it is a good middle ground between high performance and high security. Because only the device and the distribute server know SECRET, any operation requiring SECRET that a device performs can be seen as a guarantee that this is indeed the real device. Secret can be used in various way to authorize a device when connecting to the distribute server:
+- encryption key for AES-128
+- authorization password
+
+device
+	filement_init()			initializes SECRET
+	distribute_register()	sets SECRET in the registration process
+	uuid_register()			stores SECRET in the database
+
+	Device no longer sends PIN to the distribute server since devices will be authorized from the interface.
+
+distribute
+	Distribute server now generates SECRET as a random number (not as 0). On several commands it checks the passed SECRET value and performs the command only if SECRET matches.

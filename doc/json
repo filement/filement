@@ -1,0 +1,106 @@
+The library provides functions for basic manipulation of JSON. The basic JSON type is union json. Operate only with pointers returned by the functions described below. Creating objects of type union json and using them with the json library results in undefined behavior (due to hidden layout information used by the implementation).
+
+The type of JSON data can be retrieved with json_type(). Possible values:
+NONE		null
+BOOLEAN		boolean (false or true)
+INTEGER		integer number
+REAL		floating point number
+STRING		string
+ARRAY		array
+OBJECT		object
+
+The value of the JSON can be extracted directly when the type is known. The union provides access to at least the following members:
+bool boolean;
+int64_t integer;
+double real;
+struct string string_node;
+struct vector array_node;
+struct dict *object;
+
+union json *json_parse(const struct string *json);
+	Converts string to JSON. Returns JSON data corresponding to the string json. Returns NULL on error.
+	The return value must be freed with json_free().
+
+ssize_t json_length_string(const char *restrict data, size_t size);
+
+ssize_t json_length(const union json *restrict json);
+	Returns the number of bytes that the json data will take when dumped into a string.
+
+char *json_dump_string(unsigned char *restrict dest, const unsigned char *restrict src, size_t size);
+
+char *json_dump(char *restrict result, const union json *restrict json);
+	Converts JSON to string. The string is dumped in result.
+	Returns a pointer to the first byte after the last byte written.
+
+union json *json_clone(const union json *json);
+	Creates a deep copy of JSON data. Returns the copy or NULL on error.
+	The return value must be freed with json_free().
+
+void json_free(union json *restrict json);
+	Frees JSON data allocated with one of the functions documented here. If json is a NULL poiner, nothing is done.
+
+Generating JSON objects
+	union json *json_none(void);
+		Creates JSON null. The return value must be freed with json_free().
+
+	union json *json_boolean(bool value);
+		Creates JSON boolean value. The return value must be freed with json_free().
+
+	union json *json_integer(long long value);
+		Creates JSON integer value. The return value must be freed with json_free().
+
+	union json *json_real(double value);
+		Creates JSON floating point. The return value must be freed with json_free().
+
+	union json *json_string(const char *data, size_t length);
+		Creates JSON string value. The return value must be freed with json_free().
+
+	union json *json_array(void);
+		Creates an empty JSON array. The return value must be freed with json_free().
+
+	union json *json_object(void);
+		Creates an empty JSON object. The return value must be freed with json_free().
+
+	union json *json_array_insert(union json *restrict container, union json *restrict value);
+		Creates a JSON by inserting value into the array container at the end of the array.
+		The data pointed to by container and value may no longer be valid after a call to this function. This means that all further manipulations must be done on the return value.
+		The return value must be freed with json_free().
+
+	union json *json_object_insert(union json *restrict container, const struct string *restrict key, union json *restrict value);
+		Creates a JSON by inserting a value with the given key into the object.
+		The data pointed to by container and value may no longer be valid after a call to this function. This means that all further manipulations must be done on the return value.
+		The return value must be freed with json_free().
+
+	All the functions return the created JSON data or NULL on error. The returned JSON must be freed with json_free().
+
+	Note that the functions are designed in such a way that it is sufficient to check for errors only the final value of a series of operations.
+	If this value is not a NULL pointer, all the operations were successful. The value must be freed with json_free() (the intermediate values are freed transparently).
+	If this value is a NULL pointer, an error occured. In this case all the allocated memory is freed transparently (no need to call json_free()).
+
+	Example:
+		union json *progress = json_object(), *found = json_array();
+
+		key = string("block_id");
+		progress = json_object_insert(progress, &key, json_integer(block->block_id));
+
+		key = string("path");
+		progress = json_object_insert(progress, &key, json_string("dog", 3));
+
+		key = string("status");
+		progress = json_object_insert(progress, &key, json_integer(STATUS_RUNNING));
+
+		found = json_array_insert(found, json_real(2.3));
+		found = json_array_insert(found, json_boolean(0));
+
+		key = string("found");
+		progress = json_object_insert(progress, &key, found);
+
+		if (progress)
+		{
+			// success; do something with the json
+			json_free(progress);
+		}
+		else
+		{
+			// error
+		}

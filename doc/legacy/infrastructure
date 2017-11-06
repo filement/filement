@@ -1,0 +1,99 @@
+35.160.17.62	filement.com
+35.160.17.62	webserver.filement.com
+54.148.167.46	distribute.filement.com
+54.148.167.46	distribute1.filement.com
+35.161.63.125	distribute2.filement.com
+35.161.63.125	eventserver.filement.com
+
+52.40.100.25	oregon.proxy.filement.com
+217.18.247.222	sofia1.proxy.filement.com
+
+==== ====
+
+OLD
+
+https://control.softlayer.com
+SL394630
+P8408117121b@
+
+174.37.59.59    distribute0
+173.192.30.162  distribute1
+174.37.59.58    distribute2
+
+174.37.59.59    filement.com
+174.37.59.59    webserver.filement.com
+173.192.30.162  distribute.filement.com
+173.192.30.162  distribute1.filement.com
+174.37.59.58    distribute2.filement.com
+174.37.59.58    eventserver.filement.com
+
+37.58.86.42     amsterdam.proxy.filement.com
+50.22.27.210	dallas.proxy.filement.com
+119.81.134.58	hongkong.proxy.filement.com
+184.173.40.18	houston.proxy.filement.com
+159.8.140.244	london.proxy.filement.com
+168.1.77.100	melbourne.proxy.filement.com
+158.85.172.130	sanjose.proxy.filement.com
+173.192.150.210	seattle.proxy.filement.com
+119.81.126.34	singapore.proxy.filement.com
+158.85.93.148	toronto.proxy.filement.com
+50.22.233.146	washington.proxy.filement.com
+217.18.244.15	sofia.proxy.filement.com
+
+====
+
+OLD
+
+==== production ====
+distribute 0
+Hosts the old MySQL database and memcached
+Used for static content and PHP requests
+DOMAIN: filement.com
+LOCAL ADDRESS: 10.1.1.6
+
+distribute 1
+Hosts MySQL database
+Used for communication with devices
+DOMAIN: flmntdistribute.cloudapp.net, distribute.filement.com
+LOCAL ADDRESS: 10.1.1.4
+
+distribute 2
+Used for http and event-related requests
+DOMAIN: flmntdist2.cloudapp.net
+LOCAL ADDRESS: 10.1.1.5
+
+Public Clouds:
+host: storage.filement.com
+mysql host: 127.0.0.1
+executable: /root/pubcloud
+
+host: bg.filement.com
+mysql host: 192.168.192.60
+executable: /root/pubcloud
+
+proxy servers
+Each one runs device, ftp and cloud proxy
+virginiaproxy.filement.com
+sanfranciscoproxy.filement.com
+singaporeproxy.filement.com
+hongkongproxy.filement.com
+belfastproxy.filement.com
+frankfurtproxy.filement.com
+bgproxy.filement.com
+
+==== dev ====
+flmntdev.com
+Used for static content and PHP requests
+ADDRESS: 217.18.246.187
+
+distribute.flmntdev.com
+Used for communication with devices, http and event-related requests
+ADDRESS: 217.18.244.13
+
+proxy.flmntdev.com
+ADDRESS: 217.18.244.14
+
+Public Clouds:
+host: storage.filement.com
+mysql host: 127.0.0.1
+executable: /root/pubcloudDev

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>F0ED68FD-60DD-41F6-BAB1-DC268E49C85D</string>
+	<key>IDESourceControlProjectName</key>
+	<string>Filement</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>48162E42-ABAE-4335-AA2C-5697A18E875F</key>
+		<string>ssh://filement.net/var/filement/filement.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>mac/Filement.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>48162E42-ABAE-4335-AA2C-5697A18E875F</key>
+		<string>../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>ssh://filement.net/var/filement/filement.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>48162E42-ABAE-4335-AA2C-5697A18E875F</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>48162E42-ABAE-4335-AA2C-5697A18E875F</string>
+			<key>IDESourceControlWCCName</key>
+			<string>filement</string>
+		</dict>
+	</array>
+</dict>
+</plist>

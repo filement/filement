@@ -1,0 +1,23 @@
+Installing the Filement application on your computer will let you access the data stored on it from everywhere, just by using a web browser.
+Filement enables you to access all your devices in a uniform way through the Filement web interface.
+For more information, visit http://www.filement.com/filement
+
+-- Install --
+You need root permissions to install this software.
+# make install
+
+-- Uninstall --
+You need root permissions to uninstall this software.
+# make uninstall
+
+-- Usage --
+In order to start using Filement, you need to create an account in filement.com and then register your computer.
+* Create an account
+visit http://www.filement.com/register
+* Register your computer
+start Filement from your graphical environment (filement-gtk) or from the command line (filement). You will be asked to provide the email of your filement.com account and to choose a name for your computer. Then you will be prompted to choose a password. You will have to enter this password when you access your device from filement.com.
+
+-- Additional details --
+When you register your computer, Filement creates a file to store its data in your home directory.
+~/.filement.db
+Delete this file if you want to delete your registration.

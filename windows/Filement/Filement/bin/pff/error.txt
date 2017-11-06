@@ -1,0 +1,3 @@
+started filement_export_check_device
+location - C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\bin\pff
+Device not registered

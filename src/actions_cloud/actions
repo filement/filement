@@ -1,0 +1,3 @@
+// Each line contains the name of a single action
+proxy.anonymous
+proxy.authorized

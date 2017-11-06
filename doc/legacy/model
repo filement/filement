@@ -1,0 +1,41 @@
+distribute - central server that handles global tasks - providing information about the whole filement system, load balancing, upgrades, etc.
+	platforms: bsd
+
+device - application that is installed on a device in order to connect it to the filement network
+	platforms: bsd, windows
+failsafe (deprecated) - application that is used as a failsafe during device upgrade
+	platforms: bsd
+
+ftp - proxy that translates between HTTP and FTP. used to connect devices with FTP servers installed to the filement network
+	platforms: linux
+
+proxy - proxy used to access devices with no real IP address
+	platforms: linux
+
+cloud - proxy used to connect the web browser to Google Drive, Dropbox, etc. It adds several headers required by the web browser to the server response.
+	platforms: bsd
+
+
+
+---------------------------------------------
+
+filement repository - contains device files for various platforms and versions. used to obtain files for initial download and device upgrade. accessed through the distribute server
+/var/www/repository/
+	os.device.arch.format/
+		major.minor.revision/
+			files/
+				# files for upgrade
+			failsafe
+				# failsafe for upgrade
+			filementSUFFIX
+				# file for initial installation
+			checksum
+		latest@
+			# link to the directory of the latest version
+
+SUFFIX:
+	MacOS:			.dmg
+	Linux:			.tar.gz
+	Linux Debian:	.deb
+		There are special name requirements
+	Linux Fedora:	.rpm

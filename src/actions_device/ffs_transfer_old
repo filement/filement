@@ -1,0 +1,236 @@
+static int download_file(void *argument, unsigned char *buffer, unsigned size)
+{
+	struct download *info = argument;
+	struct http_response *response = info->response;
+
+	if (response->content_encoding < 0) // headers not sent yet
+	{
+		size_t available = MAGIC_SIZE - info->magic_size;
+		struct string key = string("Content-Type");
+		const struct string *value;
+
+		// If we don't have enough data to determine content type, just remember buffer data in info.
+		if (available > size)
+		{
+			format_bytes(info->magic + info->magic_size, buffer, size);
+			info->magic_size += size;
+
+			// Handle files with size less than MAGIC_SIZE properly.
+			if (info->magic_size == info->offset)
+			{
+				value = &type_unknown;
+				goto send;
+			}
+
+			return 0;
+		}
+
+		// Content-Type
+		format_bytes(info->magic + info->magic_size, buffer, available);
+		buffer += available;
+		size -= available;
+		value = mime(info->magic, MAGIC_SIZE);
+send:
+		if (!response_header_add(response, &key, value)) return ERROR_WRITE;
+
+		response->code = OK;
+		if (!response_headers_send(info->stream, info->request, response, info->offset)) return ERROR_WRITE;
+
+		if (!response_content_send(info->stream, response, info->magic, MAGIC_SIZE)) return ERROR_WRITE;
+
+		if (!size) return 0;
+	}
+
+	if (!response_content_send(info->stream, response, buffer, size)) return ERROR_WRITE;
+
+	return 0;
+}
+
+static int archive_file(void *argument, unsigned char *buffer, unsigned size)
+{
+	struct download *info = argument;
+	if (!response_content_send(info->stream, info->response, buffer, size)) return ERROR_WRITE; // TODO error
+	info->offset += size;
+	return 0;
+}
+
+static int archive_process(const struct file *restrict file, void *argument)
+{
+	struct download *info = argument;
+
+	// Choose whether to create an archive.
+	if (info->archive < 0)
+	{
+		if (file->type == EVFS_DIRECTORY)
+		{
+			// Add headers.
+			struct string type = string("application/earchive");
+			if (!response_header_add(info->response, &content_type, &type)) return ERROR_MEMORY; // TODO
+
+			// Send headers.
+			info->response->code = OK;
+			if (!response_headers_send(info->stream, info->request, info->response, RESPONSE_CHUNKED)) return -1; // TODO
+
+			struct string header = string("\x00\x02\x00\x00" "\x00\x00\x00\x00");
+			if (!response_content_send(info->stream, info->response, header.data, header.length)) return -1; // TODO
+
+			info->archive = 1;
+		}
+		else info->archive = 0;
+	}
+
+	if (info->archive)
+	{
+		char header[sizeof(struct metadata)];
+		uint64_t size;
+
+		// Generate filename.
+		struct string *filename;
+		if (file->name.length)
+		{
+			struct string separator = string("/");
+			filename = string_concat(&info->prefix, &separator, &file->name);
+			if (!filename) return ERROR_MEMORY;
+		}
+		else filename = &info->prefix;
+
+		info->offset += 24 + filename->length;
+
+		metadata_format(header, file, filename->length, info->offset);
+
+		struct string chunk = string(header, sizeof(header));
+		size = htobe64(file->size);
+
+		bool status = response_content_send(info->stream, info->response, chunk.data, chunk.length);
+		status = status && response_content_send(info->stream, info->response, filename->data, filename->length);
+
+		if (size && (file->type == EVFS_REGULAR))
+		{
+			status = status && response_content_send(info->stream, info->response, (char *)&size, sizeof(size));
+			if (evfs_file(file, archive_file, argument)) ; // TODO: error
+		}
+
+		if (file->name.length) free(filename);
+
+		return (status ? 0 : -1);
+	}
+	else
+	{
+		if (file->size)
+		{
+			info->magic_size = 0;
+			info->offset = file->size;
+			if (evfs_file(file, download_file, argument)) ; // TODO: error
+		}
+		else
+		{
+			// Send headers.
+			info->response->code = OK;
+			if (!response_header_add(info->response, &content_type, &type_unknown)) return ERROR_MEMORY; // TODO
+			if (!response_headers_send(info->stream, info->request, info->response, RESPONSE_CHUNKED)) return -1; // TODO
+		}
+
+		return ERROR_CANCEL; // this is the only file; no need to look for more
+	}
+}
+
+static int ffs_archive_old(const struct http_request *request, struct http_response *restrict response, struct resources *restrict resources, const union json *query)
+{
+	// [{"block_id": INTEGER, "path": STRING}, ...]
+
+	// TODO: support ranges
+
+	struct string key, *value;
+	struct vector paths;
+	size_t index;
+	int status;
+
+	if (resources->auth_id) auth_id_check(resources);
+	if (!resources->auth && !session_is_logged_in(resources)) return Forbidden;
+
+	if (json_type(query) != ARRAY) return NotFound;
+	if (!vector_init(&paths, VECTOR_SIZE_BASE)) return InternalServerError;
+	status = request_paths(&query->array_node, &paths, resources);
+	if (status) goto finally;
+
+	status = InternalServerError;
+
+	// Create an archive if we are downloading multiple files or a directory.
+	// For a directory, archive name is determined in download_process().
+
+	struct download info;
+
+	if (paths.length > 1)
+	{
+		// Add headers.
+		struct string type = string("application/earchive");
+		if (!response_header_add(response, &content_type, &type)) goto finally;
+
+		// Send headers.
+		response->code = OK;
+		if (!response_headers_send(&resources->stream, request, response, RESPONSE_CHUNKED))
+		{
+			status = -1;
+			goto finally;
+		}
+
+		struct string header = string("\x00\x02\x00\x00\x00\x00\x00\x00");
+		if (!response_content_send(&resources->stream, response, header.data, header.length))
+		{
+			status = -1;
+			goto finally;
+		}
+
+		info.archive = 1;
+		info.offset = header.length;
+	}
+	else
+	{
+		info.archive = -1;
+		info.offset = 0;
+	}
+
+	info.stream = &resources->stream;
+	info.request = request;
+	info.response = response;
+	if (!vector_init(&info.files, VECTOR_SIZE_BASE))
+	{
+		status = InternalServerError;
+		goto finally;
+	}
+
+	// Add each file in the vector to the archive.
+	struct string *path;
+	char *end;
+	for(index = 0; index < paths.length; ++index)
+	{
+		path = vector_get(&paths, index);
+
+		// Set prefix for the file.
+		end = path->data + path->length - 1;
+		while (*end != '/') if (end-- == path->data) break;
+		end += 1;
+		info.prefix = string(end, path->length - (end - path->data));
+
+		status = evfs_browse(path, 63, archive_process, &info, EVFS_STRICT);
+		if (status)
+		{
+			// TODO fix return values here
+			if (response->content_encoding < 0) return InternalServerError; // no response sent
+			else return -1;
+		}
+	}
+
+	vector_term(&info.files);
+
+	if (!response_chunk_last(info.stream, info.response)) return -1;
+
+	status = 0;
+
+finally:
+	for(index = 0; index < paths.length; ++index)
+		free(vector_get(&paths, index));
+	vector_term(&paths);
+
+	return status;
+}

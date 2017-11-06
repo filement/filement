@@ -1,0 +1,113 @@
+<name> is an indexed search system composed of two applications:
+indexing - Creates database for fast searching.
+ffind - Searches in the database.
+
+<name> is created for several reasons:
+* to overcome the problems of tools like locate and slocate
+  - locate is prone to privilege escalation attacks because it runs with SUID
+  - regular users can only use locate's database through locate; this leads to various issues when an application wants to perform indexed search
+  - locate provides only filename information and supports only search by filename
+  - regular users can't update the database of locate
+* to provide a database for fast lookup of file information
+	// TODO blog post
+
+usage:
+* search tools
+* file managers
+* servers that need fast lookup of file information (http, etc.)
+
+TODO library
+TODO performance imporvements (more sophisticated database; database modification instead of generating a new database; etc.)
+TODO compression to reduce file size?
+TODO inotify
+TODO ? hash for each file to detect changes/duplication
+TODO run the indexing with high nice
+TODO don't index when on battery
+
+notable alternatives: recoll, metatracker, mdfind, strigi
+
+TODO reference the blogpost about file types
+
+----
+
+one database for each user in ~/.cache/filement
+each user can set up a list of directories to be indexed
+
+filenames in the database must be stored in UTF-8
+command line filenames must be passed as UTF-8
+
+---- binary file types ----
++------+------+------+------+
+|  00  | type |format|layout|
++------+------+------+------+
+
+type
+* object code													00
+* virtual filesystem (archive, disk image, database, etc.)		02
+* document														04
+	legacy examples: pdf
+* image															05
+	legacy examples: png, jpeg, gif
+* audio															08
+	legacy examples: mp3, wave, vorbis
+* video															09
+	legacy examples: theora, avi
+* multimedia													0c
+	legacy examples: matroska, webm, mp4, riff, ogg
+* unknown														ff
+
+/*
+00  object code
+
+02  archive
+03  database (including torrent)
+
+08  document
+09  spreadsheet
+0a  ?presentation
+
+10  raster image (including fonts)
+11  vector image (including fonts)
+12  modeling
+13  audio
+14  <reserved> (for video)
+
+18  multimedia
+*/
+
+format
+// only the lowest 7 bits are significant; the highest bit is set for legacy formats
+
+format and layout numbers are not yet fixed (they may change in the future)
+
+
+file types
+* text
+	first byte: everything except \x00
+	source code
+		//
+		/*
+		--
+		{-
+		#!
+		<!DOCTYPE
+		<?xml
+		<?php
+		<?
+		<html
+		<xml
+		;
+		{"
+		{
+		[
+		etc.
+
+types are transparent when it comes to compression
+
+example queries:
+* find all html documents
+* find all images
+* find all songs
+* find all movies
+* find all archives
+* find all documents

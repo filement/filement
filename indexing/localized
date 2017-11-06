@@ -1,0 +1,23 @@
+localized search
+consider which of these conversions should be done
+
+* letter case should be taken into account
+note: case can have semantic value (especially in german)
+note: turkish has different mappings for latin letters: İ -> i; I -> ı
+
+* ligatures
+example: œ -> oe, ß -> ss
+
+* diacritics
+example: é, è, ê -> e, ç -> c, ѝ -> и, ё -> е
+note: diacritics are sometimes used to distinguish words (e.g. sur <-> sûr)
+
+* context-sensitive letters
+example: ς -> σ
+this is very important for arabic
+
+* country-specific differences
+colour -> color; grey -> gray
+note: i guess there are problems of the same nature which are more complex
+
+* arabic and non-arabic numbers in some languages

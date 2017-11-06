@@ -1,0 +1,30 @@
+# Filement
+
+DEF=-D_GNU_SOURCE -DOS_BSD
+INC=-I$(CURDIR) -I$(CURDIR)/../lib -I$(CURDIR)/../../include
+LIB=-L$(CURDIR)/../lib
+
+export CC=gcc
+#export CC=clang
+export CFLAGS=-std=c99 -pthread @{OPTIONS} $(DEF) $(INC) -Werror -Wchar-subscripts -Wimplicit -Wsequence-point -Wcast-align
+#export CFLAGS=-std=c99 -pthread @{OPTIONS} $(DEF) $(INC) -Werror -Wchar-subscripts -Wimplicit -Wsequence-point -Wcast-align -Wno-pointer-sign -Wno-parentheses -Wno-return-type
+export LDFLAGS=-pthread $(LIB) -lgnutls -Wl,-unresolved-symbols=ignore-in-shared-libs
+export EXEC=@{EXEC}
+
+all: $(EXEC)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $<
+
+$(EXEC): io.o http.o notify.o proxy.o recognition.o main.o
+	$(MAKE) -C ../lib string.o dictionary.o queue.o format.o stream.o log.o
+	$(CC) $^ ../lib/string.o ../lib/dictionary.o ../lib/queue.o ../lib/format.o ../lib/stream.o ../lib/log.o $(LDFLAGS) -o $@
+
+clean:
+	$(MAKE) -C ../lib clean
+	rm *.o
+	rm $(EXEC)
+
+mrproper: clean
+	rm notify.c
+	rm Makefile

@@ -1,0 +1,7 @@
+all:
+	#/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/clang -DOS_MAC -DOS_IOS -DOS_BSD -x objective-c -arch armv7 -std=c99 -fobjc-abi-version=2 -Wreturn-type -Wno-parentheses -Wno-pointer-sign -Wno-empty-body -Wswitch -Wunused-variable -Wunused-value -DDEBUG=1 -isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk -miphoneos-version-min=5.0 -fpch-preprocess -I../../include/ -I../../src/ -I../../src/lib/ -c evfs_ios.m
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XCodeDefault.xctoolchain/usr/bin/clang -g -DOS_MAC -DOS_IOS -DOS_BSD -x objective-c -arch armv7 -std=c99 -fobjc-abi-version=2 -Wreturn-type -Wno-parentheses -Wno-pointer-sign -Wno-empty-body -Wswitch -Wunused-variable -Wunused-value -DDEBUG=1 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk -miphoneos-version-min=5.0 -I../../include/ -I../../src/ -I../../src/lib/ -c evfs_ios.m -o evfs.o
+	#/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin/clang -g -DOS_MAC -DOS_IOS -DOS_BSD -x objective-c -arch i386 -std=c99 -fobjc-abi-version=2 -Wreturn-type -Wno-parentheses -Wno-pointer-sign -Wno-empty-body -Wswitch -Wunused-variable -Wunused-value -DDEBUG=1 -isysroot /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator5.0.sdk -miphoneos-version-min=5.0 -I../../include/ -I../../src/ -I../../src/lib/ -c evfs_ios.m -o evfs.o
+
+clean:
+	rm evfs.o

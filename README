@@ -1,0 +1,66 @@
+Filement is a system aimed at providing a uniform interface to data over the Internet. To achieve that, filement provides software for end users and core server infrastructure.
+For the end user, Filement provides access to data over multiple kinds of devices and cloud services.
+
+-- Supported platforms --
+Filement is designed to be highly portable. Most of the code uses POSIX APIs. Some platform-specific features are implemented with platform-specific libraries. Filement works on x86, x86_64, ARM, MIPS, MIPSel and possibly other CPU architectures.
+
+PC-compatible
+	MacOS X
+	Linux
+	Windows
+	(planned) FreeBSD
+Mobile
+	Android
+	Blackberry
+	(planned) iOS
+Routers
+	Belkin
+	TP-Link
+Remote services
+	FTP
+	Google Drive
+	Dropbox
+	Rackspace
+	Filement Cloud
+
+Some features may not be available on all platforms (for example TLS is supported only on PC-compatible platforms).
+
+-- Components --
+There are many servers providing different functionalities to the Filement infrastructure.
+
+Device application
+	The device application works similarly to a web server. This application provides access to the files on the computer it is running on. The application handles requests in two ways:
+	* Direct requests to the application.
+	* Requests directed to relay servers (usually referred to as device proxies) that the device application is connected to.
+	Clients of the device are required to use direct requests whenever possible. The relay servers are used only when it is not possible to access the device directly (due to NAT).
+	The device application attempts to setup UPNP in order to reduce the cases when relay servers are necessary.
+
+	The device application uses HTTP, but handles requests using a dynamic API (described in dynamic_api)
+
+Distribute server
+	Distribute servers are the link between all the different components of the filement infrastructure. They provide information to the other servers.
+	The event server is a component of the distribute server that notifies subscribers when an event happens.
+
+	A distribute server listens for devices (both encrypted and non-encrypted connection), events and HTTP requests with the dynamic API.
+	Due to limitations on some hostings, the distribute server is sometimes split into two servers - one that listens for devices and one that listens for events and HTTP requests. This allows clients only being able to use ports 80 and 443 to work in filement.
+
+	Devices communicate with the distribute server using a binary protocol (described in protocol).
+
+	Events are send to the distribute server by a proxy server (usually about a change in the connectivity of a device) or by a web server (for chatting).
+
+	HTTP requests can be:
+		location - "At what address are given servers available?"
+		subscribe - "Block and respond when there is an event I'm interested in."
+		login - "Tell me if a given token is authorized for login."
+
+Filement cloud
+	This server works much like a device application, except that it does not belong to an individual user. It has different permission management and several additional dynamic API actions so that many users can have access to their respective data on a cloud using this server.
+
+FTP Proxy
+	Relays requests between the web interface and FTP servers
+
+Cloud Proxy
+	Relays requests between the web interface and various cloud services (google drive, rackspace, dropbox)
+
+Device Proxy
+	see device_proxy for more information

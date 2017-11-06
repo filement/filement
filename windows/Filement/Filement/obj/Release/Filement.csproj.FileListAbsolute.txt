@@ -1,0 +1,10 @@
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\bin\Release\Filement.exe.config
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\bin\Release\Filement.exe
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\obj\Release\Filement.Form1.resources
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\obj\Release\Filement.Properties.Resources.resources
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\obj\Release\Filement.csproj.GenerateResource.Cache
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\obj\Release\Filement.exe
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\bin\Release\yo\Filement.resources.dll
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\obj\Release\Filement.g.resources
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\obj\Release\Filement.Form1.yo.resources
+C:\Users\Nikola\Documents\Visual Studio 2012\Projects\Filement\Filement\obj\Release\yo\Filement.resources.dll

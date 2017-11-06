@@ -1,0 +1,55 @@
+Unified simple library for network I/O that provides caching capabilities. Supports TLS (if compiled with TLS support) transparently.
+
+#define BUFFER_SIZE_MAX 65536	/* 64 KiB */
+	Limit of the internal buffer size.
+
+#define TIMEOUT 10000			/* 10s */
+
+struct stream;
+	Contains at least the following members:
+		int fd; // TCP socket file descriptor
+
+	Represents a TCP stream. This struct must be initialized before use and terminated after use. Each of the stream_* functions operates on such struct. The functions operate on a connected TCP socket file descriptor. After the stream is terminated, the socket must be closed like a regular socket with close(2).
+
+	struct stream stores data in internal read and write buffers. Upon reading, the buffer is not copied but rather a pointer to it is made available (see stream_read()). Upon writing, the data is copied in the internal write buffer and may not be sent immediately (see stream_write()).
+
+int stream_init_tls_connect(struct stream *restrict stream, int fd, const char *restrict domain);
+	Initializes stream for TLS connection to a server named domain with the given fd.
+
+int stream_init_tls_accept(struct stream *restrict stream, int fd);
+	Initializes stream for TLS connection to a client with the given fd.
+
+int stream_init(struct stream *restrict stream, int fd);
+	Initializes stream for connection with the given fd.
+
+int stream_term(struct stream *restrict stream);
+	Terminates stream that was previously initialized with stream_init*().
+
+int stream_read(struct stream *restrict stream, struct string *restrict buffer, size_t length);
+	Reads length bytes from the stream. If there are not enough bytes in the read buffer, more bytes are read from the socket until length bytes are available or an error occurs. The read bytes will still be available in the buffer until they are discarded with stream_read_flush().
+	After the call buffer->data points to the start of internal buffer. The length of the internal buffer is stored in buffer->length which is always >= length.
+
+void stream_read_flush(struct stream *restrict stream, size_t length);
+	Discards length bytes from the read buffer.
+
+size_t stream_cached(const struct stream *stream);
+	Returns the number of bytes available in the read buffer.
+
+int stream_write(struct stream *restrict stream, const struct string *buffer);
+	Writes buffer->length bytes from the buffer pointed to by buffer->data. The written data may not be sent immediately over the network. To send all the data in the write buffer, use stream_write_flush().
+
+int stream_write_flush(struct stream *restrict stream);
+	Sends all the data in the internal write buffer.
+
+----
+
+All functions except stream_cached() return 0 on success and error code on failure.
+
+The only difference between using the library for TLS and for non-TLS connection is in the initialization function.
+stream_init() - regular connection
+stream_init_tls_connect() - client side of TLS connection
+stream_init_tls_accept() - server side of TLS connection
+
+The initialization functions make the socket non-blocking. The functions stream_read(), stream_write() and stream_write_flush() need to perform a network operation. In case the success of the function is impossible without the completion of the network operation, these functions can block for up to TIMEOUT seconds. If the timeout is reached and the operation is not finished, ERROR_AGAIN is returned.
+
+TODO expose a timeout argument

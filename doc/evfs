@@ -1,0 +1,81 @@
+typedef int (*evfs_callback_t)(const struct file *restrict, void *);
+
+==== ==== ==== ====
+
+int evfs_browse(struct string *restrict location, unsigned depth, evfs_callback_t callback, void *argument, unsigned flags);
+
+Browses the entries in location nested up to depth levels (location is considered at depth 0). Any archives in the path to location are extracted (if compressed) and treated as directories. Invokes callback for each of the entries (including the entry corresponding to location). The callback for the root entry will always be called first. The callback for an entry will be called after the callback for its parent.
+
+The callback function is invoked with 2 arguments:
+- Struct containing information about the currently browsed file. This struct is guaranteed to exist only for the duration of the callback call (any operation relying on this struct must be finished before the callback returns).
+- The opaque argument parameter passed to evfs_browse().
+
+The return value of the callback must be 0 on success or error code on error.
+
+location
+Directory to be browsed.
+
+depth
+Depth of browsing relative to location. If depth is 0, only location is browsed; if depth is 1, location and its children are browsed; etc.
+
+callback
+Function to call for each of the browsed entries.
+
+argument
+Additional opaque argument to be passed to the callback function.
+
+flags
+EVFS_STRICT - return ERROR_CANCEL if not all files are browsed; this can happen because there are entries nested deeper than depth, due to an error or because a callback returned error
+EVFS_NESTED - treat any browsed archive (including location) as a directory (compressed archives will not be browsed)
+EVFS_EXTRACT - if location is a compressed archive, extract it (this flag is ignored if EVFS_NESTED is not specified)
+
+struct file
+{
+    struct string name;
+    off_t size;
+    time_t mtime;
+    unsigned char type;
+    unsigned char access;
+};
+
+name - NUL-terminated struct string storing file path. The path is relative to location.
+size - File size in bytes. This is 0 for directories.
+mtime - Time of last modification of the file.
+type - File type.
+	#define EVFS_REGULAR                1
+	#define EVFS_DIRECTORY              2
+access - Access rights of the file in the current context.
+	#define EVFS_READ                   0x1
+	#define EVFS_APPEND                 0x2
+	#define EVFS_MODIFY                 0x4
+
+NOTES
+* Some archive corruptions may not be detected (same entry appearing several times, etc.).
+* struct file may have additional fields for internal use
+
+RETURN VALUES
+  0		success
+< 0		error
+
+==== ==== ==== ====
+
+int evfs_file(const struct file *restrict file, int callback(void *, unsigned char *, unsigned), void *argument);
+
+Retrieves the content of a file (compressed files are extracted transparently). The read data is passed on chunks to callback.
+The callback function is invoked with 3 arguments:
+- Pointer to a data chunk.
+- The length of the data chunk.
+- The opaque argument parameter passed to evfs_file().
+
+file
+Struct initialized by evfs_browse().
+
+callback
+Function to call for each chunk of the file.
+
+argument
+Additional opaque argument to be passed to the callback function.
+
+RETURN VALUES
+  0		success
+< 0		error

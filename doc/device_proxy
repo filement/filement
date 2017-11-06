@@ -1,0 +1,37 @@
+In the filement infrastructure device proxy (sometimes simply called proxy) is a server designed to relay traffic between the web interface and a client device. This server is designed to solve the following problems:
+* Connecting to a client device that doesn't have a real IP address.
+* Establishing a TLS-encrypted connection without the necessity of a certificate on the client device.
+* Finding an IP address and port on which a client device is accessible.
+
+Device proxies have real IP address and certificates. A running client device always keeps a connection to a device proxy and this connection can be used to access the device or to determine other ways to establish a connection with it.
+
+There are many device proxies and each online device is connected to exactly one of them at any given time. When a device connects to a proxy, it sends its UUID to the proxy. The proxy sends notification to the event server that the device is online so that the distribute server can give an address through which each device is available. When a device disconnects from the proxy, the proxy sends notification that the device is offline.
+
+The device proxy listens for:
+- device connections
+	The device makes a connection in order to handle requests relayed through the proxy.
+- HTTP connections
+	The web interface connects to the proxy in order to establish HTTP connection with a given device.
+- HTTPS connections
+	The web interface connects to the proxy in order to establish HTTPS connection with a given device.
+
+When a proxy starts it sends a notification to the even server so that it can initialize the list of devices connected to the proxy (delete stale information).
+
+For a given device proxy, each device is in one of these states:
+* Disconnected
+The device is not connected to the proxy.
+device connection -> device state becomes Active
+HTTP/HTTPS connection -> response 404 NotFound
+* Inactive
+The device is connected to the proxy but it is not ready to handle requests at this moment.
+device connection ->
+	if there are client requests in the queue, communication between the device and the client is established and the device is expected to send response; the request is removed from the queue
+	else device state becomes Active
+HTTP/HTTPS connection -> request is put into a queue
+* Active
+The device is connected to the proxy and is ready to handle requests.
+device connection -> old device connection is replaced by the new one
+HTTP/HTTPS connection -> communication between the device and the client is established and the device is expected to send response; device state becomes Inactive
+
+An Active device must confirm its presence periodically. If no confirmation arrives in a given time period (TIMEOUT_PING seconds), device state becomes Disconnected.
+An Inactive device will become disconnected if no new device connection arrives in a given time period (TIMEOUT_DISCONNECT seconds).

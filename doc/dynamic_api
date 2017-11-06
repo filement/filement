@@ -1,0 +1,55 @@
+Filement Web Server generates dynamic content by invoking "actions". Filement handles the request as a dynamic one if request query is specified and is valid URL-encoded JSON.
+
+Each dynamic request must specify:
+- Action name
+- Action options
+Currently only 1 action per dynamic request is supported (even though the syntax supports multiple actions).
+
+Request query has the following syntax:
+{"actions": {"NAME": OPTIONS}}
+NAME - name of the action to be invoked (JSON string). Format: /^[a-z_][a-z0-9_.]*$/i
+OPTIONS - action options (any JSON type). The exact structure is defined by the corresponding action.
+
+Example request query:
+{"actions":{"ping":null}}
+Example request:
+GET /?{%22actions%22:{%22ping%22:null}} HTTP/1.1
+
+For each action Filement executes a designated action handler. Action handler name is constructed from action name by substituting each dot with underscore.
+s/\./_/g
+
+Action handler is invoked with the following arguments:
+const struct http_request *request
+	Details of the HTTP request
+struct http_response *restrict response
+	struct vector headers
+		Response headers
+    unsigned code (default = InternalServerError)
+		HTTP status code of the response
+	int content_encoding (default = -1)
+		The encoding in which response content is sent
+		-1	not initialized
+		0	no content
+		1	identity (no encoding is performed)
+		higher values are reserved for compressed encodings
+struct resources *restrict resources
+	Server resources
+const union json *options
+	Action options in the form of a JSON object
+
+The action handler should process the client request. It can choose to send response or leave response to be handled by Filement.
+
+Functions for sending response:
+	response_header_add
+		Adds header to the list of headers of the response.
+	response_headers_send
+		Sends reponse headers.
+	response_entity_send
+		Sends portion of the response content.
+	response_chunk_last
+		Indicates that the last portion of the response has been sent. Used only for chunked response.
+
+Action handler should return 0 on success or error code (as described in types.h) on error. The value ERROR_CANCEL is used to make the server close the connection.
+
+Example action handler declaration:
+int auth_list(const struct http_request *request, struct http_response *restrict response, struct resources *restrict resources, const union json *options);

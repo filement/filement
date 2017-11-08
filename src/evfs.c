@@ -343,8 +343,11 @@ int evfs_directory(const struct string *restrict location, unsigned depth, struc
 #endif
 {
 #if !defined(OS_WINDOWS)
-	struct dirent *entry, *more;
+	struct dirent *entry;
 	struct stat info;
+# if !defined(READDIR)
+	struct dirent *more;
+# endif
 #else
 	struct dirent entry, *more;
 	struct _stati64 info;
@@ -359,11 +362,11 @@ int evfs_directory(const struct string *restrict location, unsigned depth, struc
 		cwd->data[cwd->length - 1] = *SEPARATOR;
 		return errno_error(errno);
 	}
-#if !defined(OS_WINDOWS)
+#if !defined(READDIR) && !defined(OS_WINDOWS)
 	entry = malloc(offsetof(struct dirent, d_name) + pathconf(cwd->data, _PC_NAME_MAX) + 1);
 #endif
 	cwd->data[cwd->length - 1] = *SEPARATOR;
-#if !defined(OS_WINDOWS)
+#if !defined(READDIR) && !defined(OS_WINDOWS)
 	if (!entry)
 	{
 		closedir(dir);
@@ -382,7 +385,15 @@ int evfs_directory(const struct string *restrict location, unsigned depth, struc
 	// TODO breaks and continues should check for strict mode
 	while (true)
 	{
-#if !defined(OS_WINDOWS)
+#if defined(READDIR)
+		errno = 0;
+		if (!(entry = readdir(dir)))
+		{
+			if (errno)
+				status = errno_error(status);
+			break;
+		}
+#elif !defined(OS_WINDOWS)
 		if (status = readdir_r(dir, entry, &more))
 		{
 			status = errno_error(status);
@@ -572,7 +583,7 @@ finally:
 		cwd->length -= filename.length;
 	}
 
-#if !defined(OS_WINDOWS)
+#if !defined(READDIR) && !defined(OS_WINDOWS)
 	free(entry);
 #endif
 	closedir(dir);

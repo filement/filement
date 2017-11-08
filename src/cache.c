@@ -40,6 +40,10 @@ TODO can I replace entry->_links with pthread_mutex_trylock() in cache_destroy?
 #include "cache.h"
 #include "server.h"
 
+#if defined(READDIR)
+# include <errno.h>
+#endif
+
 #define SESSION_EXPIRE 10800 /* 3 hours */
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER, mutex_enabled = PTHREAD_MUTEX_INITIALIZER;
@@ -224,23 +228,44 @@ bool cache_init(void)
 	struct string filename;
 	char path[KEY_POSITION + CACHE_KEY_SIZE + 1] = DIRECTORY CACHE_PREFIX;
 
-	struct dirent entry, *more;
+	struct dirent *entry;
+# if !defined(READDIR)
+	struct dirent *more;
+	entry = malloc(offsetof(struct dirent, d_name) + pathconf(DIRECTORY, _PC_NAME_MAX) + 1);
+	if (!entry)
+		return false;
+# endif
+
 	DIR *dir = opendir(DIRECTORY);
 	if (!dir) return false;
 
 	while (true)
 	{
-		if (readdir_r(dir, &entry, &more))
+# if defined(READDIR)
+		errno = 0;
+		if (!(entry = readdir(dir)))
+		{
+			if (errno)
+			{
+				closedir(dir);
+				return false;
+			}
+			break; // no more entries
+		}
+# else
+		if (readdir_r(dir, entry, &more))
 		{
 			closedir(dir);
+			free(entry);
 			return false;
 		}
 		if (!more) break; // no more entries
+# endif
 
 # if defined(_DIRENT_HAVE_D_NAMLEN)
-		filename = string(entry.d_name, entry.d_namlen);
+		filename = string(entry->d_name, entry->d_namlen);
 # else
-		filename = string(entry.d_name, strlen(entry.d_name));
+		filename = string(entry->d_name, strlen(entry->d_name));
 # endif
 
 		if ((filename.length == (sizeof(CACHE_PREFIX) - 1 + CACHE_KEY_SIZE)) && !memcmp(filename.data, CACHE_PREFIX, sizeof(CACHE_PREFIX) - 1))
@@ -250,6 +275,9 @@ bool cache_init(void)
 		}
 	}
 	closedir(dir);
+# if !defined(READDIR)
+	free(entry);
+# endif
 #endif
 
 	if (!dict_init(&cache, DICT_SIZE_BASE)) return false;

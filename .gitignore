@@ -10,8 +10,8 @@ src/distribute/ftp.c
 src/actions_sorted.h
 src/actions.out
 mac/build
-external/ffmpeg.compile
-external/gnutls.compile
+src/external/ffmpeg.compile
+src/external/gnutls.compile
 src/Makefile
 src/distribute/authorize.c
 src/proxy/Makefile
@@ -20,3 +20,11 @@ src/proxy/proxy_dev
 src/proxy/proxy_production
 src/pubcloud/main.c
 src/storage_mysql.h
+
+bin/filement
+bin/filement-gtk
+lib/libfilement.so
+share/filement/background.png
+share/filement/logo.png
+gui/applications
+gui/icons

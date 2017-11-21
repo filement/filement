@@ -1,7 +1,10 @@
 #!/bin/bash
 
+if [ -f '../libepeg.a' ]; then exit; fi
+
 # TODO this is only for linux
 export CC=gcc
+export CFLAGS=-fPIC
 
 tar xjf thumbs.tar.bz2
 cd thumbs
@@ -10,8 +13,6 @@ cd jpeg-8d && \
 ./configure --enable-static --disable-shared --with-pic > /dev/null && \
 make > /dev/null && \
 cd ..
-
-cp jpeg-8d/.libs/libjpeg.a ../../lib/
 
 export CPPFLAGS="$CPPFLAGS -I$(pwd)/jpeg-8d/"
 
@@ -24,7 +25,7 @@ make > /dev/null 2> /dev/null
 cd ..
 
 cd .. && \
-cp thumbs/epeg/src/lib/.libs/libepeg.a ../lib/ && \
+cp thumbs/epeg/src/lib/.libs/libepeg.a thumbs/jpeg-8d/.libs/libjpeg.a ../ && \
 rm -rf thumbs
 
 #export JPEG_LIB_VERSION="80"

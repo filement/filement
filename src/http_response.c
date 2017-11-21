@@ -677,7 +677,7 @@ bool response_headers_send(struct stream *restrict stream, const struct http_req
 	end = format_bytes(end, terminator.data, terminator.length);
 
 	fragment = string(line, end - line);
-	write(2, fragment.data, fragment.length);
+	//write(2, fragment.data, fragment.length);
 	if (status = stream_write(stream, &fragment))
 	{
 		error(logs("response_header 0: status="), logi(status));
@@ -685,7 +685,7 @@ bool response_headers_send(struct stream *restrict stream, const struct http_req
 	}
 
 	fragment = string(response->headers, response->headers_end - response->headers);
-	write(2, fragment.data, fragment.length);
+	//write(2, fragment.data, fragment.length);
 	if (status = stream_write(stream, &fragment))
 	{
 		error(logs("response_header 1: status="), logi(status));

@@ -177,9 +177,10 @@ elsif ($platform eq 'linux')
 	$storage = 'storage_sqlite';
 	$root = '/usr';
 	$libs = '';
-	$libs1 = '../lib/libminiupnpc_filement.a ../lib/libepeg.a ../lib/libjpeg.a';
-	$libs1 = '../lib/libepeg.a ../lib/libjpeg.a' if ($target eq 'pubcloud');
+	$libs1 = 'libminiupnpc.a libepeg.a libjpeg.a';
+	$libs1 = 'libepeg.a libjpeg.a' if ($target eq 'pubcloud');
 	$strip = "cp ../bin/device ../bin/device_stripped\\n\\tstrip -R .comment -R .note ../bin/device_stripped";
+	$strip = ''; # TODO remove this
 	$libdir = '/usr/local/lib';
 	$getso = q(objdump -p "$1"|grep SONAME|awk '{print $2}');
 	$soname = '-soname';
@@ -322,16 +323,16 @@ if (-f $actions)
 close SORTED;
 
 # gnutls.compile
-open STDOUT, '>', 'external/gnutls.compile';
+open STDOUT, '>', 'src/external/gnutls.compile';
 $length = length $version;
-system 'sed', '-e', "s/\@{SUFFIX}/$suffix/", '-e', "s/\@{LIBDIR}/$libdir/", '-e', "s/\@{GETSO}/$getso/", 'external/gnutls.compile.in';
-chmod 0755, 'external/gnutls.compile';
+system 'sed', '-e', "s/\@{SUFFIX}/$suffix/", '-e', "s/\@{LIBDIR}/$libdir/", '-e', "s/\@{GETSO}/$getso/", 'src/external/gnutls.compile.in';
+chmod 0755, 'src/external/gnutls.compile';
 
 # ffmpeg.compile
-open STDOUT, '>', 'external/ffmpeg.compile';
+open STDOUT, '>', 'src/external/ffmpeg.compile';
 $length = length $version;
-system 'sed', '-e', "s/\@{SUFFIX}/$suffix/", '-e', "s/\@{LIBDIR}/$libdir/", '-e', "s/\@{GETSO}/$getso/", 'external/ffmpeg.compile.in';
-chmod 0755, 'external/ffmpeg.compile';
+system 'sed', '-e', "s/\@{SUFFIX}/$suffix/", '-e', "s/\@{LIBDIR}/$libdir/", '-e', "s/\@{GETSO}/$getso/", 'src/external/ffmpeg.compile.in';
+chmod 0755, 'src/external/ffmpeg.compile';
 
 # device/device.c
 open STDOUT, '>', 'src/device/device.c';

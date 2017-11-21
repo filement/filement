@@ -53,6 +53,7 @@
 #include "session.h"
 
 #define PROTOCOL_SCHEME "http://"
+#define FFMPEG "ffmpeg"
 
 /* TODO problematic movies:
 	Good, Band And Ugly
@@ -89,8 +90,45 @@ sprintf(ffmpeg_dir,"%s%s",app_location.data,"external\\ffmpeg.exe");// assume th
 return ffmpeg_dir;
 #elif defined(OS_MAC)
 return strdup("/Applications/Filement.app/Contents/MacOS/ffmpeg"); // where to put the license
-#elif defined(OS_LINUX) 
-return strdup("/usr/local/bin/filement_ffmpeg");
+#elif defined(OS_LINUX)
+
+	char *filename = 0;
+	char *var = getenv("PATH"), *start = var, *end = var;
+
+	while (1)
+	{
+		size_t pathlen;
+		struct stat info;
+
+		end = strchrnul(start, ':');
+		pathlen = end - start;
+
+		// Allocate memory for the path.
+		char *buffer = realloc(filename, sizeof(char) * (pathlen + 1 + sizeof(FFMPEG)));
+		if (!buffer)
+		{
+			free(filename);
+			return 0;
+		}
+		filename = buffer;
+
+		format_bytes(filename, start, pathlen);
+		filename[pathlen] = '/';
+		format_bytes(filename + pathlen + 1, FFMPEG, sizeof(FFMPEG));
+
+		// Check for existence, execution permissions and file type.
+		if (!access(filename, F_OK | X_OK) && !stat(filename, &info) && S_ISREG(info.st_mode))
+			return filename;
+
+		if (!*end)
+		{
+			free(filename);
+			return 0;
+		}
+
+		end = start = end + 1;
+	}
+
 #else
 return 0;
 #endif

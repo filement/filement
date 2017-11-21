@@ -21,9 +21,11 @@ all:
 force:
 	@true
 
-storage_sqlite: sqlite.c storage_sqlite.o
-	$(CC) -std=c99 @{OPTIONS} -fPIC -pthread -c sqlite.c -ldl
-	ar rcs storage.a storage_sqlite.o sqlite.o
+sqlite.o: CFLAGS=-std=c99 -DRUN_MODE=2 -O2 -fomit-frame-pointer -fPIC -pthread
+sqlite.o: LDFLAGS=-ldl
+
+storage_sqlite: sqlite.o storage_sqlite.o
+	ar rcs storage.a sqlite.o storage_sqlite.o
 
 storage_remote: storage_remote.o
 	ar rcs storage.a storage_remote.o
@@ -46,15 +48,30 @@ register:
 	$(MAKE) -C lib string.o format.o aes.o
 	$(CC) lib/string.o lib/format.o lib/aes.o distribute/uuid.o $(LDFLAGS) -o ../bin/register
 
-# TODO fix md5
+libepeg.a: CFLAGS=
+libepeg.a: LDFLAGS=
+libepeg.a:
+	cd external && ./epeg.compile && cd ..
 
-filement: main.o @{STORAGE} device
-	$(CC) $(DEVICE_SRC) main.o storage.a device/*.o actions_device/*.o dlna/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS1} $(LDFLAGS) -o ../bin/filement
-	cp ../bin/filement ../bin/device
-	@{STRIP}
+libjpeg.a: libepeg.a
 
-libfilement.so: @{STORAGE} device
-	$(CC) @{OPTIONS} $(DEVICE_SRC) storage.a @{SHARED} device/*.o dlna/*.o actions_device/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS1} $(LDFLAGS) -Wl,@{SONAME},libfilement@{SUFFIX} -o "../lib/libfilement@{SUFFIX}"
+libminiupnpc.a: CFLAGS=
+libminiupnpc.a: LDFLAGS=
+libminiupnpc.a:
+	cd external && ./miniupnpc.compile && cd ..
+
+libfilement.so: @{STORAGE} device @{LIBS1}
+	$(CC) @{OPTIONS} $(DEVICE_SRC) storage.a @{SHARED} device/*.o dlna/*.o actions_device/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS1} $(LDFLAGS) -Wl,@{SONAME},libfilement@{SUFFIX} -o "../lib/libfilement@{SUFFIX}"	
+
+filement: libfilement.so main.o
+	$(CC) main.o $(LDFLAGS) -lfilement -Wl,-rpath,/usr/local/lib -o ../bin/$@
+	#@{STRIP}
+
+main-gtk.o: CFLAGS+= $(shell pkg-config --cflags gtk+-2.0) -Wno-strict-prototypes
+
+filement-gtk: LDFLAGS+= $(shell pkg-config --libs gtk+-2.0)
+filement-gtk: libfilement.so main-gtk.o
+	$(CC) main-gtk.o $(LDFLAGS) -lfilement -Wl,-rpath,/usr/local/lib -o ../bin/$@
 
 pubcloud: pubc device/device.o device/distribute.o main.o
 	$(CC) $(DEVICE_SRC) storage.a device/device.o device/distribute.o main.o actions_pubcloud/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS1} $(LDFLAGS) -lmysqlclient -o ../bin/pubcloud
@@ -86,14 +103,15 @@ failsafe: @{STORAGE} device
 
 clean:
 	rm -f *.o
-	rm -f storage.a
+	rm -f *.a
 	$(MAKE) -C lib clean
 	$(MAKE) -C device clean
 	$(MAKE) -C actions_device clean
 	$(MAKE) -C dlna clean
 	$(MAKE) -C actions_pubcloud clean
-	rm -f ../bin/device
 	rm -f ../bin/pubcloud
+	rm -f ../bin/filement ../bin/filement-gtk
+	rm -f ../lib/libfilement.so
 
 mrproper: clean
 	$(MAKE) -C lib mrproper
@@ -103,3 +121,4 @@ mrproper: clean
 	rm -f actions_sorted.h
 	rm -f actions.out
 	rm -f Makefile
+	rm -f external/{ffmpeg,gnutls}.compile

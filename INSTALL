@@ -1,0 +1,22 @@
+Installation on Debian
+
+	sudo apt-get install git gcc make zlib1g-dev libgnutls28-dev libavformat-dev ffmpeg
+
+If you want to use the graphical interface (using GTK+), you also need to install:
+
+	sudo apt-get install libgtk2.0-dev
+
+	./configure
+
+	make
+
+	sudo make install
+
+Two executables will be created. Both can be used to start the filement device server.
+
+filement
+	Intended to be used from the command line.
+	You have to manually make sure that the application is run after a restart.
+
+filement-gtk
+	Intended to be used from a graphical environment.

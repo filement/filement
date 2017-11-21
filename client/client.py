@@ -16,7 +16,7 @@ from Crypto.Cipher import AES
 
 import sys
 
-production = False
+production = True
 
 if production:
 	#HOST_PASSPORT = "filement.com"
@@ -37,12 +37,12 @@ else:
 	HOST_DISTRIBUTE2 = "distribute.flmntdev.com"
 	PORT_DISTRIBUTE2 = 80
 
-user = "martin@webconnect.bg"
-password = "lAS2qal#mc"
+user = "martinkunev@gmail.com"
+password = ""
 device_password = "test"
 
 #user = "nikolanikov@mail.bg"
-#password = "nnikov"
+#password = ""
 #device_password = "nnikov"
 
 ERROR = (
@@ -267,7 +267,6 @@ uuids = [devices[index]["device_code"] for index in devices if devices[index]["t
 conn = httplib.HTTPConnection(HOST_DISTRIBUTE2, PORT_DISTRIBUTE2)
 conn.request("GET", query("location", {"device": uuids, "ftp": ["1"], "cloud": ["1"]}), urllib.urlencode({}), headers)
 response = conn.getresponse().read()
-print(response)
 conn.close()
 
 devices = {uuid: Device(uuid) for uuid in uuids}

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+if [ -f ../miniupnpc.a ]; then exit; fi
+
 # TODO this is only for linux
 export CC=gcc
 
@@ -9,6 +11,6 @@ tar xfj "${src}.tar.bz2" && \
 cd "$src" && \
 make clean > /dev/null && \
 make > /dev/null
-cp libminiupnpc_filement.a ../../lib/ && \
+cp libminiupnpc_filement.a ../../libminiupnpc.a && \
 cd .. && \
 rm -r "$src"

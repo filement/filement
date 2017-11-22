@@ -1,0 +1,19 @@
+Create new certificate:
+
+	cd /etc/filement/ca
+	openssl req -config openssl.my.cnf -new -nodes -keyout private/filement2018.key -out filement2018.csr -days 3652
+	openssl ca -config openssl.my.cnf -policy policy_anything -out certs/filement2018.crt -infiles filement2018.csr
+
+Verify certificate:
+
+	openssl x509 -in certs/filement2018.crt -noout -text
+	openssl verify -purpose sslserver -CAfile /root/filement/share/ca.crt certs/filement2018.crt
+
+Create p12 file:
+
+	cat private/filement2018.key certs/filement2018.crt > filement2018.pem
+	certtool --load-certificate filement2018.pem --load-privkey filement2018.pem --load-ca-certificate /root/filement/share/ca.crt --to-p12 --outfile filement2018.p12
+
+Copy to target system:
+
+	scp filement2018.p12 distribute1:/etc/filement/test.p12

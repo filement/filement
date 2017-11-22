@@ -23,13 +23,15 @@
 #define STATUS_WIDTH 240
 #define STATUS_HEIGHT 150
 
-#define SHARE_FILEMENT (PREFIX "share/filement/filement.png")
+#define SHARE_FILEMENT "/usr/share/icons/hicolor/256x256/apps/filement.png"
 #define SHARE_LOGO (PREFIX "share/filement/logo.png")
 #define SHARE_BACKGROUND (PREFIX "share/filement/background.png")
 
 #define PATH_RELATIVE "/.config/autostart/filement.desktop"
 
 #define BUFFER_SIZE 4096
+
+// TODO make this work on FreeBSD as well (sendfile() is linux-specific)
 
 // TODO: icon in doc that can be used to reset or stop the device
 
@@ -107,13 +109,8 @@ static void register_finish(GtkWidget *widget, gpointer data)
 		gtk_main_quit();
 
 		// Open source file and collect data about it.
-		struct string dir = string(PREFIX "share/applications");
-		if (create_directory(&dir))
-		{
-			_exit(1); // TODO print error
-		}
 		struct stat info;
-		int src = open(PREFIX "share/applications/filement.desktop", O_RDONLY);
+		int src = open("/usr/share/applications/filement.desktop", O_RDONLY);
 		if (src < 0)
 		{
 			_exit(1); // TODO print error
@@ -134,6 +131,7 @@ static void register_finish(GtkWidget *widget, gpointer data)
 		*format_bytes(format_bytes(startup, home, home_length), PATH_RELATIVE, sizeof(PATH_RELATIVE) - 1) = 0;
 
 		// Write the destination file.
+		// TODO create directory if it doesn't exist
 		int dest = creat(startup, 0644);
 		if (dest < 0)
 		{

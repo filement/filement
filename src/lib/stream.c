@@ -83,10 +83,6 @@ extern char *tls_location;
 #  define TLS_KEY_FILE "/etc/filement/filement.key"
 # endif
 
-// To generate certificate do this:
-// flmntdev.com
-// certtool --load-certificate /etc/filement/ca/filement2017.pem --load-privkey /etc/filement/ca/filement2017.pem --load-ca-certificate /root/filement/share/ca.crt --to-p12 --outfile "/tmp/test2017.p12"
-
 static gnutls_certificate_credentials_t x509;
 static gnutls_dh_params_t dh_params;
 

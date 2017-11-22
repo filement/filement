@@ -1,23 +1,27 @@
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <termios.h>
+#if defined(DEVICE)
+# include <fcntl.h>
+# include <string.h>
+# include <termios.h>
+#endif
 #include <unistd.h>
 
 #include "filement.h"
-#include "format.h"
-#include "io.h"
-#include "device/startup.h"
+#include "log.h"
+#if defined(DEVICE)
+# include "device/startup.h"
+#endif
 
-#define USAGE "usage: filement [--reset] [device_name email]\n"
+#define STRING(s) (s), sizeof(s)
 
 #define PASSWORD "Device password: "
 
-// http://en.wikibooks.org/wiki/Serial_Programming/termios
+#define USAGE \
+	"Usage: filement                         Start a registered device.\n" \
+	"  or: filement [ device_name email ]    Register a device.\n" \
+	"  or: filement --reset                  Reset device registration.\n"
 
+#if defined(DEVICE)
+// http://en.wikibooks.org/wiki/Serial_Programming/termios
 static size_t password(char *restrict buffer, size_t length)
 {
 	struct termios old, new;
@@ -73,18 +77,19 @@ finally:
 
 	return index;
 }
-
-#define STRING(s) (s), sizeof(s) - 1
+#endif
 
 int main(int argc, char *argv[])
 {
 	bool registered = filement_init();
 
+#if defined(DEVICE)
 	switch (argc)
 	{
 	case 1:
 		if (!registered)
 		{
+			error(logs("Device not registered."));
 			write(2, USAGE, sizeof(USAGE) - 1);
 			return -2;
 		}
@@ -96,8 +101,8 @@ int main(int argc, char *argv[])
 			size_t length = password(buffer, sizeof(buffer));
 			if (!length)
 			{
-				fprintf(stderr, "Invalid password.\n");
-				return -1;
+				error(logs("Invalid password."));
+				return -3;
 			}
 
 			struct string devname = string(argv[1], strlen(argv[1]));
@@ -105,29 +110,39 @@ int main(int argc, char *argv[])
 			struct string password = string(buffer, length);
 			if (!filement_register(&email, &devname, &password))
 			{
-				fprintf(stderr, "Registration error.\n" USAGE, argv[0]);
-				return -1;
+				error(logs("Registration error."));
+				write(2, USAGE, sizeof(USAGE) - 1);
+				return -4;
 			}
 
-			// Add startup item.
-			struct string path = string(PREFIX "bin/filement");
-			startup_add(&path);
+			startup_add(&startup_filement);
 		}
 		break;
 
 	case 2:
 		if (!memcmp(argv[1], STRING("--reset")))
 		{
-			filement_reset();
+			if (registered)
+			{
+				startup_remove(&startup_filement);
+				filement_reset();
+			}
+			return 0;
+		}
+		else if (!memcmp(argv[1], STRING("--version")))
+		{
+			// TODO print version information
 			return 0;
 		}
 	default:
-		fprintf(stderr, USAGE, argv[0]);
+		write(2, USAGE, sizeof(USAGE) - 1);
 		return -1;
 	}
+#endif
 
 	filement_daemon();
 
+#if defined(DEVICE)
 	// Check for new version of the Filement device software.
 	/*if (!filement_upgrade())
 	{
@@ -135,6 +150,7 @@ int main(int argc, char *argv[])
 		write(2, MESSAGE, sizeof(MESSAGE) - 1);
 		#undef MESSAGE
 	}*/
+#endif
 
 	filement_serve();
 

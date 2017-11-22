@@ -92,27 +92,39 @@ static int transfer(struct stream *restrict input, int output, int64_t length)
 }
 
 #if !defined(OS_WINDOWS)
-// WARNING: filename must be NUL-terminated
-int create_directory(struct string *restrict filename)
+// WARNING: filename must be non-empty NUL-terminated string
+int create_directory(const struct string *restrict filename)
 {
+	char *path = memdup(filename->data, filename->length);
+	if (!path)
+		return ERROR_MEMORY;
+
 	size_t index = 1;
 	while (true)
 	{
-		switch (filename->data[index])
+		switch (path[index])
 		{
 		case '/':
-			filename->data[index] = 0;
+			path[index] = 0;
 		case 0:
-			if ((mkdir(filename->data, 0755) < 0) && (errno != EEXIST)) return errno_error(errno);
-			if (index == filename->length) return 0;
-			else filename->data[index] = '/';
+			if ((mkdir(path, 0755) < 0) && (errno != EEXIST))
+			{
+				free(path);
+				return errno_error(errno);
+			}
+			if (index == filename->length)
+			{
+				free(path);
+				return 0;
+			}
+			path[index] = '/';
 		}
 		index += 1;
 	}
 }
 #else
 // WARNING: filename must be NUL-terminated
-int create_directory(struct string *restrict filename)
+static int create_directory(struct string *restrict filename)
 {
 	int i=0;
 	struct string *tmp_str=0;

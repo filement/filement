@@ -20,3 +20,18 @@ filement
 
 filement-gtk
 	Intended to be used from a graphical environment.
+
+	After installing this version, you may want to run "sudo gtk-update-icon-cache /usr/share/icons/hicolor" to update the index of available icons.
+
+TODO
+	command line app
+		version information
+		reset while a device is running
+	gui app
+		version information
+		menu icon with options: version information, reset (remove from startup on reset), stop
+		more robust code (create directories in the path, etc.)
+		freebsd (don't use sendfile)
+	version and platform information on customly compiled devices
+	fix upgrade on linux
+	debian and fedora package

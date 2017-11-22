@@ -344,11 +344,6 @@ open STDOUT, '>', 'src/failsafe.c';
 $length = length $version;
 system 'sed', '-e', "s/\@{VERSION}/$version/", '-e', "s/\@{VERSION_LENGTH}/$length/", 'src/failsafe.c.in';
 
-# main.c
-open STDOUT, '>', 'src/main.c';
-$length = length $version;
-system 'sed', '-e', "s/\@{VERSION}/$version/", '-e', "s/\@{VERSION_LENGTH}/$length/", 'src/main.c.in';
-
 # Makefile
 open STDOUT, '>', 'src/Makefile';
 system 'sed', @replace, 'src/Makefile.in';

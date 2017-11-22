@@ -14,6 +14,8 @@
 #include "format.h"
 #include "filement.h"
 
+#include "log.h"
+
 // GTK+ 3 compatibility
 #define gtk_box_new(o, s) (((o) == GTK_ORIENTATION_VERTICAL) ? gtk_vbox_new(TRUE, (s)) : gtk_hbox_new(TRUE, (s)))
 
@@ -98,6 +100,8 @@ static void register_finish(GtkWidget *widget, gpointer data)
 	gtk_widget_hide(status);
 	gtk_widget_destroy(status);
 	gtk_widget_set_sensitive(button, TRUE);
+
+	// TODO show error messages with the GUI
 
 	if (registered)
 	{

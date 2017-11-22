@@ -169,9 +169,9 @@ elsif ($platform eq 'linux')
 	$cc = 'gcc';
 	$options .= ' -O2 -fomit-frame-pointer' if !$flag_debug;
 	$platform = '-DPLATFORM_ID=4 -DOS_LINUX -DTLS -DEXECUTABLE=\\\"/usr/local/bin/filement\\\" -DPREFIX=\\\"/usr/local/\\\" -DUPGRADE_PREFIX=\\\"/\\\" -D_POSIX_SOURCE';
-	$link = '-lz -lgnutls -lavformat -lavutil -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
+	$link = '-lz -lgnutls $(shell pkg-config --libs libavformat libavutil) -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
 	#$link = '-lz -lavformat -lavutil -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
-	$flags = '-Wno-unused-value'; # new versions of gcc require -Wno-unused-result instead
+	$flags = '$(shell pkg-config --cflags libavformat libavutil) -Wno-unused-value'; # new versions of gcc require -Wno-unused-result instead
 	$shared = '-shared';
 	$suffix = '.so';
 	$storage = 'storage_sqlite';

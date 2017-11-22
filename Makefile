@@ -39,8 +39,8 @@ uninstall:
 clean:
 	$(MAKE) -C src clean
 	$(MAKE) -C tests clean
-	rm -f share/filement/{background,logo}.png
-	rm -f gui/{applications,icons}
+	rm -f share/filement/background.png share/filement/logo.png
+	rm -f gui/applications gui/icons
 
 mrproper: clean
 	$(MAKE) -C src mrproper

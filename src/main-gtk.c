@@ -134,13 +134,9 @@ static void register_finish(GtkWidget *widget, gpointer data)
 		// TODO create directory if it doesn't exist
 		int dest = creat(startup, 0644);
 		if (dest < 0)
-		{
-			_exit(1); // TODO print error
-		}
+			error(logs("Cannot create startup item for filement."));
 		if (sendfile(dest, src, 0, (size_t)info.st_size) < 0)
-		{
-			_exit(1); // TODO print error
-		}
+			error(logs("Cannot add startup information for filement."));
 
 		close(dest);
 		close(src);

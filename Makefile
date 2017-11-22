@@ -28,7 +28,7 @@ install:
 	install bin/* /usr/local/bin
 	install lib/* /usr/local/lib
 	cp -r share/* /usr/local/share
-	cp -rL gui/* /usr/share
+	cp -rL gui/* /usr/share 2> /dev/null || :
 
 uninstall:
 	rm -f /usr/local/bin/filement /usr/local/bin/filement-gtk

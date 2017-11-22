@@ -1,27 +1,65 @@
-Installation on Debian
+# Installation from source
+
+## Preparation on Debian 9
+
+Install dependencies.
 
 	sudo apt-get install git gcc make zlib1g-dev libgnutls28-dev libavformat-dev ffmpeg
 
-If you want to use the graphical interface (using GTK+), you also need to install:
+If you want to use the graphical interface (using GTK+), some additional packages are needed.
 
 	sudo apt-get install libgtk2.0-dev
 
+## Preparation on Fedora 26
+
+Setup RPM fusion to get access to all dependencies.
+
+	sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+
+Install dependencies.
+
+	sudo dnf install git zlib-devel gnutls-devel ffmpeg-devel
+
+If you want to use the graphical interface (using GTK+), some additional packages are needed.
+
+	sudo dnf install gtk2-devel
+
+## Installation
+
+Download the source.
+
+	git clone https://github.com/filement/filement.git
+	cd filement
+
+Prepare the source for compilation.
+
 	./configure
 
-	make
+Compile the source with one of the following commands:
+
+	make filement-gtk	# compiles only the graphical frontend
+	make filement		# compiles only the command line frontend
+	make all			# compiles both frontends
+
+Install filement.
 
 	sudo make install
 
-Two executables will be created. Both can be used to start the filement device server.
+If you install the graphical interface, you may want to update the index of available icons.
 
-filement
+	sudo gtk-update-icon-cache /usr/share/icons/hicolor
+
+## Fedora
+
+# Running Filement
+
+Two executables are available. Both can be used to start the filement device server. On the first start, the device must be registered in the Filement infrastructure. After the registration, the device will start automatically on login.
+
+executable name: filement
 	Intended to be used from the command line.
-	You have to manually make sure that the application is run after a restart.
 
-filement-gtk
-	Intended to be used from a graphical environment.
-
-	After installing this version, you may want to run "sudo gtk-update-icon-cache /usr/share/icons/hicolor" to update the index of available icons.
+executable name: filement-gtk
+	Intended to be used from a graphical environment (available in the category Network applications).
 
 TODO
 	command line app

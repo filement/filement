@@ -39,8 +39,6 @@
 
 // TODO make this work on FreeBSD as well (sendfile() is linux-specific)
 
-// TODO: icon in doc that can be used to reset or stop the device
-
 struct info
 {
 	struct string email;
@@ -370,19 +368,13 @@ static void if_menu_reset(GtkMenuItem *item, gpointer data)
 	GtkWidget *row = gtk_fixed_new();
 	gtk_container_add(GTK_CONTAINER(rows), row);
 
-	//gtk_fixed_put(GTK_FIXED(row), logo, 20, 20);
-	//GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	//gtk_container_add(GTK_CONTAINER(rows), row);
+	GtkWidget *cancel = gtk_button_new_with_label("Cancel");
+	position(row, cancel, 60, 10, 80, 24);
+	g_signal_connect(cancel, "clicked", G_CALLBACK(menu_cancel), 0);
 
-	GtkWidget *yes = gtk_button_new_with_label("Yes");
-	position(row, yes, 60, 10, 80, 24);
-	//gtk_container_add(GTK_CONTAINER(row), yes);
-	g_signal_connect(yes, "clicked", G_CALLBACK(menu_reset), 0);
-
-	GtkWidget *no = gtk_button_new_with_label("No");
-	position(row, no, 250, 10, 80, 24);
-	//gtk_container_add(GTK_CONTAINER(row), no);
-	g_signal_connect(no, "clicked", G_CALLBACK(menu_cancel), 0);
+	GtkWidget *reset = gtk_button_new_with_label("Reset");
+	position(row, reset, 250, 10, 80, 24);
+	g_signal_connect(reset, "clicked", G_CALLBACK(menu_reset), 0);
 
 	g_signal_connect(status, "key-press-event", G_CALLBACK(escape), menu_cancel);
 

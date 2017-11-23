@@ -25,13 +25,17 @@
 #define STATUS_WIDTH 240
 #define STATUS_HEIGHT 150
 
-#define SHARE_FILEMENT "/usr/share/icons/hicolor/256x256/apps/filement.png"
+#define DIALOG_WIDTH 400
+#define DIALOG_HEIGHT 150
+
+#define ICON_LARGE "/usr/share/icons/hicolor/256x256/apps/filement.png"
+#define ICON_SMALL "/usr/share/icons/hicolor/48x48/apps/filement.png"
 #define SHARE_LOGO (PREFIX "share/filement/logo.png")
 #define SHARE_BACKGROUND (PREFIX "share/filement/background.png")
 
 #define PATH_RELATIVE "/.config/autostart/filement.desktop"
 
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE 256
 
 // TODO make this work on FreeBSD as well (sendfile() is linux-specific)
 
@@ -48,16 +52,25 @@ int create_directory(struct string *restrict filename);
 
 static bool registered = false;
 
-static GtkWidget *window, *status, *progress, *button;
+static GtkWidget *window, *status, *progress, *button, *menu;
+static GtkStatusIcon *icon;
 static GtkEntryBuffer *buffer_email, *buffer_devname, *buffer_password;
 
-static void register_start(GtkWidget *widget, gpointer data);
 static void *main_register(void *arg);
-static void register_finish(GtkWidget *widget, gpointer success);
 
 static gboolean enter(GtkWidget *widget, GdkEventKey *event, gpointer callback)
 {
 	if (event->keyval == GDK_Return)
+	{
+		((void (*)(GtkWidget *, gpointer))callback)(widget, 0);
+		return TRUE;
+	}
+	else return FALSE;
+}
+
+static gboolean escape(GtkWidget *widget, GdkEventKey *event, gpointer callback)
+{
+	if (event->keyval == GDK_Escape)
 	{
 		((void (*)(GtkWidget *, gpointer))callback)(widget, 0);
 		return TRUE;
@@ -80,7 +93,11 @@ static void position(GtkWidget *container, GtkWidget *widget, gint x, gint y, gi
 static void register_start(GtkWidget *widget, gpointer data)
 {
 	struct info *info = malloc(sizeof(struct info));
-	if (!info) ; // TODO
+	if (!info)
+	{
+		error(logs("Memory allocation error."));
+		_exit(1);
+	}
 
 	gtk_spinner_start(GTK_SPINNER(progress));
 	gtk_widget_set_sensitive(button, FALSE);
@@ -95,13 +112,67 @@ static void register_start(GtkWidget *widget, gpointer data)
 	pthread_detach(thread_id);
 }
 
+static void gtk_startup_add(void)
+{
+	// TODO show error messages with the GUI
+
+	// Open source file and collect data about it.
+	struct stat info;
+	int src = open("/usr/share/applications/filement.desktop", O_RDONLY);
+	if (src < 0)
+	{
+		_exit(1); // TODO print error
+	}
+	if (fstat(src, &info) < 0)
+	{
+		_exit(1); // TODO print error
+	}
+
+	// Generate destination file name.
+	char *home = getenv("HOME");
+	size_t home_length = strlen(home);
+	char startup[BUFFER_SIZE];
+	if ((home_length + sizeof(PATH_RELATIVE)) > BUFFER_SIZE)
+	{
+		error(logs("Home directory path too long."));
+		close(src);
+		return;
+	}
+	format_bytes(format_bytes(startup, home, home_length), PATH_RELATIVE, sizeof(PATH_RELATIVE));
+
+	// Write the destination file.
+	// TODO create directory if it doesn't exist
+	int dest = creat(startup, 0644);
+	if (dest < 0)
+		error(logs("Cannot create startup item for filement."));
+	else if (sendfile(dest, src, 0, (size_t)info.st_size) < 0)
+		error(logs("Cannot add startup information for filement."));
+
+	close(dest);
+	close(src);
+}
+
+static void gtk_startup_remove(void)
+{
+	// Generate destination file name.
+	char *home = getenv("HOME");
+	size_t home_length = strlen(home);
+	char startup[BUFFER_SIZE];
+	if ((home_length + sizeof(PATH_RELATIVE)) > BUFFER_SIZE)
+	{
+		error(logs("Home directory path too long."));
+		return;
+	}
+	format_bytes(format_bytes(startup, home, home_length), PATH_RELATIVE, sizeof(PATH_RELATIVE));
+
+	unlink(startup);
+}
+
 static void register_finish(GtkWidget *widget, gpointer data)
 {
 	gtk_widget_hide(status);
 	gtk_widget_destroy(status);
 	gtk_widget_set_sensitive(button, TRUE);
-
-	// TODO show error messages with the GUI
 
 	if (registered)
 	{
@@ -112,38 +183,7 @@ static void register_finish(GtkWidget *widget, gpointer data)
 		gtk_widget_destroy(window);
 		gtk_main_quit();
 
-		// Open source file and collect data about it.
-		struct stat info;
-		int src = open("/usr/share/applications/filement.desktop", O_RDONLY);
-		if (src < 0)
-		{
-			_exit(1); // TODO print error
-		}
-		if (fstat(src, &info) < 0)
-		{
-			_exit(1); // TODO print error
-		}
-
-		// Generate destination file name.
-		char *home = getenv("HOME");
-		size_t home_length = strlen(home);
-		char startup[BUFFER_SIZE];
-		if ((home_length + sizeof(PATH_RELATIVE) - 1) >= BUFFER_SIZE)
-		{
-			_exit(1); // TODO print error
-		}
-		*format_bytes(format_bytes(startup, home, home_length), PATH_RELATIVE, sizeof(PATH_RELATIVE) - 1) = 0;
-
-		// Write the destination file.
-		// TODO create directory if it doesn't exist
-		int dest = creat(startup, 0644);
-		if (dest < 0)
-			error(logs("Cannot create startup item for filement."));
-		if (sendfile(dest, src, 0, (size_t)info.st_size) < 0)
-			error(logs("Cannot add startup information for filement."));
-
-		close(dest);
-		close(src);
+		gtk_startup_add();
 	}
 }
 
@@ -153,7 +193,7 @@ static void *main_register(void *arg)
 
 	registered = filement_register(&info->email, &info->devname, &info->password);
 
-	gdk_threads_enter();
+	gdk_threads_enter(); // TODO is this sufficient to prevent race conditions?
 
 	status = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_default_size(GTK_WINDOW(status), STATUS_WIDTH, STATUS_HEIGHT);
@@ -191,17 +231,9 @@ static void *main_register(void *arg)
 
 static bool interface_register(void)
 {
-	gdk_threads_init();
-
-	// TODO: is it a good idea to do this?
-	int argc = 1;
-	char *args[] = {"filement", 0};
-	char **argv = args;
-	gtk_init(&argc, &argv);
-
 	// Create main interface window.
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(SHARE_FILEMENT, 0);
+	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(ICON_SMALL, 0);
 	if (!pixbuf) ; // TODO
 	gtk_window_set_icon(GTK_WINDOW(window), pixbuf);
 	gtk_window_set_title(GTK_WINDOW(window), "Filement");
@@ -300,17 +332,124 @@ static bool interface_register(void)
 	return registered;
 }
 
+static void menu_cancel(GtkWidget *widget, gpointer data)
+{
+	gtk_widget_hide(status);
+	gtk_widget_destroy(status);
+}
+
+static void menu_reset(GtkWidget *widget, gpointer data)
+{
+	gtk_widget_hide(status);
+	gtk_widget_destroy(status);
+
+	gtk_main_quit();
+
+	gtk_startup_remove();
+	filement_reset(); // terminates the program
+}
+
+static void if_menu_reset(GtkMenuItem *item, gpointer data)
+{
+	status = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_default_size(GTK_WINDOW(status), DIALOG_WIDTH, DIALOG_HEIGHT);
+	gtk_widget_set_size_request(status, DIALOG_WIDTH, DIALOG_HEIGHT);
+	gtk_window_set_resizable(GTK_WINDOW(status), FALSE);
+	gtk_window_set_decorated(GTK_WINDOW(status), FALSE);
+	gtk_window_set_deletable(GTK_WINDOW(status), FALSE);
+	gtk_window_set_position(GTK_WINDOW(status), GTK_WIN_POS_CENTER);
+	gtk_window_set_modal(GTK_WINDOW(status), TRUE);
+
+	GtkWidget *rows = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	gtk_container_add(GTK_CONTAINER(status), rows);
+
+	GtkWidget *label = gtk_label_new("Resetting Filement will delete your local device settings.\nDo you want to reset Filement?");
+	gtk_misc_set_alignment(GTK_MISC(label), 0.5, 0.5);
+	gtk_box_pack_start(GTK_BOX(rows), label, TRUE, TRUE, 0);
+
+	GtkWidget *row = gtk_fixed_new();
+	gtk_container_add(GTK_CONTAINER(rows), row);
+
+	//gtk_fixed_put(GTK_FIXED(row), logo, 20, 20);
+	//GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	//gtk_container_add(GTK_CONTAINER(rows), row);
+
+	GtkWidget *yes = gtk_button_new_with_label("Yes");
+	position(row, yes, 60, 10, 80, 24);
+	//gtk_container_add(GTK_CONTAINER(row), yes);
+	g_signal_connect(yes, "clicked", G_CALLBACK(menu_reset), 0);
+
+	GtkWidget *no = gtk_button_new_with_label("No");
+	position(row, no, 250, 10, 80, 24);
+	//gtk_container_add(GTK_CONTAINER(row), no);
+	g_signal_connect(no, "clicked", G_CALLBACK(menu_cancel), 0);
+
+	g_signal_connect(status, "key-press-event", G_CALLBACK(escape), menu_cancel);
+
+	gtk_widget_show_all(status);
+}
+
+static void if_menu_quit(GtkMenuItem *item, gpointer data)
+{
+	gtk_main_quit();
+}
+
+static void if_menu_open(GtkStatusIcon *icon, gpointer data)
+{
+	GtkWidget *item;
+
+	menu = gtk_menu_new();
+
+	item = gtk_menu_item_new_with_label("Reset");
+	g_signal_connect(item, "activate", G_CALLBACK(if_menu_reset), 0);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+
+	item = gtk_menu_item_new_with_label("Quit");
+	g_signal_connect(item, "activate", G_CALLBACK(if_menu_quit), 0);
+	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
+
+	gtk_widget_show_all(menu);
+	gtk_menu_popup(GTK_MENU(menu), 0, 0, 0, 0, 0, gtk_get_current_event_time()); // TODO better positioning with argument 4
+}
+
+static void interface_wait(void)
+{
+	icon = gtk_status_icon_new();
+	gtk_status_icon_set_from_file(icon, ICON_SMALL);
+	//g_signal_connect(icon, "activate", G_CALLBACK(if_menu_open), 0);
+	g_signal_connect(icon, "popup-menu", G_CALLBACK(if_menu_open), 0);
+
+	gtk_status_icon_set_visible(icon, TRUE);
+
+	gtk_main();
+}
+
+static void *main_server(void *arg)
+{
+    filement_serve();
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
+	filement_daemon();
+
+	gdk_threads_init();
+	gtk_init(&argc, &argv);
+
 	// Initialize the device. If it is not registered, display registration window.
 	// Start serving after the initialization is complete.
-	filement_daemon();
 	if (filement_init() || interface_register())
 	{
+		pthread_t thread;
+
 		// Check for new version of the Filement device software.
 		//filement_upgrade(); // TODO report error here
 
-		filement_serve();
+		pthread_create(&thread, 0, &main_server, 0);
+		pthread_detach(thread);
+
+		interface_wait();
 	}
 
 	return 0;

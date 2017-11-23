@@ -49,8 +49,6 @@ If you install the graphical interface, you may want to update the index of avai
 
 	sudo gtk-update-icon-cache /usr/share/icons/hicolor
 
-## Fedora
-
 # Running Filement
 
 Two executables are available. Both can be used to start the filement device server. On the first start, the device must be registered in the Filement infrastructure. After the registration, the device will start automatically on login.
@@ -67,8 +65,7 @@ TODO
 		reset while a device is running
 	gui app
 		version information
-		menu icon with options: version information, reset (remove from startup on reset), stop
-		more robust code (create directories in the path, etc.)
+		more robust code (create directories in the path, make sure there are no memory leaks and concurrency problems, etc.)
 		freebsd (don't use sendfile)
 	version and platform information on customly compiled devices
 	fix upgrade on linux

@@ -222,10 +222,10 @@ static void serve(NSMenu *menu)
 }
 - (IBAction)dialog_reset_yes: (id)sender
 {
-	filement_reset();
-
 	struct string path = string("/Applications/Filement.app");
 	mac_startup_remove(&path);
+
+	filement_reset();
 }
 - (void)reset
 {

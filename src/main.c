@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
 			if (registered)
 			{
 				startup_remove(&startup_filement);
-				filement_reset();
+				filement_reset(); // terminates the program
 			}
 			return 0;
 		}

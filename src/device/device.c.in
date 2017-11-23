@@ -374,6 +374,8 @@ void filement_reset(void)
 	// TODO: what if something is using the database at this moment ?
 	storage_reset(storage);
 
+	startup_term();
+
 	_exit(0);
 }
 #endif

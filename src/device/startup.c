@@ -66,6 +66,8 @@ bool startup_init(void)
 void startup_term(void)
 {
 	close(startup_file);
+	format_bytes(path + home_size, RUN, sizeof(RUN));
+	unlink(path);
 }
 
 // WARNING: This function assumes that size_t can store any non-negative value of off_t.

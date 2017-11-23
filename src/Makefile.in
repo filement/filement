@@ -2,9 +2,8 @@
 
 # http://gl.developpez.com/tutoriel/outil/makefile/
 
-DEF=-D_GNU_SOURCE -DOS_BSD -D_BSD_SOURCE -D_DEFAULT_SOURCE -D_FILE_OFFSET_BITS=64 @{PLATFORM}
+DEF=-D_GNU_SOURCE -DOS_BSD -D_BSD_SOURCE -D_DEFAULT_SOURCE -D_FILE_OFFSET_BITS=64 @{CFLAGS}
 INC=-I$(CURDIR) -I$(CURDIR)/lib -I$(CURDIR)/../include
-LIB=-L$(CURDIR)/../lib
 # TODO is it okay to add -Wno-cast-align
 # TODO ?-Wstrict-aliasing
 WARNINGS=-Werror -Wchar-subscripts -Wimplicit -Wsequence-point -Wcast-align -Wstrict-prototypes -Wno-parentheses -Wno-comment -Wno-pointer-sign -Wno-return-type -Wno-cast-align -Wno-switch-enum -Wno-switch
@@ -12,8 +11,8 @@ WARNINGS=-Werror -Wchar-subscripts -Wimplicit -Wsequence-point -Wcast-align -Wst
 DEVICE_SRC=upload.o evfs.o io.o security.o http.o http_parse.o http_response.o status.o remote.o actions.o access.o server.o download.o zip.o tar.o earchive.o cache.o operations.o magic.o
 
 export CC=@{CC}
-export CFLAGS=-std=c99 -fPIC -pthread -fstrict-aliasing @{OPTIONS} $(DEF) $(INC) $(WARNINGS) @{FLAGS}
-export LDFLAGS=-pthread $(LIB) @{LINK}
+export CFLAGS=-std=c99 -fPIC @{FLAGS} -fstrict-aliasing $(DEF) $(INC) $(WARNINGS)
+export LDFLAGS=@{FLAGS} -L$(CURDIR)/../lib @{LINK} @{FLAGS}
 export PATH := @{ROOT}/bin:$(PATH)
 
 all:
@@ -34,13 +33,13 @@ storage_mysql: storage_mysql.o
 	ar rcs storage.a storage_mysql.o
 
 device: $(DEVICE_SRC) @{STORAGE} force
-	$(MAKE) -C lib string.o vector.o dictionary.o queue.o buffer.o format.o stream.o log.o json.o sha2.o aes.o @{LIBS}
+	$(MAKE) -C lib string.o vector.o dictionary.o queue.o buffer.o format.o stream.o log.o json.o sha2.o aes.o
 	$(MAKE) -C device
 	$(MAKE) -C actions_device
 	$(MAKE) -C dlna
 
 pubc: $(DEVICE_SRC) storage_mysql force
-	$(MAKE) -C lib string.o vector.o dictionary.o queue.o buffer.o format.o stream.o log.o json.o sha2.o aes.o @{LIBS}
+	$(MAKE) -C lib string.o vector.o dictionary.o queue.o buffer.o format.o stream.o log.o json.o sha2.o aes.o
 	$(MAKE) -C actions_pubcloud
 
 register:
@@ -60,8 +59,8 @@ libminiupnpc.a: LDFLAGS=
 libminiupnpc.a:
 	cd external && ./miniupnpc.compile && cd ..
 
-libfilement.so: @{STORAGE} device @{LIBS1}
-	$(CC) @{OPTIONS} $(DEVICE_SRC) storage.a @{SHARED} device/*.o dlna/*.o actions_device/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS1} $(LDFLAGS) -Wl,@{SONAME},libfilement@{SUFFIX} -o "../lib/libfilement@{SUFFIX}"	
+libfilement.so: @{STORAGE} device @{LIBS}
+	$(CC) @{FLAGS} $(DEF) $(DEVICE_SRC) storage.a @{SHARED} device/*.o dlna/*.o actions_device/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS} $(LDFLAGS) -Wl,@{SONAME},libfilement@{SUFFIX} -o "../lib/libfilement@{SUFFIX}"	
 
 filement: libfilement.so main.o
 	$(CC) main.o $(LDFLAGS) -lfilement -Wl,-rpath,/usr/local/lib -o ../bin/$@
@@ -74,12 +73,12 @@ filement-gtk: libfilement.so main-gtk.o
 	$(CC) main-gtk.o $(LDFLAGS) -lfilement -Wl,-rpath,/usr/local/lib -o ../bin/$@
 
 pubcloud: pubc device/device.o device/distribute.o main.o
-	$(CC) $(DEVICE_SRC) storage.a device/device.o device/distribute.o main.o actions_pubcloud/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS1} $(LDFLAGS) -lmysqlclient -o ../bin/pubcloud
+	$(CC) $(DEVICE_SRC) storage.a device/device.o device/distribute.o main.o actions_pubcloud/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS} $(LDFLAGS) -lmysqlclient -o ../bin/pubcloud
 
 failsafe: @{STORAGE} device
 	# TODO this should do its own configure
-	$(CC) -std=c99 $(DEF) -DFAILSAFE $(INC) -Wno-pointer-sign -c sqlite.c storage_sqlite.c
-	$(CC) -std=c99 -pthread @{OPTIONS} $(DEF) -DFAILSAFE -UDEVICE -UTLS $(INC) $(WARNINGS) @{FLAGS} \
+	$(CC) -std=c99 $(DEF) -DFAILSAFE $(INC) -Wno-pointer-sign -c sqlite.c storage_sqlite.c @{FLAGS}
+	$(CC) -std=c99 -pthread $(DEF) -DFAILSAFE -UDEVICE -UTLS $(INC) $(WARNINGS) @{FLAGS} \
 		lib/string.c \
 		lib/format.c \
 		lib/dictionary.c \

@@ -75,7 +75,7 @@ my $version = <VERSION>;
 chop $version;
 close VERSION;
 
-my ($flag_dev, $flag_debug, $flag_upgrade_test, $uuid) = (0, 0, 0, 0);
+my ($flag_dev, $flag_debug, $flag_upgrade, $flag_upgrade_test, $uuid, $prefix) = (0, 0, 0, 0, '', '');
 
 # Parse command line options.
 for (@ARGV)
@@ -88,9 +88,18 @@ for (@ARGV)
 	{
 		$flag_debug = 1;
 	}
+	elsif (/^--upgrade$/)
+	{
+		$flag_upgrade = 1;
+	}
 	elsif (/^--upgrade-test$/)
 	{
+		$flag_upgrade = 1;
 		$flag_upgrade_test = 1;
+	}
+	elsif (/^--prefix=(.*)$/)
+	{
+		$prefix = $1;
 	}
 	elsif (/^--host=(.*)$/)
 	{
@@ -106,12 +115,26 @@ for (@ARGV)
 	}
 	else
 	{
-		print "Usage: $0 [OPTION ...]\n\t--dev          \tconfigure for flmntdev.com\n\t--debug        \tconfigure with debug capabilities\n\t--host=PLATFORM\tconfigure for PLATFORM\n\t--target=TARGET\tconfigure for TARGET (default: device)\n\t--upgrade-test \tUse a different command for upgrade list (used for testing)\n\t--uuid=UUID    \tconfigure public cloud with the given UUID\n";
+		print "Usage: $0 [OPTION ...]
+\t--dev          \tconfigure for flmntdev.com instead of filement.com
+\t--debug        \tconfigure with debug capabilities
+\t--prefix=PREFIX\tconfigure for installation in the directory PREFIX
+\t--host=PLATFORM\tconfigure for PLATFORM
+\t--target=TARGET\tconfigure for TARGET (default: device)
+\t--upgrade      \tEnable automatic upgrade
+\t--upgrade-test \tUse a different command for upgrade list (used for testing)
+\t--uuid=UUID    \tconfigure public cloud with the given UUID
+";
 		exit;
 	}
 }
 
-my $options = ($flag_dev ? '-DTEST=-10' : '').($flag_debug ? ' -DRUN_MODE=1 -DDEBUG -g -fstack-protector-all' : ' -DRUN_MODE=2').($flag_upgrade_test ? ' -DUPGRADE_TEST' : '');
+#my $flags, $cflags, $link;
+
+my $flags = '';
+my $definitions = ($flag_dev ? '-DTEST=-10' : '').($flag_debug ? ' -DRUN_MODE=1 -DDEBUG' : ' -DRUN_MODE=2').($flag_upgrade ? ' -DUPGRADE' : '').($flag_upgrade_test ? ' -DUPGRADE_TEST' : '');
+my $options = ($flag_debug ? ' -g -fstack-protector-all' : ' -fomit-frame-pointer');
+my $link = '';
 
 # Set default platform if no platform is specified.
 $platform = $Config{'osname'} if !defined($platform);
@@ -119,85 +142,87 @@ $platform = $Config{'osname'} if !defined($platform);
 # If --uuid is specified, treat the device as pubcloud.
 $target = 'pubcloud' if (defined($clouds{$uuid}));
 
-my ($cc, $link, $flags, $shared, $suffix, $storage, $root, $libs, $libs1, $strip, $libdir, $getso, $soname);
+my ($cc, $shared, $suffix, $storage, $root, $libs, $libs_, $strip, $libdir, $getso, $soname);
 
 # TODO link time optimization when creating the shared library and the executable (-flto)
+# TODO strip
+# TODO take into account prefix and upgrade
 
 if ($platform eq 'darwin')
 {
 	$cc = 'clang';
-	$options .= ' -O2 -fomit-frame-pointer' if !$flag_debug;
-	$platform = '-DPLATFORM_ID=2 -DOS_MAC -DTLS -DEXECUTABLE=\\\"/Applications/Filement.app/Contents/MacOS/Filement\\\" -DPREFIX=\\\"/Applications/Filement.app/\\\" -DUPGRADE_PREFIX=\\\"/Applications/Filement.app/\\\"';
-	$link = '-lz -lgnutls -lavformat -lavutil -lresolv -framework CoreFoundation -framework CoreServices';
-	$flags = '-Wno-unused-value -Wno-empty-body';
 	$shared = '-dynamiclib';
 	$suffix = '.dylib';
-	$storage = 'storage_sqlite';
-	$root = '/usr'; # TODO this doesn't seem right
-	$libs = '';
-	$libs1 = '../lib/libminiupnpc_filement.a ../lib/libepeg.a ../lib/libjpeg.a';
-	$strip = '/usr/bin/strip -x -S ../bin/device -o ../bin/device_stripped';
-	$libdir = '/Applications/Filement.app/Contents/Frameworks';
-	$getso = 'basename $(otool -XD "$1")';
 	$soname = '-install_name';
+	$getso = 'basename $(otool -XD "$1")';
+	# TODO libdir and getso is used for compiling ffmpeg and gnutls
+	$libdir = '/Applications/Filement.app/Contents/Frameworks';
+	$strip = 'strip -x -S ../bin/device -o ../bin/device_stripped'; # TODO fix this
+
+	$flags .= ' -O2' if !$flag_debug;
+	$definitions .= ' -DPLATFORM_ID=2 -DOS_MAC -DTLS -DEXECUTABLE=\\\"/Applications/Filement.app/Contents/MacOS/Filement\\\" -DPREFIX=\\\"/Applications/Filement.app/\\\" -DUPGRADE_PREFIX=\\\"/Applications/Filement.app/\\\"';
+	$options .= ' -pthread -Wno-unused-value -Wno-empty-body';
+	$link .= '-lz -lgnutls -lavformat -lavutil -lresolv -framework CoreFoundation -framework CoreServices';
+
+	$root = '';
+	$storage = 'storage_sqlite';
+	$libs = '../lib/libminiupnpc_filement.a ../lib/libepeg.a ../lib/libjpeg.a'; # TODO fix this
+}
+elsif ($platform eq 'linux')
+{
+	$cc = 'gcc';
+	$shared = '-shared';
+	$suffix = '.so';
+	$soname = '-soname';
+	$getso = q(objdump -p "$1"|grep SONAME|awk '{print $2}'); # TODO not used
+	$libdir = '/usr/local/lib'; # TODO not used
+	$strip = ($flag_debug ? '' : "strip -R .comment -R .note");
+	$strip = ''; # TODO remove this
+
+	$flags .= ' -pthread';
+	$flags .= ' -O2' if !$flag_debug;
+	$definitions .= ' -DPLATFORM_ID=4 -DOS_LINUX -DTLS -DEXECUTABLE=\\\"/usr/local/bin/filement\\\" -DPREFIX=\\\"/usr/local/\\\" -DUPGRADE_PREFIX=\\\"/\\\" -D_POSIX_SOURCE';
+	$options .= ' $(shell pkg-config --cflags libavformat libavutil) -Wno-unused-value'; # new versions of gcc require -Wno-unused-result instead
+	$link .= '-lz -lgnutls $(shell pkg-config --libs libavformat libavutil) -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
+
+	$root = '';
+	$storage = 'storage_sqlite';
+	$libs = 'libepeg.a libjpeg.a'.(($target eq 'pubcloud') ? '' : ' libminiupnpc.a');
 }
 elsif ($platform eq 'ios')
 {
 	#$cc = '/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/clang';
 	$cc = '/Applications/Xcode.app/Contents/Developer/Toolchains/XCodeDefault.xctoolchain/usr/bin/clang';
 	#$options .= ' -arch armv7 -gdwarf-2 -isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk';
-	$options .= ' -arch armv7 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk';
-	$options .= ' -O2 -fomit-frame-pointer' if !$flag_debug;
-	$platform = '-DPLATFORM_ID=8 -DOS_MAC -DOS_IOS -DEXECUTABLE=\\\"/Applications/Filement.app/Contents/MacOS/Filement\\\" -DPREFIX=\\\"/Applications/Filement.app/\\\" -DUPGRADE_PREFIX=\\\"/Applications/Filement.app/\\\"';
+	$options .= ' -pthread -arch armv7 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk';
+	$options .= ' -O2' if !$flag_debug;
+	$definitions .= ' -DPLATFORM_ID=8 -DOS_MAC -DOS_IOS -DEXECUTABLE=\\\"/Applications/Filement.app/Contents/MacOS/Filement\\\" -DPREFIX=\\\"/Applications/Filement.app/\\\" -DUPGRADE_PREFIX=\\\"/Applications/Filement.app/\\\"';
 	#$link = '-lz -lavformat -lavutil -lresolv';
 	$link = '-framework Foundation -framework AssetsLibrary -lz -lobjc -lresolv';
 	$flags = '-Wno-unused-value -Wno-empty-body';
 	$shared = '-dynamiclib';
 	$suffix = '.dylib';
 	$storage = 'storage_sqlite';
-	$root = '/usr'; # TODO this doesn't seem right
-	$libs = '';
-	$libs1 = '../ios/ios/evfs.o';
+	$root = '';
+	$libs = '../ios/ios/evfs.o';
 	$strip = '';
 	$libdir = '/Applications/Filement.app/Contents/Frameworks';
 	$getso = 'basename $(otool -XD "$1")';
 	$soname = '-install_name';
 }
-elsif ($platform eq 'linux')
-{
-	#$cc = 'gcc44';
-	$cc = 'gcc';
-	$options .= ' -O2 -fomit-frame-pointer' if !$flag_debug;
-	$platform = '-DPLATFORM_ID=4 -DOS_LINUX -DTLS -DEXECUTABLE=\\\"/usr/local/bin/filement\\\" -DPREFIX=\\\"/usr/local/\\\" -DUPGRADE_PREFIX=\\\"/\\\" -D_POSIX_SOURCE';
-	$link = '-lz -lgnutls $(shell pkg-config --libs libavformat libavutil) -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
-	#$link = '-lz -lavformat -lavutil -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
-	$flags = '$(shell pkg-config --cflags libavformat libavutil) -Wno-unused-value'; # new versions of gcc require -Wno-unused-result instead
-	$shared = '-shared';
-	$suffix = '.so';
-	$storage = 'storage_sqlite';
-	$root = '/usr';
-	$libs = '';
-	$libs1 = 'libminiupnpc.a libepeg.a libjpeg.a';
-	$libs1 = 'libepeg.a libjpeg.a' if ($target eq 'pubcloud');
-	$strip = "cp ../bin/device ../bin/device_stripped\\n\\tstrip -R .comment -R .note ../bin/device_stripped";
-	$strip = ''; # TODO remove this
-	$libdir = '/usr/local/lib';
-	$getso = q(objdump -p "$1"|grep SONAME|awk '{print $2}');
-	$soname = '-soname';
-}
 elsif ($platform eq 'emulator')
 {
 	$cc = 'gcc';
-	$options .= ' -Os -fomit-frame-pointer' if !$flag_debug;
-	$platform = '-DPLATFORM_ID=14 -DOS_LINUX -DEMULATOR -DEXECUTABLE=\\\"/usr/local/bin/filement\\\" -DPREFIX=\\\"/\\\" -D_POSIX_SOURCE';
+	$options .= ' -Os' if !$flag_debug;
+	$definitions .= ' -DPLATFORM_ID=14 -DOS_LINUX -DEMULATOR -DEXECUTABLE=\\\"/usr/local/bin/filement\\\" -DPREFIX=\\\"/\\\" -D_POSIX_SOURCE';
 	$link = '-lz -lm -ldl';
-	$flags = '';
+	$flags = '-pthread';
 	$shared = '-shared';
 	$suffix = '.so';
 	$storage = 'storage_remote';
-	$root = '/usr';
-	$libs = 'md5.o';
-	$libs1 = '../lib/libminiupnpc_filement.a ../lib/libepeg.a ../lib/libjpeg.a lib/md5.o';
+	$root = '';
+	$libs_ = 'md5.o'; # TODO compile this as part of device and pubc
+	$libs = '../lib/libminiupnpc_filement.a ../lib/libepeg.a ../lib/libjpeg.a lib/md5.o';
 	$strip = '';
 	$libdir = '';
 	$getso = q(objdump -p "$1"|grep SONAME|awk '{print $2}');
@@ -206,16 +231,16 @@ elsif ($platform eq 'emulator')
 elsif ($platform eq 'belkin')
 {
 	$cc = 'mipsel-linux-uclibc-gcc';
-	$options .= ' -Os -fomit-frame-pointer' if !$flag_debug;
-	$platform = '-DPLATFORM_ID=14 -DOS_LINUX -DBELKIN -DEXECUTABLE=\\\"/usr/local/bin/filement\\\" -DPREFIX=\\\"/\\\" -D_POSIX_SOURCE';
+	$options .= ' -Os' if !$flag_debug;
+	$definitions .= ' -DPLATFORM_ID=14 -DOS_LINUX -DBELKIN -DEXECUTABLE=\\\"/usr/local/bin/filement\\\" -DPREFIX=\\\"/\\\" -D_POSIX_SOURCE';
 	$link = '-lz -lm -ldl';
-	$flags = '';
+	$flags = '-pthread';
 	$shared = '-shared';
 	$suffix = '.so';
 	$storage = 'storage_remote';
 	$root = '/opt/hndtools-mipsel-linux-uclibc-4.1.2-32';
-	$libs = 'md5.o';
-	$libs1 = '../lib/libminiupnpc_filement.a ../lib/libepeg.a ../lib/libjpeg.a lib/md5.o ../lib/ifaddrs.o';
+	$libs_ = 'md5.o'; # TODO compile this as part of device and pubc
+	$libs = '../lib/libminiupnpc_filement.a ../lib/libepeg.a ../lib/libjpeg.a lib/md5.o ../lib/ifaddrs.o';
 	$strip = "cp ../bin/device ../bin/device_stripped\\n\\tstrip -R .comment -R .note ../bin/device_stripped";
 	$libdir = '';
 	$getso = q(objdump -p "$1"|grep SONAME|awk '{print $2}');
@@ -224,16 +249,16 @@ elsif ($platform eq 'belkin')
 elsif ($platform eq 'tplink')
 {
 	$cc = 'mips-linux-gcc';
-	$options .= ' -Os -fomit-frame-pointer' if !$flag_debug;
-	$platform = '-DPLATFORM_ID=14 -DOS_LINUX -DTPLINK -DEXECUTABLE=\\\"/usr/local/bin/filement\\\" -DPREFIX=\\\"/\\\" -D_POSIX_SOURCE';
+	$options .= ' -Os' if !$flag_debug;
+	$definitions .= ' -DPLATFORM_ID=14 -DOS_LINUX -DTPLINK -DEXECUTABLE=\\\"/usr/local/bin/filement\\\" -DPREFIX=\\\"/\\\" -D_POSIX_SOURCE';
 	$link = '-lm -ldl -lrt';
-	$flags = '';
+	$flags = '-pthread';
 	$shared = '-shared';
 	$suffix = '.so';
 	$storage = 'storage_remote';
 	$root = '/root/tp-link/wdr4300/toolchain/gcc-4.3.3/usr';
-	$libs = 'md5.o';
-	$libs1 = '../lib/libminiupnpc_filement.a ../lib/libepeg.a ../lib/libjpeg.a lib/md5.o ../lib/ifaddrs.o';
+	$libs_ = 'md5.o'; # TODO compile this as part of device and pubc
+	$libs = '../lib/libminiupnpc_filement.a ../lib/libepeg.a ../lib/libjpeg.a lib/md5.o ../lib/ifaddrs.o';
 	$strip = "cp ../bin/device ../bin/device_stripped\\n\\tstrip -R .comment -R .note ../bin/device_stripped";
 	$libdir = '';
 	$getso = q(objdump -p "$1"|grep SONAME|awk '{print $2}');
@@ -248,34 +273,33 @@ else
 	exit;
 }
 
-$platform = '-D'.uc($target)." $platform";
+$definitions = '-D'.uc($target)." $definitions";
 
 # TODO do make mrpropper (but manually since Makefile may not exist) // wtf? if it does not exist, there is no need to call mrpropper
 
 # Preprocess actions.
 open STDIN, '<', 'src/actions.in';
-system qq($cc -E -x c $platform -o src/actions.out -);
+system qq($cc -E -x c $definitions -o src/actions.out -);
+
+$options = "$definitions $options";
 
 $cc =~ s/\//\\\//g;
 $options =~ s/\//\\\//g;
-$platform =~ s/\//\\\//g;
 $root =~ s/\//\\\//g;
-$libs1 =~ s/\//\\\//g;
+$libs =~ s/\//\\\//g;
 $strip =~ s/\//\\\//g;
 $libdir =~ s/\//\\\//g;
 
 my @replace = (
 	'-e', "s/\@{CC}/$cc/g",
-	'-e', "s/\@{OPTIONS}/$options/g",
+	'-e', "s/\@{CFLAGS}/$options/g",
 	'-e', "s/\@{FLAGS}/$flags/g",
 	'-e', "s/\@{LINK}/$link/g",
-	'-e', "s/\@{PLATFORM}/$platform/g",
 	'-e', "s/\@{SHARED}/$shared/g",
 	'-e', "s/\@{SUFFIX}/$suffix/g",
 	'-e', "s/\@{STORAGE}/$storage/g",
-	'-e', "s/\@{ROOT}/$root/g",
+#	'-e', "s/\@{ROOT}/$root/g",
 	'-e', "s/\@{LIBS}/$libs/g",
-	'-e', "s/\@{LIBS1}/$libs1/g",
 	'-e', "s/\@{STRIP}/$strip/g",
 	'-e', "s/\@{SONAME}/$soname/g",
 );

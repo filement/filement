@@ -93,6 +93,8 @@ bool filement_init(void)
 	struct string key;
 	char *value;
 
+	// TODO if the failsafe is running, wait for it to finish and behave as if FILEMENT_SETUP is set
+
 #if defined(DEVICE) && !defined(OS_WINDOWS)
 	if (!startup_init()) fail(0, "Filement already started");
 

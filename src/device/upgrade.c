@@ -513,7 +513,7 @@ static bool clean(const struct vector *remove)
 // Returns true if the device does not require upgrading. Otherwise attempts upgrade.
 // If the upgrade succeeds, the application is restarted. Otherwise false is returned.
 // WARNING: Only registered devices can be upgraded.
-bool filement_upgrade(void)
+bool filement_upgrade(const char *exec)
 {
 	// Connect to the distribute server and check for a new version.
 
@@ -586,10 +586,10 @@ bool filement_upgrade(void)
 			error_("Transfer error while downloading failsafe");
 			break;
 		}
-		if (chmod(failsafe_dest->data, 0100) < 0)
+		if (chmod(failsafe_dest->data, 0100) < 0) // Make the failsafe executable
 		{
 			error_("Cannot set failsafe permissions");
-			break; // Make the failsafe executable
+			break;
 		}
 
 		bool success = startup_add(failsafe_dest);
@@ -615,22 +615,31 @@ bool filement_upgrade(void)
 
 		if (remove_directory(TEMP_DIR) < 0) warning_("Unable to delete directory " TEMP_DIR);
 
-		// Make device perform setup when started.
-		extern const struct string app_version;
-		if (setenv("FILEMENT_SETUP", app_version.data, 1) < 0)
-		{
-			error_("Unable to set $FILEMENT_SETUP");
-			break;
-		}
-
 		// Free all allocated resources (memory, file descriptors, mutexes, locks, etc.).
 		filement_term();
 		// TODO: are there some file descriptors or allocated memory chunks to free?
 
 		// Start the new version.
-		debug(logs("Restarting filement..."));
-		execl(EXECUTABLE, EXECUTABLE, 0); // TODO: this will cancel all requests
-		error(logs("Unable to restart filement"));
+		if (exec)
+		{
+			debug(logs("Restarting filement..."));
+
+			// Make device perform setup when started.
+			extern const struct string app_version;
+			if (setenv("FILEMENT_SETUP", app_version.data, 1) < 0)
+			{
+				error_("Unable to set $FILEMENT_SETUP");
+				break;
+			}
+
+			execl(exec, exec, 0); // TODO: this will cancel all requests
+			error(logs("Unable to restart filement"));
+		}
+		else
+		{
+			debug(logs("Upgrade finished..."));
+			_exit(0);
+		}
 	} while (false);
 
 	upgrade_term(&download);

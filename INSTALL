@@ -24,6 +24,16 @@ If you want to use the graphical interface (using GTK+), some additional package
 
 	sudo dnf install gtk2-devel
 
+## Preparation on FreeBSD 11.1
+
+Install dependencies (as root).
+
+	cd /usr/ports/devel/git && make install clean
+
+## Preparation on MacOS X 10.8
+
+TODO install tar with xz
+
 ## Installation
 
 Download the source.
@@ -68,5 +78,6 @@ TODO
 		more robust code (create directories in the path, make sure there are no memory leaks and concurrency problems, etc.)
 		freebsd (don't use sendfile)
 	version and platform information on customly compiled devices
-	fix upgrade on linux
+	fix upgrade
+		how do I know the executable so that I can restart it?
 	debian and fedora package

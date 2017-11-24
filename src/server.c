@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>

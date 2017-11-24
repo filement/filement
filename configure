@@ -352,12 +352,6 @@ $length = length $version;
 system 'sed', '-e', "s/\@{SUFFIX}/$suffix/", '-e', "s/\@{LIBDIR}/$libdir/", '-e', "s/\@{GETSO}/$getso/", 'src/external/gnutls.compile.in';
 chmod 0755, 'src/external/gnutls.compile';
 
-# ffmpeg.compile
-open STDOUT, '>', 'src/external/ffmpeg.compile';
-$length = length $version;
-system 'sed', '-e', "s/\@{SUFFIX}/$suffix/", '-e', "s/\@{LIBDIR}/$libdir/", '-e', "s/\@{GETSO}/$getso/", 'src/external/ffmpeg.compile.in';
-chmod 0755, 'src/external/ffmpeg.compile';
-
 # device/device.c
 open STDOUT, '>', 'src/device/device.c';
 $length = length $version;

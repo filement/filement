@@ -9,7 +9,6 @@ src/distribute/ftp.c
 src/actions_sorted.h
 src/actions.out
 mac/build
-src/external/ffmpeg.compile
 src/external/gnutls.compile
 src/Makefile
 src/distribute/authorize.c

@@ -59,8 +59,18 @@ libminiupnpc.a: LDFLAGS=
 libminiupnpc.a:
 	cd external && ./miniupnpc.compile && cd ..
 
+gnutls: CFLAGS=
+gnutls: LDFLAGS=
+gnutls:
+	cd external && ./gnutls.compile && cd ..
+
+ffmpeg: CFLAGS=
+ffmpeg: LDFLAGS=
+ffmpeg:
+	cd external && ./ffmpeg.compile && cd ..
+
 libfilement.so: @{STORAGE} device @{LIBS}
-	$(CC) @{FLAGS} $(DEF) $(DEVICE_SRC) storage.a @{SHARED} device/*.o dlna/*.o actions_device/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS} $(LDFLAGS) -Wl,@{SONAME},libfilement@{SUFFIX} -o "../lib/libfilement@{SUFFIX}"	
+	$(CC) @{FLAGS} $(DEF) $(DEVICE_SRC) storage.a @{SHARED} device/*.o dlna/*.o actions_device/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS} $(LDFLAGS) -Wl,@{SONAME},libfilement@{SUFFIX} -o "../lib/libfilement@{SUFFIX}"
 
 filement: libfilement.so main.o
 	$(CC) main.o $(LDFLAGS) -lfilement -Wl,-rpath,/usr/local/lib -o ../bin/$@

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+dir="ffmpeg-1.1.1"
+
+tar xfj "$dir.tar.bz2" &&
+cd "$dir" &&
+./configure --disable-yasm --disable-bzlib --disable-vaapi --disable-libtheora --disable-libvorbis --disable-libopus --disable-libx264 --disable-libxvid > /dev/null &&
+make > /dev/null &&
+cd .. &&
+mkdir -p ../../include/{libavutil,libavcodec,libavformat} &&
+cp -f "$dir/libavutil/"*.h "../../include/libavutil/" &&
+cp -f "$dir/libavcodec/"*.h "../../include/libavcodec/" &&
+cp -f "$dir/libavformat/"*.h "../../include/libavformat/" &&
+cp -f "$dir/libavutil/libavutil.a" "$dir/libavcodec/libavcodec.a" "$dir/libavformat/libavformat.a" &&
+rm -rf "$dir" > /dev/null &&
+echo 'Success'

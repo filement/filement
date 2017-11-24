@@ -1,9 +1,6 @@
 #!/bin/bash
 # Use this to compile gnutls in order to use it with Filement.
 
-libdir=@{LIBDIR}
-suffix=@{SUFFIX}
-
 # TODO use this for 32bit systems
 #export CFLAGS="-march=i686 $CFLAGS"
 
@@ -11,94 +8,61 @@ export CFLAGS="-march=athlon64 $CFLAGS"
 
 # Reset environment variables to avoid linking to unnecessary libraries.
 # TODO this fixes libidn; do i need to reset some other variable?
-export C_INCLUDE_PATH=
-export LD_LIBRARY_PATH=
+#export C_INCLUDE_PATH=
+#export LD_LIBRARY_PATH=
 
 normalize()
 {
 	echo `cd ./$1 && pwd`
 }
 
-soname()
-{
-	echo $(@{GETSO})
-}
-
-lib_install()
-{
-	for item
-	do
-		so=$(soname $item)
-		link=$(readlink $item)
-		cp -f "$item" "../lib/$link"
-		if [ ! -e "../lib/$so" ]
-		then ln -s "$link" "../lib/$so"
-		fi
-		cp -af "$item" ../lib/
-	done
-	return 0
-}
-
 build_gmp()
 {
-	tar xfz gmp-5.0.5.tar.gz &&
-	cd gmp-5.0.5 &&
-	./configure --with-pic --enable-shared --disable-static --libdir="$libdir" > /dev/null &&
+	# TODO on mac:
+	#./configure --disable-shared --disable-assembly > /dev/null &&
+
+	tar xfJ gmp-6.1.2.tar.gz &&
+	cd gmp-6.1.2 &&
+	./configure --disable-shared > /dev/null &&
 	make > /dev/null &&
 	cd ../ &&
-	cp -af gmp-5.0.5/gmp.h ../include/ &&
-	lib_install "gmp-5.0.5/.libs/libgmp$suffix" &&
-	rm -rf gmp-5.0.5 &&
 	return 0
+
+	# TODO if crashes appear, it may be because of the "ld: warning: PIE disabled. Absolute addressing not allowed in code signed PIE" warning.
+	# --disable-assembly should fix such problems
 }
 
 build_nettle()
 {
-	export LIBRARY_PATH="$(normalize ../lib/)"
-
-	tar xf nettle-2.5.tar &&
-	cd nettle-2.5 &&
-	./configure --enable-shared --libdir="$libdir" --with-include-path=$(normalize ../../include/) > /dev/null &&
+	tar xfz nettle-3.4.tar.gz &&
+	cd nettle-3.4 &&
+	./configure --disable-shared --with-include-path=$(normalize ../gmp-6.1.2) --with-lib-path=$(normalize ../gmp-6.1.2/.libs) > /dev/null &&
 	make > /dev/null &&
 	cd ../ &&
-	mkdir -p ../include/nettle/ &&
-	cp -af nettle-2.5/{rsa.h,nettle-types.h,nettle-stdint.h,md5.h,sha.h,memxor.h,hmac.h,macros.h,nettle-meta.h,ripemd160.h,aes.h,gcm.h,dsa.h,bignum.h,md2.h,camellia.h,arcfour.h,arctwo.h,des.h,cbc.h,yarrow.h} ../include/nettle/ &&
-	cp -af "nettle-2.5/libhogweed$suffix" ../lib/$(soname nettle-2.5/libhogweed$suffix) &&
-	ln -s $(soname nettle-2.5/libhogweed$suffix) "../lib/libhogweed$suffix" &&
-	cp -af "nettle-2.5/libnettle$suffix" ../lib/$(soname nettle-2.5/libnettle$suffix) &&
-	ln -s $(soname nettle-2.5/libnettle$suffix) "../lib/libnettle$suffix" &&
-	rm -rf nettle-2.5 &&
 	return 0
 }
 
 build_gnutls()
 {
-	export LD_LIBRARY_PATH="$(normalize ../lib/)"
+	external=$(normalize ..)
 
-	tar xfz gnutls-3.1.5.tar.gz &&
-	cd gnutls-3.1.5 &&
-	./configure --with-pic --enable-shared --disable-static --disable-cxx --disable-rpath --libdir="$libdir" --with-libnettle-prefix=$(normalize ../../) > /dev/null &&
+	tar xfJ gnutls-3.5.16.tar.gz &&
+	ln -s nettle-3.4 nettle &&
+    cd gnutls-3.5.16 &&
+	GMP_CFLAGS="-I${external}/gmp-6.1.2" GMP_LIBS="-L${external}/gmp-6.1.2/.libs -lgmp" NETTLE_CFLAGS="-I${external}" NETTLE_LIBS="-L${external}/nettle-3.4 -lnettle" HOGWEED_CFLAGS="-I${external}" HOGWEED_LIBS="-L${external}/nettle-3.4 -lhogweed" ./configure --disable-shared --disable-cxx --disable-rpath --disable-doc --without-p11-kit --without-idn --with-included-libtasn1 --with-included-unistring > /dev/null &&
 	make > /dev/null &&
 	cd .. &&
-	mkdir -p ../include/gnutls/ &&
-	cp -af gnutls-3.1.5/lib/includes/gnutls/{gnutls.h,compat.h} ../include/gnutls/ &&
-	lib_install "gnutls-3.1.5/lib/.libs/libgnutls$suffix" &&
-	rm -rf gnutls-3.1.5 &&
+	rm nettle &&
+	mkdir -p ../../include/gnutls &&
+	cp -f gnutls-3.5.16/lib/includes/gnutls/{gnutls,compat}.h ../../include/gnutls &&
+	cp -f gnutls-3.5.16/lib/.libs/libgnutls.a ../../lib &&
 	return 0
 }
-
-rm -r '../include/gnutls'
-rm '../lib/libgmp'*
-rm '../lib/libnettle'*
-rm '../lib/libhogweed'*
-rm '../lib/libgnutls'*
 
 build_gmp &&
 build_nettle &&
 build_gnutls &&
-rm ../include/gmp.h &&
-rm -r ../include/nettle &&
-echo 'Success'
-
-#http://stackoverflow.com/questions/7965990/why-cant-nettle-2-4s-configure-find-gmp-5-0-2
-#http://www.mail-archive.com/info-gnu@gnu.org/msg00739.html
+rm -rf gnutls-3.5.16 &&
+rm -rf nettle-3.4 &&
+rm -rf gmp-6.1.2 &&
+echo 'gnutls compiled.'

@@ -5,9 +5,11 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include <features.h>
-#if ((__GLIBC__ == 2) && (__GLIBC_MINOR__ >= 24)) || (__GLIBC__ > 2)
-# define READDIR
+#if defined(__GLIBC__)
+# include <features.h>
+# if ((__GLIBC__ == 2) && (__GLIBC_MINOR__ >= 24)) || (__GLIBC__ > 2)
+#  define READDIR
+# endif
 #endif
 
 // TODO errors should be in another file

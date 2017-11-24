@@ -1,5 +1,8 @@
 #!/bin/bash
 
+export CFLAGS=
+export LDFLAGS=
+
 dir="ffmpeg-1.1.1"
 
 tar xfj "$dir.tar.bz2" &&

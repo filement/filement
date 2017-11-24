@@ -2,9 +2,9 @@
 
 if [ -f '../libepeg.a' ]; then exit; fi
 
-# TODO this is only for linux
 export CC=gcc
 export CFLAGS=-fPIC
+export LDFLAGS=
 
 tar xjf thumbs.tar.bz2
 cd thumbs

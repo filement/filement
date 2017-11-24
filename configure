@@ -144,6 +144,8 @@ $target = 'pubcloud' if (defined($clouds{$uuid}));
 
 my ($cc, $shared, $suffix, $storage, $root, $libs, $libs_, $strip, $libdir, $getso, $soname);
 
+# TODO some targets are supported onlyon some platforms; pubcloud and distribute are supported only on linux
+
 # TODO link time optimization when creating the shared library and the executable (-flto)
 # TODO strip
 # TODO take into account upgrade

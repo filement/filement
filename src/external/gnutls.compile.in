@@ -2,9 +2,10 @@
 # Use this to compile gnutls in order to use it with Filement.
 
 # TODO use this for 32bit systems
-#export CFLAGS="-march=i686 $CFLAGS"
+#export CFLAGS="-march=i686"
 
-export CFLAGS="-march=athlon64 $CFLAGS"
+export CFLAGS="-march=athlon64"
+export LDFLAGS=
 
 # Reset environment variables to avoid linking to unnecessary libraries.
 # TODO this fixes libidn; do i need to reset some other variable?

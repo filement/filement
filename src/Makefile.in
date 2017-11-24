@@ -20,8 +20,8 @@ all:
 force:
 	@true
 
-sqlite.o: CFLAGS=-std=c99 -DRUN_MODE=2 -O2 -fomit-frame-pointer -fPIC -pthread
-sqlite.o: LDFLAGS=-ldl
+sqlite.o: sqlite.c
+	gcc -std=c99 -pthread -O2 -fomit-frame-pointer -fPIC sqlite.c -o $@
 
 storage_sqlite: sqlite.o storage_sqlite.o
 	ar rcs storage.a sqlite.o storage_sqlite.o
@@ -47,25 +47,17 @@ register:
 	$(MAKE) -C lib string.o format.o aes.o
 	$(CC) lib/string.o lib/format.o lib/aes.o distribute/uuid.o $(LDFLAGS) -o ../bin/register
 
-libepeg.a: CFLAGS=
-libepeg.a: LDFLAGS=
 libepeg.a:
 	cd external && ./epeg.compile && cd ..
 
 libjpeg.a: libepeg.a
 
-libminiupnpc.a: CFLAGS=
-libminiupnpc.a: LDFLAGS=
 libminiupnpc.a:
 	cd external && ./miniupnpc.compile && cd ..
 
-gnutls: CFLAGS=
-gnutls: LDFLAGS=
 gnutls:
 	cd external && ./gnutls.compile && cd ..
 
-ffmpeg: CFLAGS=
-ffmpeg: LDFLAGS=
 ffmpeg:
 	cd external && ./ffmpeg.compile && cd ..
 
@@ -76,11 +68,11 @@ filement: libfilement.so main.o
 	$(CC) main.o $(LDFLAGS) -lfilement -Wl,-rpath,/usr/local/lib -o ../bin/$@
 	#@{STRIP}
 
-main-gtk.o: CFLAGS+= $(shell pkg-config --cflags gtk+-2.0) -Wno-strict-prototypes
+main-gtk.o: main-gtk.c
+	gcc $(CFLAGS) $(shell pkg-config --cflags gtk+-2.0) -Wno-strict-prototypes -o $@
 
-filement-gtk: LDFLAGS+= $(shell pkg-config --libs gtk+-2.0)
 filement-gtk: libfilement.so main-gtk.o
-	$(CC) main-gtk.o $(LDFLAGS) -lfilement -Wl,-rpath,/usr/local/lib -o ../bin/$@
+	$(CC) main-gtk.o $(LDFLAGS) $(shell pkg-config --libs gtk+-2.0) -lfilement -Wl,-rpath,/usr/local/lib -o ../bin/$@
 
 pubcloud: pubc device/device.o device/distribute.o main.o
 	$(CC) $(DEVICE_SRC) storage.a device/device.o device/distribute.o main.o actions_pubcloud/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS} $(LDFLAGS) -lmysqlclient -o ../bin/pubcloud

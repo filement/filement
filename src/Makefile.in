@@ -3,25 +3,25 @@
 # http://gl.developpez.com/tutoriel/outil/makefile/
 
 DEF=-D_GNU_SOURCE -D_POSIX_SOURCE -D_BSD_SOURCE -D_DEFAULT_SOURCE -DOS_BSD -D_FILE_OFFSET_BITS=64 @{CFLAGS}
-INC=-I$(CURDIR) -I$(CURDIR)/lib -I$(CURDIR)/../include
+INC=-I. -Ilib -I../include
 # TODO is it okay to add -Wno-cast-align
 # TODO ?-Wstrict-aliasing
 WARNINGS=-Werror -Wchar-subscripts -Wimplicit -Wsequence-point -Wcast-align -Wstrict-prototypes -Wno-parentheses -Wno-comment -Wno-pointer-sign -Wno-return-type -Wno-cast-align -Wno-switch-enum -Wno-switch
 
 DEVICE_SRC=upload.o evfs.o io.o security.o http.o http_parse.o http_response.o status.o remote.o actions.o access.o server.o download.o zip.o tar.o earchive.o cache.o operations.o magic.o
 
-export CC=@{CC}
-export CFLAGS=-std=c99 -fPIC @{FLAGS} -fstrict-aliasing $(DEF) $(INC) $(WARNINGS)
-export LDFLAGS=@{FLAGS} -L$(CURDIR)/../lib @{LINK} @{FLAGS}
-export PATH := @{ROOT}/bin:$(PATH)
+CC=@{CC}
+CFLAGS=-std=c99 -fPIC @{FLAGS} -fstrict-aliasing $(DEF) $(INC) $(WARNINGS)
+LDFLAGS=@{FLAGS} -L../lib @{LINK} @{FLAGS}
+PATH := @{ROOT}/bin:$(PATH)
 
-all:
+# TODO propagate variables to other make calls
 
 force:
 	@true
 
 sqlite.o: sqlite.c
-	gcc -std=c99 -pthread -O2 -fomit-frame-pointer -fPIC sqlite.c -o $@
+	$(CC) -std=c99 -pthread -O2 -fomit-frame-pointer -fPIC -c sqlite.c -o $@
 
 storage_sqlite: sqlite.o storage_sqlite.o
 	ar rcs storage.a sqlite.o storage_sqlite.o
@@ -69,7 +69,7 @@ filement: libfilement.so main.o
 	#@{STRIP}
 
 main-gtk.o: main-gtk.c
-	gcc $(CFLAGS) $(shell pkg-config --cflags gtk+-2.0) -Wno-strict-prototypes -o $@
+	$(CC) $(CFLAGS) $(shell pkg-config --cflags gtk+-2.0) -Wno-strict-prototypes -c main-gtk.c -o $@
 
 filement-gtk: libfilement.so main-gtk.o
 	$(CC) main-gtk.o $(LDFLAGS) $(shell pkg-config --libs gtk+-2.0) -lfilement -Wl,-rpath,/usr/local/lib -o ../bin/$@

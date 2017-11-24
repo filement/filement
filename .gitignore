@@ -18,6 +18,7 @@ src/proxy/proxy_dev
 src/proxy/proxy_production
 src/pubcloud/main.c
 src/storage_mysql.h
+config.log
 
 bin/filement
 bin/filement-gtk

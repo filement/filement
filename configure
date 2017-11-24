@@ -323,7 +323,7 @@ my @replace = (
 	'-e', "s/\@{SHARED}/$shared/g",
 	'-e', "s/\@{SUFFIX}/$suffix/g",
 	'-e', "s/\@{STORAGE}/$storage/g",
-#	'-e', "s/\@{ROOT}/$root/g",
+	'-e', "s/\@{ROOT}/$root/g",
 	'-e', "s/\@{LIBS}/$libs/g",
 	'-e', "s/\@{STRIP}/$strip/g",
 	'-e', "s/\@{SONAME}/$soname/g",
@@ -408,3 +408,20 @@ if (defined($clouds{$uuid}))
 	open STDOUT, '>', 'src/storage_mysql.h';
 	system 'sed', @replace, 'src/storage_mysql.h.in';
 }
+
+open STDOUT, '>', 'config.log';
+print "version=$version\n";
+print "length=$length\n";
+print "uuid=$uuid\n";
+print "\n";
+print "CC=$cc\n";
+print "CFLAGS=$options\n";
+print "FLAGS=$flags\n";
+print "LINK=$link\n";
+print "SHARED=$shared\n";
+print "SUFFIX=$suffix\n";
+print "STORAGE=$storage\n";
+print "ROOT=$root\n";
+print "LIBS=$libs\n";
+print "STRIP=$strip\n";
+print "SONAME=$soname\n";

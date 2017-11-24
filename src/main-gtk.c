@@ -46,8 +46,6 @@ struct info
 	struct string password;
 };
 
-int create_directory(struct string *restrict filename);
-
 static bool registered = false;
 
 static GtkWidget *window, *status, *progress, *button, *menu;
@@ -436,7 +434,7 @@ int main(int argc, char *argv[])
 		pthread_t thread;
 
 		// Check for new version of the Filement device software.
-		//filement_upgrade(); // TODO report error here
+		//filement_upgrade("filement-gtk"); // TODO report error here
 
 		pthread_create(&thread, 0, &main_server, 0);
 		pthread_detach(thread);

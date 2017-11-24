@@ -17,8 +17,8 @@ int main(int argc, char *argv[])
 
     // Check for new version of the Filement device software.
     // TODO do this after the interface is started (so the user has some indication that something is happening)
-    //if (!filement_upgrade()) error(logs("Upgrade failed"));
-    //if (registered) filement_upgrade();
+    //if (!filement_upgrade("filement-cocoa")) error(logs("Upgrade failed"));
+    //if (registered) filement_upgrade("filement-cocoa");
 
     return NSApplicationMain(argc, (const char **)argv);
 }

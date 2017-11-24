@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 use strict;
 use warnings;
@@ -75,7 +75,7 @@ my $version = <VERSION>;
 chop $version;
 close VERSION;
 
-my ($flag_dev, $flag_debug, $flag_upgrade, $flag_upgrade_test, $uuid, $prefix) = (0, 0, 0, 0, '', '');
+my ($flag_dev, $flag_debug, $flag_upgrade, $flag_upgrade_test, $uuid, $prefix) = (0, 0, 0, 0, '', '/usr/local');
 
 # Parse command line options.
 for (@ARGV)
@@ -146,7 +146,7 @@ my ($cc, $shared, $suffix, $storage, $root, $libs, $libs_, $strip, $libdir, $get
 
 # TODO link time optimization when creating the shared library and the executable (-flto)
 # TODO strip
-# TODO take into account prefix and upgrade
+# TODO take into account upgrade
 
 if ($platform eq 'darwin')
 {
@@ -160,7 +160,7 @@ if ($platform eq 'darwin')
 	$strip = 'strip -x -S ../bin/device -o ../bin/device_stripped'; # TODO fix this
 
 	$flags .= ' -O2' if !$flag_debug;
-	$definitions .= ' -DPLATFORM_ID=2 -DOS_MAC -DTLS -DEXECUTABLE=\\\"/Applications/Filement.app/Contents/MacOS/Filement\\\" -DPREFIX=\\\"/Applications/Filement.app/\\\" -DUPGRADE_PREFIX=\\\"/Applications/Filement.app/\\\"';
+	$definitions .= ' -DPLATFORM_ID=2 -DOS_MAC -DTLS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/Applications/Filement.app/\\\"';
 	$options .= ' -pthread -Wno-unused-value -Wno-empty-body';
 	$link .= '-lz -lgnutls -lavformat -lavutil -lresolv -framework CoreFoundation -framework CoreServices';
 
@@ -181,13 +181,36 @@ elsif ($platform eq 'linux')
 
 	$flags .= ' -pthread';
 	$flags .= ' -O2' if !$flag_debug;
-	$definitions .= ' -DPLATFORM_ID=4 -DOS_LINUX -DTLS -DEXECUTABLE=\\\"/usr/local/bin/filement\\\" -DPREFIX=\\\"/usr/local/\\\" -DUPGRADE_PREFIX=\\\"/\\\" -D_POSIX_SOURCE';
-	$options .= ' $(shell pkg-config --cflags libavformat libavutil) -Wno-unused-value'; # new versions of gcc require -Wno-unused-result instead
+	$definitions .= ' -DPLATFORM_ID=4 -DOS_LINUX -DTLS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/\\\"';
+	$options .= ' $(shell pkg-config --cflags libavformat libavutil) -Wno-unused-value'; # replace with -Wno-unused-result
 	$link .= '-lz -lgnutls $(shell pkg-config --libs libavformat libavutil) -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
 
 	$root = '';
 	$storage = 'storage_sqlite';
 	$libs = 'libepeg.a libjpeg.a'.(($target eq 'pubcloud') ? '' : ' libminiupnpc.a');
+}
+elsif ($platform eq 'freebsd')
+{
+	$cc = 'gcc';
+	$shared = '-shared';
+	$suffix = '.so';
+	$soname = '-soname';
+	$getso = q(objdump -p "$1"|grep SONAME|awk '{print $2}'); # TODO not used
+	$libdir = '/usr/local/lib'; # TODO not used
+	$strip = ($flag_debug ? '' : "strip -R .comment -R .note");
+	$strip = ''; # TODO remove this
+
+	$flags .= ' -pthread';
+	$flags .= ' -O2' if !$flag_debug;
+	$definitions .= ' -DPLATFORM_ID=6 -DOS_FREEBSD -DTLS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/\\\"';
+	$options .= ' $(shell pkg-config --cflags libavformat libavutil) -Wno-unused-value'; # replace with -Wno-unused-result
+	$link .= '-lz -lgnutls $(shell pkg-config --libs libavformat libavutil) -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
+
+	$root = '';
+	$storage = 'storage_sqlite';
+	$libs = 'libepeg.a libjpeg.a'.(($target eq 'pubcloud') ? '' : ' libminiupnpc.a');
+
+	# TODO
 }
 elsif ($platform eq 'ios')
 {
@@ -196,7 +219,7 @@ elsif ($platform eq 'ios')
 	#$options .= ' -arch armv7 -gdwarf-2 -isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk';
 	$options .= ' -pthread -arch armv7 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk';
 	$options .= ' -O2' if !$flag_debug;
-	$definitions .= ' -DPLATFORM_ID=8 -DOS_MAC -DOS_IOS -DEXECUTABLE=\\\"/Applications/Filement.app/Contents/MacOS/Filement\\\" -DPREFIX=\\\"/Applications/Filement.app/\\\" -DUPGRADE_PREFIX=\\\"/Applications/Filement.app/\\\"';
+	$definitions .= ' -DPLATFORM_ID=8 -DOS_MAC -DOS_IOS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/Applications/Filement.app/\\\"';
 	#$link = '-lz -lavformat -lavutil -lresolv';
 	$link = '-framework Foundation -framework AssetsLibrary -lz -lobjc -lresolv';
 	$flags = '-Wno-unused-value -Wno-empty-body';
@@ -214,7 +237,7 @@ elsif ($platform eq 'emulator')
 {
 	$cc = 'gcc';
 	$options .= ' -Os' if !$flag_debug;
-	$definitions .= ' -DPLATFORM_ID=14 -DOS_LINUX -DEMULATOR -DEXECUTABLE=\\\"/usr/local/bin/filement\\\" -DPREFIX=\\\"/\\\" -D_POSIX_SOURCE';
+	$definitions .= ' -DPLATFORM_ID=14 -DOS_LINUX -DEMULATOR -DPREFIX=\\\"'.$prefix.'\\\"';
 	$link = '-lz -lm -ldl';
 	$flags = '-pthread';
 	$shared = '-shared';
@@ -232,7 +255,7 @@ elsif ($platform eq 'belkin')
 {
 	$cc = 'mipsel-linux-uclibc-gcc';
 	$options .= ' -Os' if !$flag_debug;
-	$definitions .= ' -DPLATFORM_ID=14 -DOS_LINUX -DBELKIN -DEXECUTABLE=\\\"/usr/local/bin/filement\\\" -DPREFIX=\\\"/\\\" -D_POSIX_SOURCE';
+	$definitions .= ' -DPLATFORM_ID=14 -DOS_LINUX -DBELKIN -DPREFIX=\\\"'.$prefix.'\\\"';
 	$link = '-lz -lm -ldl';
 	$flags = '-pthread';
 	$shared = '-shared';
@@ -250,7 +273,7 @@ elsif ($platform eq 'tplink')
 {
 	$cc = 'mips-linux-gcc';
 	$options .= ' -Os' if !$flag_debug;
-	$definitions .= ' -DPLATFORM_ID=14 -DOS_LINUX -DTPLINK -DEXECUTABLE=\\\"/usr/local/bin/filement\\\" -DPREFIX=\\\"/\\\" -D_POSIX_SOURCE';
+	$definitions .= ' -DPLATFORM_ID=14 -DOS_LINUX -DTPLINK -DPREFIX=\\\"'.$prefix.'\\\"';
 	$link = '-lm -ldl -lrt';
 	$flags = '-pthread';
 	$shared = '-shared';

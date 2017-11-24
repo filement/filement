@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 
 #if defined(DEVICE)
 	// Check for new version of the Filement device software.
-	/*if (!filement_upgrade())
+	/*if (!filement_upgrade("filement"))
 	{
 		#define MESSAGE "Upgrade failed\n"
 		write(2, MESSAGE, sizeof(MESSAGE) - 1);

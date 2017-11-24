@@ -98,9 +98,9 @@ int main(void)
 	// TODO: better handling for upgrade fail
 	bool success;
 #if defined(OS_MAC)
-	success = filement_upgrade();
+	success = filement_upgrade(0);
 #elif defined(OS_LINUX)
-	success = filement_upgrade();
+	success = filement_upgrade(0);
 #elif defined(OS_WINDOWS)
 	if (!do_upgrade) windows_upgrade();
 	return 0;

@@ -2,7 +2,7 @@
 
 # http://gl.developpez.com/tutoriel/outil/makefile/
 
-DEF=-D_GNU_SOURCE -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE -D_DEFAULT_SOURCE -DOS_BSD -D_FILE_OFFSET_BITS=64 @{CFLAGS}
+DEF=-D_GNU_SOURCE -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -D_BSD_SOURCE -D_DEFAULT_SOURCE -DOS_BSD -D_FILE_OFFSET_BITS=64 @{CFLAGS}
 INC=-I. -Ilib -I../include
 # TODO is it okay to add -Wno-cast-align
 # TODO ?-Wstrict-aliasing

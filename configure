@@ -204,7 +204,7 @@ elsif ($platform eq 'freebsd')
 
 	$flags .= ' -pthread';
 	$flags .= ' -O2' if !$flag_debug;
-	$definitions .= ' -DPLATFORM_ID=6 -DOS_FREEBSD -DTLS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/\\\"';
+	$definitions .= ' -DPLATFORM_ID=6 -DOS_FREEBSD -DTLS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/\\\" -Du_char="unsigned char" -Du_short="unsigned short" -Du_int="unsigned int" -Du_long="unsigned long"';
 	$options .= ' $(shell pkg-config --cflags libavformat libavutil) -Wno-unused-value'; # replace with -Wno-unused-result
 	$link .= '-lz -lgnutls $(shell pkg-config --libs libavformat libavutil) -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
 

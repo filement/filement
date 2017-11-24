@@ -12,6 +12,7 @@
 # include <arpa/inet.h>
 # include <dirent.h>
 # include <sys/mman.h>
+# include <sys/socket.h>
 #else
 # define WINDOWS_BLOCK_SIZE 0x400000
 # include <windows.h>

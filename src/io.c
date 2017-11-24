@@ -4,10 +4,12 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <sys/types.h>
 
 #ifdef OS_BSD
 # include <arpa/inet.h>
 # include <netdb.h>
+# include <netinet/in.h>
 # include <poll.h>
 # include <resolv.h>
 #else

@@ -2,7 +2,7 @@
 
 # http://gl.developpez.com/tutoriel/outil/makefile/
 
-DEF=-D_GNU_SOURCE -D_POSIX_SOURCE -D_BSD_SOURCE -D_DEFAULT_SOURCE -DOS_BSD -D_FILE_OFFSET_BITS=64 @{CFLAGS}
+DEF=-D_GNU_SOURCE -D_BSD_SOURCE -D_DEFAULT_SOURCE -DOS_BSD -D_FILE_OFFSET_BITS=64 @{CFLAGS}
 INC=-I$(CURDIR) -I$(CURDIR)/lib -I$(CURDIR)/../include
 # TODO is it okay to add -Wno-cast-align
 # TODO ?-Wstrict-aliasing
@@ -12,7 +12,7 @@ DEVICE_SRC=upload.o evfs.o io.o security.o http.o http_parse.o http_response.o s
 
 export CC=@{CC}
 export CFLAGS=-std=c99 -fPIC @{FLAGS} -fstrict-aliasing $(DEF) $(INC) $(WARNINGS)
-export LDFLAGS=@{FLAGS} -L$(CURDIR)/../lib @{LINK} @{FLAGS}
+export LDFLAGS=-L$(CURDIR)/../lib @{FLAGS} @{LINK} @{FLAGS}
 export PATH := @{ROOT}/bin:$(PATH)
 
 all:
@@ -59,15 +59,25 @@ libminiupnpc.a: LDFLAGS=
 libminiupnpc.a:
 	cd external && ./miniupnpc.compile && cd ..
 
-gnutls: CFLAGS=
-gnutls: LDFLAGS=
-gnutls:
+libgnutls.a: CFLAGS=
+libgnutls.a: LDFLAGS=
+libgnutls.a:
 	cd external && ./gnutls.compile && cd ..
 
-ffmpeg: CFLAGS=
-ffmpeg: LDFLAGS=
-ffmpeg:
+libnettle.a: libgnutls.a
+
+libhogweed.a: libgnutls.a
+
+libgmp.a: libgnutls.a
+
+libavformat.a: CFLAGS=
+libavformat.a: LDFLAGS=
+libavformat.a:
 	cd external && ./ffmpeg.compile && cd ..
+
+libavcodec.a: libavformat.a
+
+libavutil.a: libavformat.a
 
 libfilement.so: @{STORAGE} device @{LIBS}
 	$(CC) @{FLAGS} $(DEF) $(DEVICE_SRC) storage.a @{SHARED} device/*.o dlna/*.o actions_device/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS} $(LDFLAGS) -Wl,@{SONAME},libfilement@{SUFFIX} -o "../lib/libfilement@{SUFFIX}"

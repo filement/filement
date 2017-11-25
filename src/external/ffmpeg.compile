@@ -1,5 +1,7 @@
 #!/bin/bash
 
+if [ -f '../libavformat.a' ]; then exit; fi
+
 dir="ffmpeg-1.1.1"
 
 tar xfj "$dir.tar.bz2" &&
@@ -8,9 +10,9 @@ cd "$dir" &&
 make > /dev/null &&
 cd .. &&
 mkdir -p ../../include/{libavutil,libavcodec,libavformat} &&
-cp -f "$dir/libavutil/"*.h "../../include/libavutil/" &&
-cp -f "$dir/libavcodec/"*.h "../../include/libavcodec/" &&
-cp -f "$dir/libavformat/"*.h "../../include/libavformat/" &&
-cp -f "$dir/libavutil/libavutil.a" "$dir/libavcodec/libavcodec.a" "$dir/libavformat/libavformat.a" &&
+cp -f "$dir/libavutil/"*.h '../../include/libavutil/' &&
+cp -f "$dir/libavcodec/"*.h '../../include/libavcodec/' &&
+cp -f "$dir/libavformat/"*.h '../../include/libavformat/' &&
+cp -f "$dir/libavutil/libavutil.a" "$dir/libavcodec/libavcodec.a" "$dir/libavformat/libavformat.a" .. &&
 rm -rf "$dir" > /dev/null &&
-echo 'Success'
+echo 'ffmpeg compiled.'

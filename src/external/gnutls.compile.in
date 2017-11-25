@@ -1,6 +1,8 @@
 #!/bin/bash
 # Use this to compile gnutls in order to use it with Filement.
 
+if [ -f '../libgnutls.a' ]; then exit; fi
+
 # TODO use this for 32bit systems
 #export CFLAGS="-march=i686 $CFLAGS"
 
@@ -21,9 +23,9 @@ build_gmp()
 	# TODO on mac:
 	#./configure --disable-shared --disable-assembly > /dev/null &&
 
-	tar xfJ gmp-6.1.2.tar.gz &&
+	tar xfz gmp-6.1.2.tar.gz &&
 	cd gmp-6.1.2 &&
-	./configure --disable-shared > /dev/null &&
+	./configure --disable-shared @{GMP} > /dev/null &&
 	make > /dev/null &&
 	cd ../ &&
 	return 0
@@ -44,18 +46,20 @@ build_nettle()
 
 build_gnutls()
 {
-	external=$(normalize ..)
+	external=$(normalize .)
 
-	tar xfJ gnutls-3.5.16.tar.gz &&
+	tar xfz gnutls-3.5.16.tar.gz &&
 	ln -s nettle-3.4 nettle &&
     cd gnutls-3.5.16 &&
-	GMP_CFLAGS="-I${external}/gmp-6.1.2" GMP_LIBS="-L${external}/gmp-6.1.2/.libs -lgmp" NETTLE_CFLAGS="-I${external}" NETTLE_LIBS="-L${external}/nettle-3.4 -lnettle" HOGWEED_CFLAGS="-I${external}" HOGWEED_LIBS="-L${external}/nettle-3.4 -lhogweed" ./configure --disable-shared --disable-cxx --disable-rpath --disable-doc --without-p11-kit --without-idn --with-included-libtasn1 --with-included-unistring > /dev/null &&
+	GMP_CFLAGS="-I${external} -I${external}/gmp-6.1.2" GMP_LIBS="-L${external}/gmp-6.1.2/.libs -lgmp" NETTLE_CFLAGS="-I${external}" NETTLE_LIBS="-L${external}/nettle-3.4 -lnettle" HOGWEED_CFLAGS="-I${external}" HOGWEED_LIBS="-L${external}/nettle-3.4 -lhogweed" ./configure --disable-shared --disable-cxx --disable-rpath --disable-doc --without-p11-kit --without-idn --with-included-libtasn1 --with-included-unistring > /dev/null &&
 	make > /dev/null &&
 	cd .. &&
 	rm nettle &&
 	mkdir -p ../../include/gnutls &&
 	cp -f gnutls-3.5.16/lib/includes/gnutls/{gnutls,compat}.h ../../include/gnutls &&
-	cp -f gnutls-3.5.16/lib/.libs/libgnutls.a ../../lib &&
+	cp -f gnutls-3.5.16/lib/.libs/libgnutls.a .. &&
+	cp -f nettle-3.4/libhogweed.a nettle-3.4/libnettle.a .. &&
+	cp -f gmp-6.1.2/.libs/libgmp.a .. &&
 	return 0
 }
 

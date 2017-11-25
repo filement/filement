@@ -18,11 +18,16 @@ src/proxy/proxy_dev
 src/proxy/proxy_production
 src/pubcloud/main.c
 src/storage_mysql.h
+include/gnutls
+include/libavcodec
+include/libavformat
+include/libavutil
 config.log
 
 bin/filement
 bin/filement-gtk
 lib/libfilement.so
+lib/libfilement.dylib
 share/filement/background.png
 share/filement/logo.png
 gui/applications

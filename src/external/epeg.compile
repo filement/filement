@@ -6,7 +6,7 @@ export CC=gcc
 export CFLAGS=-fPIC
 export LDFLAGS=
 
-tar xjf thumbs.tar.bz2
+tar xzf thumbs.tar.gz
 cd thumbs
 
 cd jpeg-8d && \
@@ -16,16 +16,13 @@ cd ..
 
 export CPPFLAGS="$CPPFLAGS -I$(pwd)/jpeg-8d/"
 
-cd epeg && \
-mv configure configure_orig && \
-sed 's/^my_libs="-ljpeg"$/my_libs=""/' < configure_orig > configure && \
-chmod a+x configure && \
-./configure --enable-static --disable-shared --with-pic > /dev/null && \
+cd epeg &&
+./configure --enable-static --disable-shared --with-pic > /dev/null &&
 make > /dev/null 2> /dev/null
 cd ..
 
-cd .. && \
-cp thumbs/epeg/src/lib/.libs/libepeg.a thumbs/jpeg-8d/.libs/libjpeg.a ../ && \
+cd .. &&
+cp thumbs/epeg/src/lib/.libs/libepeg.a thumbs/jpeg-8d/.libs/libjpeg.a ../ &&
 rm -rf thumbs
 
 #export JPEG_LIB_VERSION="80"

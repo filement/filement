@@ -8,7 +8,7 @@
 #elif (BYTE_ORDER == LITTLE_ENDIAN)
 # define ENDIAN_LITTLE
 #else
-#  error "Unable to detect endianness."
+# error "Unable to detect endianness."
 #endif
 
 //  TODO deprecated
@@ -44,7 +44,7 @@
 # define htole64(x) (x)
 # define betoh64(x) ( ( (uint64_t)(htonl( (uint32_t)(((uint64_t)x << 32) >> 32) )) << 32) | htonl( ((uint32_t)((uint64_t)x >> 32)) ) )
 # define letoh64(x) (x)
-#else
+#elif defined(OS_LINUX)
 # include <byteswap.h>
 
 # undef htobe16
@@ -80,6 +80,7 @@
 #  define letoh32(x) bswap_32(x)
 #  define letoh64(x) bswap_64(x)
 # else /* defined(ENDIAN_LITTLE) */
+
 #  define htobe16(x) bswap_16(x)
 #  define htobe32(x) bswap_32(x)
 #  define htobe64(x) bswap_64(x)
@@ -96,6 +97,14 @@
 #  define letoh32(x) (x)
 #  define letoh64(x) (x)
 # endif
+#else
+# include <sys/endian.h>
+# define	betoh16(x)	be16toh(x)
+# define	betoh32(x)	be32toh(x)
+# define	betoh64(x)	be64toh(x)
+# define	letoh16(x)	le16toh(x)
+# define	letoh32(x)	le32toh(x)
+# define	letoh64(x)	le64toh(x)
 #endif
 
 // Simple endian conversion.

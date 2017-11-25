@@ -144,6 +144,8 @@ $target = 'pubcloud' if (defined($clouds{$uuid}));
 
 my ($cc, $shared, $suffix, $storage, $root, $libs, $libs_, $strip, $soname, $gmp);
 
+# TODO some targets are supported onlyon some platforms; pubcloud and distribute are supported only on linux
+
 # TODO link time optimization when creating the shared library and the executable (-flto)
 # TODO strip
 # TODO take into account upgrade
@@ -159,6 +161,7 @@ if ($platform eq 'darwin')
 	$strip = ''; # TODO remove this
 
 	$flags .= ' -O2' if !$flag_debug;
+	# -D_GNU_SOURCE -D_BSD_SOURCE -D_DEFAULT_SOURCE 
 	$definitions .= ' -DPLATFORM_ID=2 -DOS_MAC -DTLS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/Applications/Filement.app/\\\"';
 	$options .= ' -pthread -Wno-unused-value -Wno-empty-body';
 	$link .= '-lz -lresolv -framework CoreFoundation -framework CoreServices -framework VideoDecodeAcceleration -framework QuartzCore -framework Security';
@@ -179,7 +182,7 @@ elsif ($platform eq 'linux')
 
 	$flags .= ' -pthread';
 	$flags .= ' -O2' if !$flag_debug;
-	$definitions .= ' -DPLATFORM_ID=4 -DOS_LINUX -DTLS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/\\\"';
+	$definitions .= ' -DPLATFORM_ID=4 -DOS_LINUX -DTLS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/\\\" -D_GNU_SOURCE -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700';
 	$options .= ' $(shell pkg-config --cflags libavformat libavutil) -Wno-unused-value'; # replace with -Wno-unused-result
 	$link .= '-lz -lgnutls $(shell pkg-config --libs libavformat libavutil) -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
 
@@ -313,7 +316,7 @@ my @replace = (
 	'-e', "s/\@{SHARED}/$shared/g",
 	'-e', "s/\@{SUFFIX}/$suffix/g",
 	'-e', "s/\@{STORAGE}/$storage/g",
-#	'-e', "s/\@{ROOT}/$root/g",
+	'-e', "s/\@{ROOT}/$root/g",
 	'-e', "s/\@{LIBS}/$libs/g",
 	'-e', "s/\@{STRIP}/$strip/g",
 	'-e', "s/\@{SONAME}/$soname/g",
@@ -406,3 +409,20 @@ if (defined($clouds{$uuid}))
 	system 'sed', @replace, 'src/storage_mysql.h.in';
 	chmod 0444, 'src/storage_mysql.h';
 }
+
+open STDOUT, '>', 'config.log';
+print "version=$version\n";
+print "length=$length\n";
+print "uuid=$uuid\n";
+print "\n";
+print "CC=$cc\n";
+print "CFLAGS=$options\n";
+print "FLAGS=$flags\n";
+print "LINK=$link\n";
+print "SHARED=$shared\n";
+print "SUFFIX=$suffix\n";
+print "STORAGE=$storage\n";
+print "ROOT=$root\n";
+print "LIBS=$libs\n";
+print "STRIP=$strip\n";
+print "SONAME=$soname\n";

@@ -20,6 +20,7 @@ TODO can I replace entry->_links with pthread_mutex_trylock() in cache_destroy?
 
 #include <pthread.h>
 #include <stdlib.h>
+#include <sys/socket.h>
 #include <sys/time.h>
 #include <unistd.h>
 

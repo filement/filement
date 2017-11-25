@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <sys/socket.h>
 #include <unistd.h>
 
 #ifdef OS_WINDOWS

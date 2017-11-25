@@ -2,26 +2,30 @@
 
 # http://gl.developpez.com/tutoriel/outil/makefile/
 
-DEF=-D_GNU_SOURCE -D_BSD_SOURCE -D_DEFAULT_SOURCE -DOS_BSD -D_FILE_OFFSET_BITS=64 @{CFLAGS}
+DEF=-DOS_BSD -D_FILE_OFFSET_BITS=64 @{CFLAGS}
 INC=-I$(CURDIR) -I$(CURDIR)/lib -I$(CURDIR)/../include
 # TODO is it okay to add -Wno-cast-align
 # TODO ?-Wstrict-aliasing
 WARNINGS=-Werror -Wchar-subscripts -Wimplicit -Wsequence-point -Wcast-align -Wstrict-prototypes -Wno-parentheses -Wno-comment -Wno-pointer-sign -Wno-return-type -Wno-cast-align -Wno-switch-enum -Wno-switch
 
-DEVICE_SRC=upload.o evfs.o io.o security.o http.o http_parse.o http_response.o status.o remote.o actions.o access.o server.o download.o zip.o tar.o earchive.o cache.o operations.o magic.o
+SRC_BASE=upload.o evfs.o io.o security.o http.o http_parse.o http_response.o status.o remote.o actions.o access.o server.o download.o zip.o tar.o earchive.o cache.o operations.o magic.o
+SRC_LIB=lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o
+SRC_DEVICE=device/device.o device/distribute.o device/proxy.o device/startup.o device/upgrade.o
+SRC_ACTIONS_DEVICE=actions_device/cache.o actions_device/ffs.o actions_device/media.o actions_device/process.o actions_device/search.o actions_device/url.o actions_device/config.o actions_device/fs.o actions_device/private.o actions_device/proxy.o actions_device/session.o
+SRC_DLNA=dlna/dlnahttp.o dlna/minixml.o dlna/soapactions.o dlna/ssdp.o dlna/upnpdescgen.o dlna/upnpreplyparse.o
 
-export CC=@{CC}
-export CFLAGS=-std=c99 -fPIC @{FLAGS} -fstrict-aliasing $(DEF) $(INC) $(WARNINGS)
-export LDFLAGS=-L$(CURDIR)/../lib @{FLAGS} @{LINK} @{FLAGS}
-export PATH := @{ROOT}/bin:$(PATH)
+CC=@{CC}
+CFLAGS=-std=c99 -fPIC @{FLAGS} -fstrict-aliasing $(DEF) $(INC) $(WARNINGS)
+LDFLAGS=-L$(CURDIR)/../lib @{FLAGS} @{LINK}
+PATH:=@{ROOT}/bin:$(PATH)
 
-all:
+# TODO propagate variables to other make calls
 
 force:
 	@true
 
-sqlite.o: CFLAGS=-std=c99 -DRUN_MODE=2 -O2 -fomit-frame-pointer -fPIC -pthread
-sqlite.o: LDFLAGS=-ldl
+sqlite.o: sqlite.c
+	$(CC) -std=c99 -pthread -O2 -fomit-frame-pointer -fPIC -c sqlite.c -o $@
 
 storage_sqlite: sqlite.o storage_sqlite.o
 	ar rcs storage.a sqlite.o storage_sqlite.o
@@ -32,13 +36,9 @@ storage_remote: storage_remote.o
 storage_mysql: storage_mysql.o
 	ar rcs storage.a storage_mysql.o
 
-device: $(DEVICE_SRC) @{STORAGE} force
-	$(MAKE) -C lib string.o vector.o dictionary.o queue.o buffer.o format.o stream.o log.o json.o sha2.o aes.o
-	$(MAKE) -C device
-	$(MAKE) -C actions_device
-	$(MAKE) -C dlna
+device: $(SRC_BASE) @{STORAGE} $(SRC_LIB) $(SRC_DEVICE) $(SRC_ACTIONS_DEVICE) $(SRC_DLNA)
 
-pubc: $(DEVICE_SRC) storage_mysql force
+pubc: $(SRC_BASE) storage_mysql
 	$(MAKE) -C lib string.o vector.o dictionary.o queue.o buffer.o format.o stream.o log.o json.o sha2.o aes.o
 	$(MAKE) -C actions_pubcloud
 
@@ -47,20 +47,14 @@ register:
 	$(MAKE) -C lib string.o format.o aes.o
 	$(CC) lib/string.o lib/format.o lib/aes.o distribute/uuid.o $(LDFLAGS) -o ../bin/register
 
-libepeg.a: CFLAGS=
-libepeg.a: LDFLAGS=
 libepeg.a:
 	cd external && ./epeg.compile && cd ..
 
 libjpeg.a: libepeg.a
 
-libminiupnpc.a: CFLAGS=
-libminiupnpc.a: LDFLAGS=
 libminiupnpc.a:
 	cd external && ./miniupnpc.compile && cd ..
 
-libgnutls.a: CFLAGS=
-libgnutls.a: LDFLAGS=
 libgnutls.a:
 	cd external && ./gnutls.compile && cd ..
 
@@ -70,8 +64,6 @@ libhogweed.a: libgnutls.a
 
 libgmp.a: libgnutls.a
 
-libavformat.a: CFLAGS=
-libavformat.a: LDFLAGS=
 libavformat.a:
 	cd external && ./ffmpeg.compile && cd ..
 
@@ -80,20 +72,20 @@ libavcodec.a: libavformat.a
 libavutil.a: libavformat.a
 
 libfilement.so: @{STORAGE} device @{LIBS}
-	$(CC) @{FLAGS} $(DEF) $(DEVICE_SRC) storage.a @{SHARED} device/*.o dlna/*.o actions_device/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS} $(LDFLAGS) -Wl,@{SONAME},libfilement@{SUFFIX} -o "../lib/libfilement@{SUFFIX}"
+	$(CC) @{FLAGS} $(DEF) $(SRC_BASE) storage.a @{SHARED} device/*.o dlna/*.o actions_device/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS} $(LDFLAGS) -Wl,@{SONAME},libfilement@{SUFFIX} -o "../lib/libfilement@{SUFFIX}"
 
 filement: libfilement.so main.o
 	$(CC) main.o $(LDFLAGS) -lfilement -Wl,-rpath,/usr/local/lib -o ../bin/$@
 	#@{STRIP}
 
-main-gtk.o: CFLAGS+= $(shell pkg-config --cflags gtk+-2.0) -Wno-strict-prototypes
+main-gtk.o: main-gtk.c
+	$(CC) $(CFLAGS) $(shell pkg-config --cflags gtk+-2.0) -Wno-strict-prototypes -c main-gtk.c -o $@
 
-filement-gtk: LDFLAGS+= $(shell pkg-config --libs gtk+-2.0)
 filement-gtk: libfilement.so main-gtk.o
-	$(CC) main-gtk.o $(LDFLAGS) -lfilement -Wl,-rpath,/usr/local/lib -o ../bin/$@
+	$(CC) main-gtk.o $(LDFLAGS) $(shell pkg-config --libs gtk+-2.0) -lfilement -Wl,-rpath,/usr/local/lib -o ../bin/$@
 
 pubcloud: pubc device/device.o device/distribute.o main.o
-	$(CC) $(DEVICE_SRC) storage.a device/device.o device/distribute.o main.o actions_pubcloud/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS} $(LDFLAGS) -lmysqlclient -o ../bin/pubcloud
+	$(CC) $(SRC_BASE) storage.a device/device.o device/distribute.o main.o actions_pubcloud/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS} $(LDFLAGS) -lmysqlclient -o ../bin/pubcloud
 
 failsafe: @{STORAGE} device
 	# TODO this should do its own configure
@@ -123,8 +115,8 @@ failsafe: @{STORAGE} device
 clean:
 	rm -f *.o
 	rm -f *.a
-	$(MAKE) -C lib clean
-	$(MAKE) -C device clean
+	rm -f lib/*.o
+	rm -f device/*.o
 	$(MAKE) -C actions_device clean
 	$(MAKE) -C dlna clean
 	$(MAKE) -C actions_pubcloud clean

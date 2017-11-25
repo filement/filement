@@ -2,6 +2,9 @@
 
 if [ -f '../libavformat.a' ]; then exit; fi
 
+export CFLAGS=
+export LDFLAGS=
+
 dir="ffmpeg-1.1.1"
 
 tar xfj "$dir.tar.bz2" &&

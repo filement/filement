@@ -2,8 +2,9 @@
 
 if [ -f ../miniupnpc.a ]; then exit; fi
 
-# TODO this is only for linux
 export CC=gcc
+export CFLAGS=
+export LDFLAGS=
 
 src='miniupnpc_filement'
 

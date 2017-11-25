@@ -37,8 +37,6 @@
 
 #define BUFFER_SIZE 256
 
-// TODO make this work on FreeBSD as well (sendfile() is linux-specific)
-
 struct info
 {
 	struct string email;

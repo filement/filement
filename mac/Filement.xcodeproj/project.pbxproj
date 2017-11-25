@@ -7,13 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5B13EE5618E9AA7A00ADBA30 /* libavcodec.54.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B13EE4F18E9AA7A00ADBA30 /* libavcodec.54.dylib */; };
-		5B13EE5718E9AA7A00ADBA30 /* libavformat.54.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B13EE5018E9AA7A00ADBA30 /* libavformat.54.dylib */; };
-		5B13EE5818E9AA7A00ADBA30 /* libavutil.52.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B13EE5118E9AA7A00ADBA30 /* libavutil.52.dylib */; };
-		5B13EE5918E9AA7A00ADBA30 /* libgmp.10.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B13EE5218E9AA7A00ADBA30 /* libgmp.10.dylib */; };
-		5B13EE5A18E9AA7A00ADBA30 /* libgnutls.28.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B13EE5318E9AA7A00ADBA30 /* libgnutls.28.dylib */; };
-		5B13EE5B18E9AA7A00ADBA30 /* libhogweed.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B13EE5418E9AA7A00ADBA30 /* libhogweed.2.dylib */; };
-		5B13EE5C18E9AA7A00ADBA30 /* libnettle.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B13EE5518E9AA7A00ADBA30 /* libnettle.4.dylib */; };
 		5B1581AF162C956A00321533 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B1581AE162C956A00321533 /* Cocoa.framework */; };
 		5B1581B9162C956A00321533 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5B1581B7162C956A00321533 /* InfoPlist.strings */; };
 		5B1581BB162C956A00321533 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B1581BA162C956A00321533 /* main.m */; };
@@ -21,21 +14,14 @@
 		5B1581C2162C956A00321533 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B1581C1162C956A00321533 /* AppDelegate.m */; };
 		5B1581C5162C956B00321533 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5B1581C3162C956B00321533 /* MainMenu.xib */; };
 		5B288C4916A8025E00F59EC0 /* menu@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B288C4716A8025E00F59EC0 /* menu@2x.png */; };
+		5B32EB351FC9ADF6001BE82D /* background.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B32EB311FC9ADF6001BE82D /* background.png */; };
+		5B32EB361FC9ADF6001BE82D /* ca.crt in Resources */ = {isa = PBXBuildFile; fileRef = 5B32EB321FC9ADF6001BE82D /* ca.crt */; };
+		5B32EB371FC9ADF6001BE82D /* fonts.conf in Resources */ = {isa = PBXBuildFile; fileRef = 5B32EB331FC9ADF6001BE82D /* fonts.conf */; };
+		5B32EB381FC9ADF6001BE82D /* logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B32EB341FC9ADF6001BE82D /* logo.png */; };
 		5B6D06771659559500A38A15 /* menu.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B6D06751659559500A38A15 /* menu.png */; };
 		5BB470DE16A960AA00B5A5C4 /* filement.icns in Resources */ = {isa = PBXBuildFile; fileRef = 5BB470DD16A960AA00B5A5C4 /* filement.icns */; };
 		5BB6ED761863279600C9C2EE /* libfilement.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5BD9D10418631B1B001D3C80 /* libfilement.dylib */; };
 		5BB6ED771863279D00C9C2EE /* ffmpeg in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5BD9D0FF18631AF2001D3C80 /* ffmpeg */; };
-		5BBEC5A218E9B0DB009A8607 /* libavcodec.54.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5B13EE4F18E9AA7A00ADBA30 /* libavcodec.54.dylib */; };
-		5BBEC5A318E9B0DB009A8607 /* libavformat.54.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5B13EE5018E9AA7A00ADBA30 /* libavformat.54.dylib */; };
-		5BBEC5A418E9B0DB009A8607 /* libavutil.52.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5B13EE5118E9AA7A00ADBA30 /* libavutil.52.dylib */; };
-		5BBEC5A518E9B0DB009A8607 /* libgmp.10.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5B13EE5218E9AA7A00ADBA30 /* libgmp.10.dylib */; };
-		5BBEC5A618E9B0DB009A8607 /* libgnutls.28.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5B13EE5318E9AA7A00ADBA30 /* libgnutls.28.dylib */; };
-		5BBEC5A718E9B0DB009A8607 /* libhogweed.2.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5B13EE5418E9AA7A00ADBA30 /* libhogweed.2.dylib */; };
-		5BBEC5A818E9B0DB009A8607 /* libnettle.4.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5B13EE5518E9AA7A00ADBA30 /* libnettle.4.dylib */; };
-		5BD9D0FB18631ADA001D3C80 /* background.png in Resources */ = {isa = PBXBuildFile; fileRef = 5BD9D0F718631ADA001D3C80 /* background.png */; };
-		5BD9D0FC18631ADA001D3C80 /* ca.crt in Resources */ = {isa = PBXBuildFile; fileRef = 5BD9D0F818631ADA001D3C80 /* ca.crt */; };
-		5BD9D0FD18631ADA001D3C80 /* fonts.conf in Resources */ = {isa = PBXBuildFile; fileRef = 5BD9D0F918631ADA001D3C80 /* fonts.conf */; };
-		5BD9D0FE18631ADA001D3C80 /* logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 5BD9D0FA18631ADA001D3C80 /* logo.png */; };
 		5BD9D10C18631B1B001D3C80 /* libfilement.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BD9D10418631B1B001D3C80 /* libfilement.dylib */; };
 /* End PBXBuildFile section */
 
@@ -56,13 +42,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				5BBEC5A218E9B0DB009A8607 /* libavcodec.54.dylib in CopyFiles */,
-				5BBEC5A318E9B0DB009A8607 /* libavformat.54.dylib in CopyFiles */,
-				5BBEC5A418E9B0DB009A8607 /* libavutil.52.dylib in CopyFiles */,
-				5BBEC5A518E9B0DB009A8607 /* libgmp.10.dylib in CopyFiles */,
-				5BBEC5A618E9B0DB009A8607 /* libgnutls.28.dylib in CopyFiles */,
-				5BBEC5A718E9B0DB009A8607 /* libhogweed.2.dylib in CopyFiles */,
-				5BBEC5A818E9B0DB009A8607 /* libnettle.4.dylib in CopyFiles */,
 				5BB6ED761863279600C9C2EE /* libfilement.dylib in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -70,13 +49,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		5B13EE4F18E9AA7A00ADBA30 /* libavcodec.54.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libavcodec.54.dylib; path = ../lib/libavcodec.54.dylib; sourceTree = "<group>"; };
-		5B13EE5018E9AA7A00ADBA30 /* libavformat.54.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libavformat.54.dylib; path = ../lib/libavformat.54.dylib; sourceTree = "<group>"; };
-		5B13EE5118E9AA7A00ADBA30 /* libavutil.52.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libavutil.52.dylib; path = ../lib/libavutil.52.dylib; sourceTree = "<group>"; };
-		5B13EE5218E9AA7A00ADBA30 /* libgmp.10.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libgmp.10.dylib; path = ../lib/libgmp.10.dylib; sourceTree = "<group>"; };
-		5B13EE5318E9AA7A00ADBA30 /* libgnutls.28.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libgnutls.28.dylib; path = ../lib/libgnutls.28.dylib; sourceTree = "<group>"; };
-		5B13EE5418E9AA7A00ADBA30 /* libhogweed.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libhogweed.2.dylib; path = ../lib/libhogweed.2.dylib; sourceTree = "<group>"; };
-		5B13EE5518E9AA7A00ADBA30 /* libnettle.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libnettle.4.dylib; path = ../lib/libnettle.4.dylib; sourceTree = "<group>"; };
 		5B1581AA162C956A00321533 /* Filement.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Filement.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B1581AE162C956A00321533 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		5B1581B1162C956A00321533 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -91,14 +63,14 @@
 		5B1581C1162C956A00321533 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		5B1581C4162C956B00321533 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		5B288C4816A8025E00F59EC0 /* en */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = en; path = "en.lproj/menu@2x.png"; sourceTree = "<group>"; };
+		5B32EB311FC9ADF6001BE82D /* background.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = background.png; path = ../../share/filement/background.png; sourceTree = "<group>"; };
+		5B32EB321FC9ADF6001BE82D /* ca.crt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = ca.crt; path = ../../share/filement/ca.crt; sourceTree = "<group>"; };
+		5B32EB331FC9ADF6001BE82D /* fonts.conf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = fonts.conf; path = ../../share/filement/fonts.conf; sourceTree = "<group>"; };
+		5B32EB341FC9ADF6001BE82D /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = logo.png; path = ../../share/filement/logo.png; sourceTree = "<group>"; };
 		5B6D06761659559500A38A15 /* en */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = en; path = en.lproj/menu.png; sourceTree = "<group>"; };
 		5BB470DD16A960AA00B5A5C4 /* filement.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = filement.icns; sourceTree = "<group>"; };
 		5BD9D0F418631AAD001D3C80 /* filement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = filement.h; path = ../../include/filement.h; sourceTree = "<group>"; };
 		5BD9D0F518631AAD001D3C80 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = types.h; path = ../../include/types.h; sourceTree = "<group>"; };
-		5BD9D0F718631ADA001D3C80 /* background.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = background.png; path = ../../share/background.png; sourceTree = "<group>"; };
-		5BD9D0F818631ADA001D3C80 /* ca.crt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = ca.crt; path = ../../share/ca.crt; sourceTree = "<group>"; };
-		5BD9D0F918631ADA001D3C80 /* fonts.conf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = fonts.conf; path = ../../share/fonts.conf; sourceTree = "<group>"; };
-		5BD9D0FA18631ADA001D3C80 /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = logo.png; path = ../../share/logo.png; sourceTree = "<group>"; };
 		5BD9D0FF18631AF2001D3C80 /* ffmpeg */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = ffmpeg; sourceTree = "<group>"; };
 		5BD9D10418631B1B001D3C80 /* libfilement.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfilement.dylib; path = ../lib/libfilement.dylib; sourceTree = "<group>"; };
 		5BF7CE1319DADAD800F21653 /* Filement.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Filement.entitlements; sourceTree = "<group>"; };
@@ -111,13 +83,6 @@
 			files = (
 				5B1581AF162C956A00321533 /* Cocoa.framework in Frameworks */,
 				5BD9D10C18631B1B001D3C80 /* libfilement.dylib in Frameworks */,
-				5B13EE5618E9AA7A00ADBA30 /* libavcodec.54.dylib in Frameworks */,
-				5B13EE5718E9AA7A00ADBA30 /* libavformat.54.dylib in Frameworks */,
-				5B13EE5818E9AA7A00ADBA30 /* libavutil.52.dylib in Frameworks */,
-				5B13EE5918E9AA7A00ADBA30 /* libgmp.10.dylib in Frameworks */,
-				5B13EE5A18E9AA7A00ADBA30 /* libgnutls.28.dylib in Frameworks */,
-				5B13EE5B18E9AA7A00ADBA30 /* libhogweed.2.dylib in Frameworks */,
-				5B13EE5C18E9AA7A00ADBA30 /* libnettle.4.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -144,13 +109,6 @@
 		5B1581AD162C956A00321533 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				5B13EE4F18E9AA7A00ADBA30 /* libavcodec.54.dylib */,
-				5B13EE5018E9AA7A00ADBA30 /* libavformat.54.dylib */,
-				5B13EE5118E9AA7A00ADBA30 /* libavutil.52.dylib */,
-				5B13EE5218E9AA7A00ADBA30 /* libgmp.10.dylib */,
-				5B13EE5318E9AA7A00ADBA30 /* libgnutls.28.dylib */,
-				5B13EE5418E9AA7A00ADBA30 /* libhogweed.2.dylib */,
-				5B13EE5518E9AA7A00ADBA30 /* libnettle.4.dylib */,
 				5BD9D10418631B1B001D3C80 /* libfilement.dylib */,
 				5BD9D0FF18631AF2001D3C80 /* ffmpeg */,
 				5B1581AE162C956A00321533 /* Cocoa.framework */,
@@ -185,10 +143,10 @@
 		5B1581B5162C956A00321533 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				5BD9D0F718631ADA001D3C80 /* background.png */,
-				5BD9D0F818631ADA001D3C80 /* ca.crt */,
-				5BD9D0F918631ADA001D3C80 /* fonts.conf */,
-				5BD9D0FA18631ADA001D3C80 /* logo.png */,
+				5B32EB311FC9ADF6001BE82D /* background.png */,
+				5B32EB321FC9ADF6001BE82D /* ca.crt */,
+				5B32EB331FC9ADF6001BE82D /* fonts.conf */,
+				5B32EB341FC9ADF6001BE82D /* logo.png */,
 				5BB470DD16A960AA00B5A5C4 /* filement.icns */,
 				5B6D06751659559500A38A15 /* menu.png */,
 				5B288C4716A8025E00F59EC0 /* menu@2x.png */,
@@ -273,15 +231,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				5BB470DE16A960AA00B5A5C4 /* filement.icns in Resources */,
+				5B32EB361FC9ADF6001BE82D /* ca.crt in Resources */,
 				5B6D06771659559500A38A15 /* menu.png in Resources */,
 				5B288C4916A8025E00F59EC0 /* menu@2x.png in Resources */,
+				5B32EB381FC9ADF6001BE82D /* logo.png in Resources */,
 				5B1581B9162C956A00321533 /* InfoPlist.strings in Resources */,
+				5B32EB371FC9ADF6001BE82D /* fonts.conf in Resources */,
 				5B1581BF162C956A00321533 /* Credits.rtf in Resources */,
 				5B1581C5162C956B00321533 /* MainMenu.xib in Resources */,
-				5BD9D0FB18631ADA001D3C80 /* background.png in Resources */,
-				5BD9D0FC18631ADA001D3C80 /* ca.crt in Resources */,
-				5BD9D0FD18631ADA001D3C80 /* fonts.conf in Resources */,
-				5BD9D0FE18631ADA001D3C80 /* logo.png in Resources */,
+				5B32EB351FC9ADF6001BE82D /* background.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -364,9 +322,9 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LD_NO_PIE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = macosx10.7;
+				SDKROOT = macosx10.8;
 				STRINGS_FILE_OUTPUT_ENCODING = "UTF-8";
 				STRIP_INSTALLED_PRODUCT = YES;
 				STRIP_STYLE = "non-global";
@@ -392,9 +350,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LD_NO_PIE = YES;
 				LLVM_LTO = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = macosx10.7;
+				SDKROOT = macosx10.8;
 				STRINGS_FILE_OUTPUT_ENCODING = "UTF-8";
 				STRIP_INSTALLED_PRODUCT = YES;
 				STRIP_STYLE = "non-global";
@@ -417,7 +375,7 @@
 					../lib/,
 					"\"$(SRCROOT)/../lib\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = NO;
@@ -443,7 +401,7 @@
 					../lib/,
 					"\"$(SRCROOT)/../lib\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = NO;

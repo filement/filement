@@ -5,34 +5,34 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>F0ED68FD-60DD-41F6-BAB1-DC268E49C85D</string>
+	<string>461DDE0D-4C61-446B-AD61-BEDECE322576</string>
 	<key>IDESourceControlProjectName</key>
 	<string>Filement</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>48162E42-ABAE-4335-AA2C-5697A18E875F</key>
-		<string>ssh://filement.net/var/filement/filement.git</string>
+		<key>8861FDAF-F911-46C6-B3F5-AC851A70ADB8</key>
+		<string>ssh://github.com/filement/filement.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>mac/Filement.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>48162E42-ABAE-4335-AA2C-5697A18E875F</key>
+		<key>8861FDAF-F911-46C6-B3F5-AC851A70ADB8</key>
 		<string>../../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>ssh://filement.net/var/filement/filement.git</string>
+	<string>ssh://github.com/filement/filement.git</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>110</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>48162E42-ABAE-4335-AA2C-5697A18E875F</string>
+	<string>8861FDAF-F911-46C6-B3F5-AC851A70ADB8</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>48162E42-ABAE-4335-AA2C-5697A18E875F</string>
+			<string>8861FDAF-F911-46C6-B3F5-AC851A70ADB8</string>
 			<key>IDESourceControlWCCName</key>
 			<string>filement</string>
 		</dict>

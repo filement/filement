@@ -1,5 +1,7 @@
 # Filement
 
+mac_target=mac/build/Release/Filement.app
+
 all: filement filement-gtk
 
 pubcloud:
@@ -14,25 +16,26 @@ filement-gtk:
 	ln -f resources/logo.png share/filement
 	ln -sf -t gui ../resources/applications ../resources/icons
 
-filement-cocoa:
+mac/build/Release/Filement.app/Contents/MacOS/Filement:
 	$(MAKE) -C src libfilement.so
+	ln -f resources/background.png share/filement
+	ln -f resources/logo.png share/filement
 	install_name_tool -id "/Applications/Filement.app/Contents/Frameworks/libfilement.dylib" "lib/libfilement.dylib" # TODO ideally I should keep the original lib
-	cd mac && xcodebuild -project Filement.xcodeproj -configuration Release && cd ..
+	cd mac && xcodebuild -project Filement.xcodeproj -configuration Release
 
-filement.dmg: filement-cocoa
-	target=mac/build/Release/Filement.app
-	find $(target) -name '.DS_Store' -delete
-	chmod a+x $(target)"/Contents/MacOS/ffmpeg"
-	hdiutil create '/tmp/temp.dmg' -volname "Filement" -ov -fs 'Case-sensitive HFS+' -fsargs "-c c=64,a=16,e=16" -srcfolder $(target) -srcfolder "mac/.background" -format UDRW -size 65536k
-	device=$(shell hdiutil attach -readwrite -noverify -noautoopen '/tmp/temp.dmg' | $(shell which grep) -E '/Volumes/Filement$' | awk '{print $1}')
+filement.dmg: mac/build/Release/Filement.app/Contents/MacOS/Filement
+	find $(mac_target) -name '.DS_Store' -delete
+	chmod a+x $(mac_target)"/Contents/MacOS/ffmpeg"
+	hdiutil create '/tmp/temp.dmg' -volname "Filement" -ov -fs 'Case-sensitive HFS+' -fsargs "-c c=64,a=16,e=16" -srcfolder $(mac_target) -srcfolder "resources/.background" -format UDRW -size 65536k
+	hdiutil attach -readwrite -noverify '/tmp/temp.dmg'
 	ln -s /Applications /Volumes/Filement
 	osascript < mac/makeimage
 	rmdir /Volumes/Filement/.Trashes
 	chmod -Rf go-w /Volumes/Filement
 	sync
-	hdiutil detach $(device)
-	hdiutil convert /tmp/temp.dmg -ov -format UDZO -imagekey zlib-level=9 -o gui/Filement.dmg
-	rm -r /tmp/temp.dmg
+	hdiutil detach /Volumes/Filement
+	hdiutil convert /tmp/temp.dmg -ov -format UDZO -imagekey zlib-level=9 -o gui/filement.dmg
+	rm /tmp/temp.dmg
 
 check:
 	$(MAKE) -C tests check
@@ -61,6 +64,7 @@ clean:
 	$(MAKE) -C tests clean
 	rm -f share/filement/background.png share/filement/logo.png
 	rm -f gui/applications gui/icons
+	rm -f mac/build/Release/Filement.app/Contents/MacOS/Filement
 
 mrproper: clean
 	$(MAKE) -C src mrproper

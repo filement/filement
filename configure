@@ -142,7 +142,7 @@ $platform = $Config{'osname'} if !defined($platform);
 # If --uuid is specified, treat the device as pubcloud.
 $target = 'pubcloud' if (defined($clouds{$uuid}));
 
-my ($cc, $shared, $suffix, $storage, $root, $libs, $libs_, $strip, $libdir, $getso, $soname);
+my ($cc, $shared, $suffix, $storage, $root, $libs, $libs_, $strip, $soname, $gmp);
 
 # TODO some targets are supported onlyon some platforms; pubcloud and distribute are supported only on linux
 
@@ -156,19 +156,19 @@ if ($platform eq 'darwin')
 	$shared = '-dynamiclib';
 	$suffix = '.dylib';
 	$soname = '-install_name';
-	$getso = 'basename $(otool -XD "$1")';
-	# TODO libdir and getso is used for compiling ffmpeg and gnutls
-	$libdir = '/Applications/Filement.app/Contents/Frameworks';
+	$gmp = '--disable-assembly';
 	$strip = 'strip -x -S ../bin/device -o ../bin/device_stripped'; # TODO fix this
+	$strip = ''; # TODO remove this
 
 	$flags .= ' -O2' if !$flag_debug;
+	# -D_GNU_SOURCE -D_BSD_SOURCE -D_DEFAULT_SOURCE 
 	$definitions .= ' -DPLATFORM_ID=2 -DOS_MAC -DTLS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/Applications/Filement.app/\\\"';
 	$options .= ' -pthread -Wno-unused-value -Wno-empty-body';
-	$link .= '-lz -lgnutls -lavformat -lavutil -lresolv -framework CoreFoundation -framework CoreServices';
+	$link .= '-lz -lresolv -framework CoreFoundation -framework CoreServices -framework VideoDecodeAcceleration -framework QuartzCore -framework Security';
 
 	$root = '';
 	$storage = 'storage_sqlite';
-	$libs = '../lib/libminiupnpc_filement.a ../lib/libepeg.a ../lib/libjpeg.a'; # TODO fix this
+	$libs = 'libepeg.a libjpeg.a libminiupnpc.a libavformat.a libavcodec.a libavutil.a libgnutls.a libnettle.a libhogweed.a libgmp.a';
 }
 elsif ($platform eq 'linux')
 {
@@ -176,16 +176,15 @@ elsif ($platform eq 'linux')
 	$shared = '-shared';
 	$suffix = '.so';
 	$soname = '-soname';
-	$getso = q(objdump -p "$1"|grep SONAME|awk '{print $2}'); # TODO not used
-	$libdir = '/usr/local/lib'; # TODO not used
+	$gmp = '';
 	$strip = ($flag_debug ? '' : "strip -R .comment -R .note");
 	$strip = ''; # TODO remove this
 
 	$flags .= ' -pthread';
 	$flags .= ' -O2' if !$flag_debug;
 	$definitions .= ' -DPLATFORM_ID=4 -DOS_LINUX -DTLS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/\\\" -D_GNU_SOURCE -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700';
-	$options .= ' $(shell pkg-config --cflags libavformat libavutil) -Wno-unused-value'; # replace with -Wno-unused-result
-	$link .= '-lz -lgnutls $(shell pkg-config --libs libavformat libavutil) -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
+	$options .= ' `pkg-config --cflags libavformat libavutil` -Wno-unused-value'; # replace with -Wno-unused-result
+	$link .= '-lz -lgnutls `pkg-config --libs libavformat libavutil` -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
 
 	$root = '';
 	$storage = 'storage_sqlite';
@@ -197,16 +196,15 @@ elsif ($platform eq 'freebsd')
 	$shared = '-shared';
 	$suffix = '.so';
 	$soname = '-soname';
-	$getso = q(objdump -p "$1"|grep SONAME|awk '{print $2}'); # TODO not used
-	$libdir = '/usr/local/lib'; # TODO not used
+	$gmp = '';
 	$strip = ($flag_debug ? '' : "strip -R .comment -R .note");
 	$strip = ''; # TODO remove this
 
 	$flags .= ' -pthread';
 	$flags .= ' -O2' if !$flag_debug;
 	$definitions .= ' -DPLATFORM_ID=6 -DOS_FREEBSD -DTLS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/\\\"';
-	$options .= ' $(shell pkg-config --cflags libavformat libavutil) -Wno-unused-value'; # replace with -Wno-unused-result
-	$link .= '-lz -lgnutls $(shell pkg-config --libs libavformat libavutil) -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
+	$options .= ' `pkg-config --cflags libavformat libavutil` -Wno-unused-value'; # replace with -Wno-unused-result
+	$link .= '-lz -lgnutls `pkg-config --libs libavformat libavutil` -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
 
 	$root = '';
 	$storage = 'storage_sqlite';
@@ -231,8 +229,7 @@ elsif ($platform eq 'ios')
 	$root = '';
 	$libs = '../ios/ios/evfs.o';
 	$strip = '';
-	$libdir = '/Applications/Filement.app/Contents/Frameworks';
-	$getso = 'basename $(otool -XD "$1")';
+	$gmp = '';
 	$soname = '-install_name';
 }
 elsif ($platform eq 'emulator')
@@ -249,8 +246,7 @@ elsif ($platform eq 'emulator')
 	$libs_ = 'md5.o'; # TODO compile this as part of device and pubc
 	$libs = '../lib/libminiupnpc_filement.a ../lib/libepeg.a ../lib/libjpeg.a lib/md5.o';
 	$strip = '';
-	$libdir = '';
-	$getso = q(objdump -p "$1"|grep SONAME|awk '{print $2}');
+	$gmp = '';
 	$soname = '-soname';
 }
 elsif ($platform eq 'belkin')
@@ -267,8 +263,7 @@ elsif ($platform eq 'belkin')
 	$libs_ = 'md5.o'; # TODO compile this as part of device and pubc
 	$libs = '../lib/libminiupnpc_filement.a ../lib/libepeg.a ../lib/libjpeg.a lib/md5.o ../lib/ifaddrs.o';
 	$strip = "cp ../bin/device ../bin/device_stripped\\n\\tstrip -R .comment -R .note ../bin/device_stripped";
-	$libdir = '';
-	$getso = q(objdump -p "$1"|grep SONAME|awk '{print $2}');
+	$gmp = '';
 	$soname = '-soname';
 }
 elsif ($platform eq 'tplink')
@@ -285,8 +280,7 @@ elsif ($platform eq 'tplink')
 	$libs_ = 'md5.o'; # TODO compile this as part of device and pubc
 	$libs = '../lib/libminiupnpc_filement.a ../lib/libepeg.a ../lib/libjpeg.a lib/md5.o ../lib/ifaddrs.o';
 	$strip = "cp ../bin/device ../bin/device_stripped\\n\\tstrip -R .comment -R .note ../bin/device_stripped";
-	$libdir = '';
-	$getso = q(objdump -p "$1"|grep SONAME|awk '{print $2}');
+	$gmp = '';
 	$soname = '-soname';
 }
 else
@@ -313,7 +307,6 @@ $options =~ s/\//\\\//g;
 $root =~ s/\//\\\//g;
 $libs =~ s/\//\\\//g;
 $strip =~ s/\//\\\//g;
-$libdir =~ s/\//\\\//g;
 
 my @replace = (
 	'-e', "s/\@{CC}/$cc/g",
@@ -372,24 +365,31 @@ if (-f $actions)
 close SORTED;
 
 # gnutls.compile
+unlink 'src/external/gnutls.compile';
 open STDOUT, '>', 'src/external/gnutls.compile';
 $length = length $version;
-system 'sed', '-e', "s/\@{SUFFIX}/$suffix/", '-e', "s/\@{LIBDIR}/$libdir/", '-e', "s/\@{GETSO}/$getso/", 'src/external/gnutls.compile.in';
-chmod 0755, 'src/external/gnutls.compile';
+system 'sed', '-e', "s/\@{GMP}/$gmp/", 'src/external/gnutls.compile.in';
+chmod 0555, 'src/external/gnutls.compile';
 
 # device/device.c
+unlink 'src/device/device.c';
 open STDOUT, '>', 'src/device/device.c';
 $length = length $version;
 system 'sed', '-e', "s/\@{VERSION}/$version/", '-e', "s/\@{VERSION_LENGTH}/$length/", '-e', qq(s/\@{UUID}/"$uuid"/), 'src/device/device.c.in';
+chmod 0444, 'src/device/device.c';
 
 # failsafe.c
+unlink 'src/failsafe.c';
 open STDOUT, '>', 'src/failsafe.c';
 $length = length $version;
 system 'sed', '-e', "s/\@{VERSION}/$version/", '-e', "s/\@{VERSION_LENGTH}/$length/", 'src/failsafe.c.in';
+chmod 0444, 'src/failsafe.c';
 
 # Makefile
+unlink 'src/Makefile';
 open STDOUT, '>', 'src/Makefile';
 system 'sed', @replace, 'src/Makefile.in';
+chmod 0444, 'src/Makefile';
 
 # Configure public cloud if UUID is specified.
 if (defined($clouds{$uuid}))
@@ -407,6 +407,7 @@ if (defined($clouds{$uuid}))
 	# storage_mysql.h
 	open STDOUT, '>', 'src/storage_mysql.h';
 	system 'sed', @replace, 'src/storage_mysql.h.in';
+	chmod 0444, 'src/storage_mysql.h';
 }
 
 open STDOUT, '>', 'config.log';

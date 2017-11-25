@@ -3,7 +3,7 @@
 # http://gl.developpez.com/tutoriel/outil/makefile/
 
 DEF=-DOS_BSD -D_FILE_OFFSET_BITS=64 @{CFLAGS}
-INC=-I. -Ilib -I../include
+INC=-I`pwd` -I`pwd`/lib -I`pwd`/../include
 # TODO is it okay to add -Wno-cast-align
 # TODO ?-Wstrict-aliasing
 WARNINGS=-Werror -Wchar-subscripts -Wimplicit -Wsequence-point -Wcast-align -Wstrict-prototypes -Wno-parentheses -Wno-comment -Wno-pointer-sign -Wno-return-type -Wno-cast-align -Wno-switch-enum -Wno-switch
@@ -12,11 +12,12 @@ SRC_BASE=upload.o evfs.o io.o security.o http.o http_parse.o http_response.o sta
 SRC_LIB=lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o
 SRC_DEVICE=device/device.o device/distribute.o device/proxy.o device/startup.o device/upgrade.o
 SRC_ACTIONS_DEVICE=actions_device/cache.o actions_device/ffs.o actions_device/media.o actions_device/process.o actions_device/search.o actions_device/url.o actions_device/config.o actions_device/fs.o actions_device/private.o actions_device/proxy.o actions_device/session.o
+SRC_ACTIONS_PUBCLOUD=actions_pubcloud/cache.o actions_pubcloud/config.o actions_pubcloud/ffs.o actions_pubcloud/fs.o actions_pubcloud/private.o actions_pubcloud/process.o actions_pubcloud/search.o actions_pubcloud/session.o actions_pubcloud/url.o
 SRC_DLNA=dlna/dlnahttp.o dlna/minixml.o dlna/soapactions.o dlna/ssdp.o dlna/upnpdescgen.o dlna/upnpreplyparse.o
 
 CC=@{CC}
 CFLAGS=-std=c99 -fPIC @{FLAGS} -fstrict-aliasing $(DEF) $(INC) $(WARNINGS)
-LDFLAGS=@{FLAGS} -L../lib @{LINK} @{FLAGS}
+LDFLAGS=-L`pwd`/../lib @{FLAGS} @{LINK}
 PATH:=@{ROOT}/bin:$(PATH)
 
 # TODO propagate variables to other make calls
@@ -55,11 +56,21 @@ libjpeg.a: libepeg.a
 libminiupnpc.a:
 	cd external && ./miniupnpc.compile && cd ..
 
-gnutls:
+libgnutls.a:
 	cd external && ./gnutls.compile && cd ..
 
-ffmpeg:
+libnettle.a: libgnutls.a
+
+libhogweed.a: libgnutls.a
+
+libgmp.a: libgnutls.a
+
+libavformat.a:
 	cd external && ./ffmpeg.compile && cd ..
+
+libavcodec.a: libavformat.a
+
+libavutil.a: libavformat.a
 
 libfilement.so: @{STORAGE} device @{LIBS}
 	$(CC) @{FLAGS} $(DEF) $(SRC_BASE) storage.a @{SHARED} device/*.o dlna/*.o actions_device/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS} $(LDFLAGS) -Wl,@{SONAME},libfilement@{SUFFIX} -o "../lib/libfilement@{SUFFIX}"
@@ -104,22 +115,19 @@ failsafe: @{STORAGE} device
 
 clean:
 	rm -f *.o
-	rm -f *.a
+	rm -f storage.a # leave other archives as they are not supposed to change and take long time to compile
 	rm -f lib/*.o
 	rm -f device/*.o
-	$(MAKE) -C actions_device clean
-	$(MAKE) -C dlna clean
-	$(MAKE) -C actions_pubcloud clean
+	rm -f actions_device/*.o
+	rm -f dlna/*.o
+	rm -f actions_pubcloud/*.o
 	rm -f ../bin/pubcloud
 	rm -f ../bin/filement ../bin/filement-gtk
 	rm -f ../lib/libfilement.so
 
 mrproper: clean
-	$(MAKE) -C lib mrproper
-	$(MAKE) -C device mrproper
-	$(MAKE) -C actions_device mrproper
-	$(MAKE) -C actions_pubcloud mrproper
-	rm -f actions_sorted.h
-	rm -f actions.out
+	rm -f device/device.c
+	rm -f actions_sorted.h actions.out
 	rm -f Makefile
-	rm -f external/{ffmpeg,gnutls}.compile
+	rm -f external/gnutls.compile
+	rm -f storage_mysql.h

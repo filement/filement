@@ -29,10 +29,14 @@ If you want to use the graphical interface (using GTK+), some additional package
 Install dependencies (as root).
 
 	cd /usr/ports/devel/git && make install clean
+	cd /usr/ports/devel/pkgconf && make install clean
+	cd /usr/ports/lang/gcc && make install clean
+	cd /usr/ports/security/gnutls && make install clean
+	cd /usr/ports/multimedia/ffmpeg && make install clean
 
 ## Preparation on MacOS X 10.8
 
-TODO install tar with xz
+Make sure you have Xcode installed.
 
 ## Installation
 
@@ -76,7 +80,6 @@ TODO
 	gui app
 		version information
 		more robust code (create directories in the path, make sure there are no memory leaks and concurrency problems, etc.)
-		freebsd (don't use sendfile)
 	version and platform information on customly compiled devices
 	fix upgrade
 		how do I know the executable so that I can restart it?

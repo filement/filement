@@ -26,7 +26,7 @@ mac/build/Release/Filement.app/Contents/MacOS/Filement:
 filement.dmg: mac/build/Release/Filement.app/Contents/MacOS/Filement
 	find $(mac_target) -name '.DS_Store' -delete
 	chmod a+x $(mac_target)"/Contents/MacOS/ffmpeg"
-	hdiutil create '/tmp/temp.dmg' -volname "Filement" -ov -fs 'Case-sensitive HFS+' -fsargs "-c c=64,a=16,e=16" -srcfolder $(mac_target) -srcfolder "resources/.background" -format UDRW -size 65536k
+	hdiutil create '/tmp/temp.dmg' -volname "Filement" -ov -fs 'Case-sensitive HFS+' -fsargs "-c c=64,a=16,e=16" -srcfolder $(mac_target) -srcfolder "mac/.background" -format UDRW -size 65536k
 	hdiutil attach -readwrite -noverify '/tmp/temp.dmg'
 	ln -s /Applications /Volumes/Filement
 	osascript < mac/makeimage
@@ -34,7 +34,7 @@ filement.dmg: mac/build/Release/Filement.app/Contents/MacOS/Filement
 	chmod -Rf go-w /Volumes/Filement
 	sync
 	hdiutil detach /Volumes/Filement
-	hdiutil convert /tmp/temp.dmg -ov -format UDZO -imagekey zlib-level=9 -o gui/filement.dmg
+	hdiutil convert /tmp/temp.dmg -ov -format UDZO -imagekey zlib-level=9 -o filement.dmg
 	rm /tmp/temp.dmg
 
 check:
@@ -65,6 +65,7 @@ clean:
 	rm -f share/filement/background.png share/filement/logo.png
 	rm -f gui/applications gui/icons
 	rm -f mac/build/Release/Filement.app/Contents/MacOS/Filement
+	rm -f filement.dmg
 
 mrproper: clean
 	$(MAKE) -C src mrproper

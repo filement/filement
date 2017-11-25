@@ -13,12 +13,12 @@
 		5B1581BF162C956A00321533 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 5B1581BD162C956A00321533 /* Credits.rtf */; };
 		5B1581C2162C956A00321533 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B1581C1162C956A00321533 /* AppDelegate.m */; };
 		5B1581C5162C956B00321533 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5B1581C3162C956B00321533 /* MainMenu.xib */; };
-		5B288C4916A8025E00F59EC0 /* menu@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B288C4716A8025E00F59EC0 /* menu@2x.png */; };
+		5B2C0DFB1FC9C1020049BD35 /* menu.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B2C0DF91FC9C1020049BD35 /* menu.png */; };
+		5B2C0DFC1FC9C1020049BD35 /* menu@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B2C0DFA1FC9C1020049BD35 /* menu@2x.png */; };
 		5B32EB351FC9ADF6001BE82D /* background.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B32EB311FC9ADF6001BE82D /* background.png */; };
 		5B32EB361FC9ADF6001BE82D /* ca.crt in Resources */ = {isa = PBXBuildFile; fileRef = 5B32EB321FC9ADF6001BE82D /* ca.crt */; };
 		5B32EB371FC9ADF6001BE82D /* fonts.conf in Resources */ = {isa = PBXBuildFile; fileRef = 5B32EB331FC9ADF6001BE82D /* fonts.conf */; };
 		5B32EB381FC9ADF6001BE82D /* logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B32EB341FC9ADF6001BE82D /* logo.png */; };
-		5B6D06771659559500A38A15 /* menu.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B6D06751659559500A38A15 /* menu.png */; };
 		5BB470DE16A960AA00B5A5C4 /* filement.icns in Resources */ = {isa = PBXBuildFile; fileRef = 5BB470DD16A960AA00B5A5C4 /* filement.icns */; };
 		5BB6ED761863279600C9C2EE /* libfilement.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5BD9D10418631B1B001D3C80 /* libfilement.dylib */; };
 		5BB6ED771863279D00C9C2EE /* ffmpeg in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5BD9D0FF18631AF2001D3C80 /* ffmpeg */; };
@@ -62,12 +62,12 @@
 		5B1581C0162C956A00321533 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		5B1581C1162C956A00321533 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		5B1581C4162C956B00321533 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
-		5B288C4816A8025E00F59EC0 /* en */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = en; path = "en.lproj/menu@2x.png"; sourceTree = "<group>"; };
+		5B2C0DF91FC9C1020049BD35 /* menu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = menu.png; path = ../../resources/menu.png; sourceTree = "<group>"; };
+		5B2C0DFA1FC9C1020049BD35 /* menu@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "menu@2x.png"; path = "../../resources/menu@2x.png"; sourceTree = "<group>"; };
 		5B32EB311FC9ADF6001BE82D /* background.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = background.png; path = ../../share/filement/background.png; sourceTree = "<group>"; };
 		5B32EB321FC9ADF6001BE82D /* ca.crt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = ca.crt; path = ../../share/filement/ca.crt; sourceTree = "<group>"; };
 		5B32EB331FC9ADF6001BE82D /* fonts.conf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = fonts.conf; path = ../../share/filement/fonts.conf; sourceTree = "<group>"; };
 		5B32EB341FC9ADF6001BE82D /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = logo.png; path = ../../share/filement/logo.png; sourceTree = "<group>"; };
-		5B6D06761659559500A38A15 /* en */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = en; path = en.lproj/menu.png; sourceTree = "<group>"; };
 		5BB470DD16A960AA00B5A5C4 /* filement.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = filement.icns; sourceTree = "<group>"; };
 		5BD9D0F418631AAD001D3C80 /* filement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = filement.h; path = ../../include/filement.h; sourceTree = "<group>"; };
 		5BD9D0F518631AAD001D3C80 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = types.h; path = ../../include/types.h; sourceTree = "<group>"; };
@@ -143,13 +143,13 @@
 		5B1581B5162C956A00321533 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				5B2C0DF91FC9C1020049BD35 /* menu.png */,
+				5B2C0DFA1FC9C1020049BD35 /* menu@2x.png */,
 				5B32EB311FC9ADF6001BE82D /* background.png */,
 				5B32EB321FC9ADF6001BE82D /* ca.crt */,
 				5B32EB331FC9ADF6001BE82D /* fonts.conf */,
 				5B32EB341FC9ADF6001BE82D /* logo.png */,
 				5BB470DD16A960AA00B5A5C4 /* filement.icns */,
-				5B6D06751659559500A38A15 /* menu.png */,
-				5B288C4716A8025E00F59EC0 /* menu@2x.png */,
 				5B1581B6162C956A00321533 /* Filement-Info.plist */,
 				5B1581B7162C956A00321533 /* InfoPlist.strings */,
 				5B1581BA162C956A00321533 /* main.m */,
@@ -231,13 +231,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				5BB470DE16A960AA00B5A5C4 /* filement.icns in Resources */,
+				5B2C0DFC1FC9C1020049BD35 /* menu@2x.png in Resources */,
 				5B32EB361FC9ADF6001BE82D /* ca.crt in Resources */,
-				5B6D06771659559500A38A15 /* menu.png in Resources */,
-				5B288C4916A8025E00F59EC0 /* menu@2x.png in Resources */,
 				5B32EB381FC9ADF6001BE82D /* logo.png in Resources */,
 				5B1581B9162C956A00321533 /* InfoPlist.strings in Resources */,
 				5B32EB371FC9ADF6001BE82D /* fonts.conf in Resources */,
 				5B1581BF162C956A00321533 /* Credits.rtf in Resources */,
+				5B2C0DFB1FC9C1020049BD35 /* menu.png in Resources */,
 				5B1581C5162C956B00321533 /* MainMenu.xib in Resources */,
 				5B32EB351FC9ADF6001BE82D /* background.png in Resources */,
 			);
@@ -280,22 +280,6 @@
 				5B1581C4162C956B00321533 /* en */,
 			);
 			name = MainMenu.xib;
-			sourceTree = "<group>";
-		};
-		5B288C4716A8025E00F59EC0 /* menu@2x.png */ = {
-			isa = PBXVariantGroup;
-			children = (
-				5B288C4816A8025E00F59EC0 /* en */,
-			);
-			name = "menu@2x.png";
-			sourceTree = "<group>";
-		};
-		5B6D06751659559500A38A15 /* menu.png */ = {
-			isa = PBXVariantGroup;
-			children = (
-				5B6D06761659559500A38A15 /* en */,
-			);
-			name = menu.png;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */

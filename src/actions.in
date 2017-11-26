@@ -91,7 +91,7 @@ reachable
 	session.grant
 	session.grant_login
 
-# if !defined(OS_IOS)
+# if !defined(OS_IOS) && !defined(OS_FREEBSD)
 		// TODO iOS
 		session.upnp_nearby
 # endif

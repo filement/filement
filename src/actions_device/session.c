@@ -1108,10 +1108,6 @@ struct host_port
 	int port;
 };
 
-#if !defined(OS_IOS)
-struct vector *filement_get_upnp_forwardings(void);
-#endif
-
 int socket_connect_non_block(const char *hostname, unsigned port)
 {
 #ifdef OS_WINDOWS
@@ -1174,10 +1170,10 @@ success:
 	return fd;
 }
 
-#if defined(DEVICE)
+#if defined(DEVICE) && !defined(OS_IOS) && !defined(OS_FREEBSD)
 int session_upnp_nearby(const struct http_request *request, struct http_response *restrict response, struct resources *restrict resources, const union json *query)
 {
-#if !defined(OS_IOS)
+struct vector *filement_get_upnp_forwardings(void);
 /*
 Request : {}
 */
@@ -1333,8 +1329,5 @@ value=string("{\"error\":\"1\"}");
 remote_json_send(request, response, resources, &value);
 if(root)json_free(root);
 return 0;
-#else
-	return ERROR_MISSING;
-#endif
 }
 #endif /* DEVICE */

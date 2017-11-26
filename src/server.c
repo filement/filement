@@ -561,7 +561,7 @@ void server_listen(void *storage)
 	connections_count = PORT_DIFF;
 #endif
 
-#if defined(DEVICE) && !defined(OS_IOS)
+#if defined(DEVICE) && !defined(OS_IOS) && !defined(OS_FREEBSD)
 	// Start a thread to notify routers for port forwarding.
 	// TODO is this okay?
 	int listening_port[PORT_DIFF];

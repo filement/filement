@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 
-if [ -f '../libepeg.a' ]; then exit; fi
+test -f '../libepeg.a' && exit
 
 export CC=gcc
 export CFLAGS=-fPIC
@@ -9,16 +9,16 @@ export LDFLAGS=
 tar xzf thumbs.tar.gz
 cd thumbs
 
-cd jpeg-8d && \
-./configure --enable-static --disable-shared --with-pic > /dev/null && \
-make > /dev/null && \
+cd jpeg-8d &&
+./configure --enable-static --disable-shared --with-pic > /dev/null &&
+make > /dev/null &&
 cd ..
 
-export CPPFLAGS="$CPPFLAGS -I$(pwd)/jpeg-8d/"
+export CPPFLAGS="$CPPFLAGS -I`pwd`/jpeg-8d/"
 
 cd epeg &&
 ./configure --enable-static --disable-shared --with-pic > /dev/null &&
-make > /dev/null 2> /dev/null
+make > /dev/null
 cd ..
 
 cd .. &&

@@ -223,7 +223,7 @@ static void heap_descend(struct heap *restrict h, size_t index)
 
 bool cache_init(void)
 {
-#if defined(OS_MAC) || defined(OS_LINUX)
+#if defined(OS_MAC) || defined(OS_LINUX) || defined(OS_FREEBSD)
 	// Delete old filement temporary files.
 
 	struct string filename;

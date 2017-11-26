@@ -15,6 +15,8 @@
 
 #if defined(OS_LINUX)
 # include <sys/sendfile.h>
+#elif defined(OS_FREEBSD)
+# include <sys/socket.h>
 #elif defined(OS_MAC)
 # include <copyfile.h>
 #elif defined(OS_BSD)
@@ -443,10 +445,14 @@ static bool replace(const struct vector *download)
 #endif
 		{
 			unlink(dest->data);
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) || defined(OS_FREEBSD)
 			int src_fd = open(src->data, O_RDONLY);
 			int dest_fd = creat(dest->data, stat_src.st_mode);
+# if defined(OS_LINUX)
 			sendfile(dest_fd, src_fd, 0, (size_t)stat_src.st_size);
+# else
+			sendfile(dest_fd, src_fd, 0, (size_t)stat_src.st_size, 0, 0, 0);
+# endif
 			close(dest_fd);
 			close(src_fd);
 			unlink(src->data);
@@ -520,7 +526,7 @@ bool filement_upgrade(const char *exec)
 	// TODO: check for permissions. cancel if permissions are not sufficient
 
 	// Upgrade is supported only for MacOS X and Linux.
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) || defined(OS_FREEBSD)
 	// Upgrade requires root permissions.
 	if (getuid()) return true;
 #elif !defined(OS_MAC)

@@ -28,7 +28,6 @@
 #define DIALOG_WIDTH 400
 #define DIALOG_HEIGHT 150
 
-#define ICON_LARGE "/usr/share/icons/hicolor/256x256/apps/filement.png"
 #define ICON_SMALL "/usr/share/icons/hicolor/48x48/apps/filement.png"
 #define SHARE_LOGO (PREFIX "share/filement/logo.png")
 #define SHARE_BACKGROUND (PREFIX "share/filement/background.png")
@@ -139,7 +138,11 @@ static void gtk_startup_add(void)
 	int dest = creat(startup, 0644);
 	if (dest < 0)
 		error(logs("Cannot create startup item for filement."));
+#if defined(OS_LINUX)
 	else if (sendfile(dest, src, 0, (size_t)info.st_size) < 0)
+#elif defined(OS_FREEBSD)
+	else if (sendfile(dest, src, 0, (size_t)info.st_size, 0, 0, 0) < 0)
+#endif
 		error(logs("Cannot add startup information for filement."));
 
 	close(dest);
@@ -388,11 +391,11 @@ static void if_menu_open(GtkStatusIcon *icon, gpointer data)
 
 	menu = gtk_menu_new();
 
-	item = gtk_menu_item_new_with_label("Reset");
+	item = gtk_menu_item_new_with_label("Reset Filement");
 	g_signal_connect(item, "activate", G_CALLBACK(if_menu_reset), 0);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 
-	item = gtk_menu_item_new_with_label("Quit");
+	item = gtk_menu_item_new_with_label("Quit Filement");
 	g_signal_connect(item, "activate", G_CALLBACK(if_menu_quit), 0);
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 

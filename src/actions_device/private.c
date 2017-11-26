@@ -8,6 +8,7 @@
 # include <arpa/inet.h>
 # include <netdb.h>
 # include <poll.h>
+# include <sys/socket.h>
 #else
 #include <sys/stat.h>
 #define WINVER 0x0501

@@ -40,5 +40,3 @@ void          epeg_memory_output_set         (Epeg_Image *im, unsigned char **da
 int           epeg_encode                    (Epeg_Image *im);
 int           epeg_trim                      (Epeg_Image *im);
 void          epeg_close                     (Epeg_Image *im);
-
-#define fileno(__F) ((__F)->_file)

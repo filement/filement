@@ -6,6 +6,7 @@
 
 #if !defined(OS_WINDOWS)
 # include <poll.h>
+# include <sys/socket.h>
 #endif
 
 #ifdef OS_WINDOWS

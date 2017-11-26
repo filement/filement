@@ -1,7 +1,9 @@
 #if !defined(OS_WINDOWS)
 # include <arpa/inet.h>
+# include <netinet/in.h>
 # include <poll.h>
 # include <sys/ioctl.h>
+# include <sys/socket.h>
 #endif
 #include <stdlib.h>
 #include <time.h>

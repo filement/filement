@@ -29,14 +29,18 @@ If you want to use the graphical interface (using GTK+), some additional package
 Install dependencies (as root).
 
 	cd /usr/ports/devel/git && make install clean
-	cd /usr/ports/devel/pkgconf && make install clean
 	cd /usr/ports/lang/gcc && make install clean
 	cd /usr/ports/security/gnutls && make install clean
 	cd /usr/ports/multimedia/ffmpeg && make install clean
 
 ## Preparation on MacOS X 10.8
 
-Make sure you have Xcode installed.
+Download Xcode from https://developer.apple.com/xcode/ and install it.
+Download Macports from https://www.macports.org/ and install it.
+
+Install git.
+
+	port install git
 
 ## Installation
 

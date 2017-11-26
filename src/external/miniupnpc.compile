@@ -1,17 +1,17 @@
-#!/bin/bash
+#!/bin/sh
 
-if [ -f ../miniupnpc.a ]; then exit; fi
+test -f '../miniupnpc.a' && exit
 
 export CC=gcc
 export CFLAGS=
 export LDFLAGS=
 
-src='miniupnpc_filement'
+set src='miniupnpc_filement'
 
-tar xfj "${src}.tar.bz2" && \
-cd "$src" && \
-make clean > /dev/null && \
-make > /dev/null
-cp libminiupnpc_filement.a ../../libminiupnpc.a && \
-cd .. && \
+tar xfj "${src}.tar.bz2" &&
+cd "$src" &&
+make clean > /dev/null &&
+make > /dev/null &&
+cp libminiupnpc_filement.a ../../libminiupnpc.a &&
+cd .. &&
 rm -r "$src"

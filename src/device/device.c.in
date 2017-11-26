@@ -310,7 +310,7 @@ bool filement_register(const struct string *email, const struct string *devname,
 # if defined(OS_IOS)
 	struct string location = string("/");
 	if (!storage_blocks_add(storage, 1, 1, &location, 0)) goto error;
-# elif defined(OS_MAC) || defined(OS_LINUX)
+# elif defined(OS_MAC) || defined(OS_LINUX) || defined(OS_FREEBSD)
 	char *home = getenv("HOME");
 	struct string *location = string_alloc(home, strlen(home));
 	if (!storage_blocks_add(storage, 1, 1, location, 0))

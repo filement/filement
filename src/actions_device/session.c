@@ -15,6 +15,7 @@
 # include <netdb.h>
 # include <poll.h>
 # include <sys/mman.h>
+# include <sys/socket.h>
 #endif
 
 #ifdef OS_WINDOWS

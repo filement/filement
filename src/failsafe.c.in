@@ -97,9 +97,7 @@ int main(void)
 	// Perform device upgrade.
 	// TODO: better handling for upgrade fail
 	bool success;
-#if defined(OS_MAC)
-	success = filement_upgrade(0);
-#elif defined(OS_LINUX)
+#if defined(OS_MAC) || defined(OS_LINUX) || defined(OS_FREEBSD)
 	success = filement_upgrade(0);
 #elif defined(OS_WINDOWS)
 	if (!do_upgrade) windows_upgrade();

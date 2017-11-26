@@ -7,6 +7,7 @@
 
 #include <ctype.h>
 #include <stdlib.h>
+#include <sys/socket.h>
 
 #if defined(OS_MAC) && !defined(OS_IOS)
 # include <sys/stat.h>
@@ -197,7 +198,7 @@ void search_index_free(struct vector *restrict result)
 	return 0;
 }*/
 
-#elif defined(OS_LINUX)
+#elif defined(OS_LINUX) || defined(OS_FREEBSD)
 
 // TODO implement this
 /*struct vector *restrict (search_index_results)(const struct string *root, const struct string *name, bool case_sensitive)

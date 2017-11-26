@@ -34,10 +34,10 @@
 # include "io.h"
 # include "dlna/ssdp.h"
 
-# if !defined(OS_IOS)
+# if !defined(OS_IOS) && !defined(OS_FREEBSD)
 #  include "miniupnpc_filement.h"
 # endif
-#else
+#elif defined(OS_WINDOWS)
 # include "../miniupnpc_filement.h"
 # include "../actions.h"
 # include "../protocol.h"
@@ -448,7 +448,7 @@ if(!resources->auth && !session_is_logged_in(resources)){*local_errno=1001;retur
 char *f_ip=0;
 int f_port[4];
 int f_count=4;
-# if !defined(OS_IOS)
+# if !defined(OS_IOS) && !defined(OS_FREEBSD)
 filement_get_upnp_forwarding(&f_ip,f_port,&f_count);
 # endif
 

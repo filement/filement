@@ -204,11 +204,11 @@ elsif ($platform eq 'freebsd')
 	$flags .= ' -O2' if !$flag_debug;
 	$definitions .= ' -DPLATFORM_ID=6 -DOS_FREEBSD -DTLS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/\\\"';
 	$options .= ' `pkg-config --cflags libavformat libavutil` -Wno-unused-value'; # replace with -Wno-unused-result
-	$link .= '-lz -lgnutls `pkg-config --libs libavformat libavutil` -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
+	$link .= '-lz -lgnutls `pkg-config --libs libavformat libavutil` -lm';
 
 	$root = '';
 	$storage = 'storage_sqlite';
-	$libs = 'libepeg.a libjpeg.a'.(($target eq 'pubcloud') ? '' : ' libminiupnpc.a');
+	$libs = 'libepeg.a libjpeg.a'; # TODO fix miniupnpc; its makefile is not compatible with freebsd
 
 	# TODO
 }

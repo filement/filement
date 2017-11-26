@@ -6,7 +6,7 @@ export CC=gcc
 export CFLAGS=
 export LDFLAGS=
 
-set src='miniupnpc_filement'
+src='miniupnpc_filement'
 
 tar xfj "${src}.tar.bz2" &&
 cd "$src" &&

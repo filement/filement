@@ -40,7 +40,7 @@
 
 #include "status.h" /* TODO deprecated */
 
-#if defined(DEVICE) && !defined(OS_IOS)
+#if defined(DEVICE) && !defined(OS_IOS) && !defined(OS_FREEBSD)
 # include "miniupnpc_filement.h"
 #endif
 
@@ -137,7 +137,7 @@ bool address_local_network(const struct sockaddr_storage *restrict address)
 	else return false;
 }
 
-#if defined(DEVICE) && !defined(OS_IOS)
+#if defined(DEVICE) && !defined(OS_IOS) && !defined(OS_FREEBSD)
 void *pthread_upnp_forward_port(void *arg)
 {
 	int port = *(int *)arg;
@@ -566,8 +566,8 @@ void server_listen(void *storage)
 	// TODO is this okay?
 	int listening_port[PORT_DIFF];
 	for(i = 0; i < PORT_DIFF; ++i) listening_port[i] = PORT_HTTP_MIN + i;
-	//pthread_create(&thread_id, 0, pthread_upnp_forward_port, &listening_port[i]);
-	//pthread_detach(thread_id);
+	pthread_create(&thread_id, 0, pthread_upnp_forward_port, &listening_port[i]);
+	pthread_detach(thread_id);
 #endif
 
 	int client;

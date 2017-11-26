@@ -26,6 +26,7 @@ config.log
 
 bin/filement
 bin/filement-gtk
+gui/filement.dmg
 lib/libfilement.so
 lib/libfilement.dylib
 share/filement/background.png

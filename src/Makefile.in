@@ -49,15 +49,15 @@ register:
 	$(CC) lib/string.o lib/format.o lib/aes.o distribute/uuid.o $(LDFLAGS) -o ../bin/register
 
 libepeg.a:
-	cd external && ./epeg.compile && cd ..
+	cd external && ./epeg.compile
 
 libjpeg.a: libepeg.a
 
 libminiupnpc.a:
-	cd external && ./miniupnpc.compile && cd ..
+	cd external && ./miniupnpc.compile
 
 libgnutls.a:
-	cd external && ./gnutls.compile && cd ..
+	cd external && ./gnutls.compile
 
 libnettle.a: libgnutls.a
 
@@ -66,7 +66,7 @@ libhogweed.a: libgnutls.a
 libgmp.a: libgnutls.a
 
 libavformat.a:
-	cd external && ./ffmpeg.compile && cd ..
+	cd external && ./ffmpeg.compile
 
 libavcodec.a: libavformat.a
 

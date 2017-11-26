@@ -80,10 +80,10 @@ filement: libfilement.so main.o
 	#@{STRIP}
 
 main-gtk.o: main-gtk.c
-	$(CC) $(CFLAGS) $(shell pkg-config --cflags gtk+-2.0) -Wno-strict-prototypes -c main-gtk.c -o $@
+	$(CC) $(CFLAGS) `pkg-config --cflags gtk+-2.0` -Wno-strict-prototypes -c main-gtk.c -o $@
 
 filement-gtk: libfilement.so main-gtk.o
-	$(CC) main-gtk.o $(LDFLAGS) $(shell pkg-config --libs gtk+-2.0) -lfilement -Wl,-rpath,/usr/local/lib -o ../bin/$@
+	$(CC) main-gtk.o $(LDFLAGS) `pkg-config --libs gtk+-2.0` -lfilement -Wl,-rpath,/usr/local/lib -o ../bin/$@
 
 pubcloud: pubc device/device.o device/distribute.o main.o
 	$(CC) $(SRC_BASE) storage.a device/device.o device/distribute.o main.o actions_pubcloud/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS} $(LDFLAGS) -lmysqlclient -o ../bin/pubcloud

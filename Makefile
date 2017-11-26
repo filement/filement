@@ -14,7 +14,7 @@ filement-gtk:
 	$(MAKE) -C src filement-gtk
 	ln -f resources/background.png share/filement
 	ln -f resources/logo.png share/filement
-	ln -sf -t gui ../resources/applications ../resources/icons
+	ln -fs ../resources/applications ../resources/icons gui
 
 mac/build/Release/Filement.app/Contents/MacOS/Filement:
 	$(MAKE) -C src libfilement.so

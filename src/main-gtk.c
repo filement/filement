@@ -2,7 +2,11 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/sendfile.h>
+#if defined(OS_LINUX
+# include <sys/sendfile.h>
+#elif defined(OS_FREEBSD)
+# include <sys/socket.h>
+#endif
 #include <sys/stat.h>
 #include <unistd.h>
 

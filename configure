@@ -204,7 +204,7 @@ elsif ($platform eq 'freebsd')
 	$flags .= ' -O2' if !$flag_debug;
 	$definitions .= ' -DPLATFORM_ID=6 -DOS_FREEBSD -DTLS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/\\\"';
 	$options .= ' `pkg-config --cflags libavformat libavutil` -Wno-unused-value'; # replace with -Wno-unused-result
-	$link .= '-lz -lgnutls `pkg-config --libs libavformat libavutil` -lm';
+	$link .= '-lz -lgnutls `pkg-config --libs libavformat libavutil` -lm -lexecinfo';
 
 	$root = '';
 	$storage = 'storage_sqlite';

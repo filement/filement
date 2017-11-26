@@ -29,9 +29,14 @@ If you want to use the graphical interface (using GTK+), some additional package
 Install dependencies (as root).
 
 	cd /usr/ports/devel/git && make install clean
+pkgconf
 	cd /usr/ports/lang/gcc && make install clean
 	cd /usr/ports/security/gnutls && make install clean
 	cd /usr/ports/multimedia/ffmpeg && make install clean
+
+If you want to use the graphical interface (using GTK+), some additional packages are needed.
+
+	cd /usr/ports/multimedia/x11-toolkits/gtk20 && make install clean
 
 ## Preparation on MacOS X 10.8
 

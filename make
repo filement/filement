@@ -47,7 +47,7 @@ case "$OSTYPE" in
 		;;
 	msys*)
 		OS='Windows'
-		DEF="-D_POSIX_SOURCE -DBIG_ENDIAN=4321 -DLITTLE_ENDIAN=1234 -DBYTE_ORDER=LITTLE_ENDIAN -DOS_WINDOWS"
+		DEF="-D_POSIX_SOURCE -DBIG_ENDIAN=4321 -DLITTLE_ENDIAN=1234 -DBYTE_ORDER=LITTLE_ENDIAN -DOS_WINDOWS -DFILEMENT_AV -DFILEMENT_TLS -DFILEMENT_THUMBS -DFILEMENT_UPNP"
 		LIB="-L../windows/ -lm -lz -lwsock32 -lws2_32 -liphlpapi -lshlwapi -L. -lsqlite3 -lgnutls -lavformat -lavutil -lavcodec -lfilement_indexsearch"
 		INC="$INC -I../windows/"
 		SHARED='-shared'

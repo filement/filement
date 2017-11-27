@@ -68,7 +68,7 @@ void *main_proxy_windows(void *storage)
 
 			// Wait for a request. On timeout, make sure the connection is still established.
 			protocol = proxy_request(fd, control[0]);
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 			if (protocol == PROXY_HTTPS)
 			{
 				debug_("Incoming HTTPS request");

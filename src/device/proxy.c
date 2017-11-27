@@ -191,6 +191,7 @@ static int proxy_request(int fd, int control)
 	return -1;
 }
 
+#if !defined(OS_WINDOWS)
 void *main_proxy(void *storage)
 {
 	int bytes;
@@ -203,11 +204,6 @@ void *main_proxy(void *storage)
 
 	struct connection_proxy connection;
 	struct sockaddr_in *address;
-
-#if defined(OS_WINDOWS)
-	unsigned long iMode = 0;
-	int iResult = 0;
-#endif
 
 	// TODO design thread cancellation better
 
@@ -274,7 +270,6 @@ void *main_proxy(void *storage)
 error:
 
 		// TODO read the bytes and check their value when necessary to support different commands
-#if !defined(OS_WINDOWS)
 		ioctl(control[0], FIONREAD, &bytes);
 		if (bytes)
 		{
@@ -282,18 +277,6 @@ error:
 			warning_("Filement stopped.");
 			break;
 		}
-#else
-		iResult = ioctlsocket(control[0], FIONREAD, &iMode);
-		if (iResult != NO_ERROR)
-		  printf("ioctlsocket failed with error: %ld\n", iResult);
-		  
-		 if (iMode)
-		{
-			close(control[0]);
-			warning("Filement stopped.");
-			break;
-		}
-#endif
 
 		// Wait before trying to connect to the proxy again
 		warning_("Wait and reconnect.");
@@ -306,8 +289,8 @@ error:
 	return 0;
 }
 
-#if defined(OS_WINDOWS)
-void *main_proxy(void *storage)
+#elif defined(OS_WINDOWS)
+void *main_proxy_windows(void *storage)
 {
 	int bytes;
 	unsigned wait = PROXY_WAIT_MIN;
@@ -317,10 +300,8 @@ void *main_proxy(void *storage)
 	struct host *proxies = 0;
 	size_t proxy, count;
 
-#if defined(OS_WINDOWS)
 	unsigned long iMode = 0;
 	int iResult = 0;
-#endif
 
 	struct resources *info = 0;
 	pthread_t thread;
@@ -377,7 +358,7 @@ void *main_proxy(void *storage)
 
 			// Wait for a request. On timeout, make sure the connection is still established.
 			protocol = proxy_request(fd, control[0]);
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 			if (protocol == PROXY_HTTPS)
 			{
 				debug_("Incoming HTTPS request");
@@ -415,15 +396,6 @@ void *main_proxy(void *storage)
 error:
 
 		// TODO read the bytes and check their value when necessary to support different commands
-#if !defined(OS_WINDOWS)
-		ioctl(control[0], FIONREAD, &bytes);
-		if (bytes)
-		{
-			close(control[0]);
-			warning_("Filement stopped.");
-			break;
-		}
-#else
 		iResult = ioctlsocket(control[0], FIONREAD, &iMode);
 		if (iResult != NO_ERROR)
 		  printf("ioctlsocket failed with error: %ld\n", iResult);
@@ -434,7 +406,6 @@ error:
 			warning("Filement stopped.");
 			break;
 		}
-#endif
 
 		// Wait before trying to connect to the proxy again
 		warning_("Wait and reconnect.");

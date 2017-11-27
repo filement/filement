@@ -23,7 +23,6 @@ struct http_response
 
 int http_errno_status(int error);
 
-//bool header_add(struct vector *restrict headers, const struct string *key, const struct string *value);
 bool response_header_add(struct http_response *restrict response, const struct string *key, const struct string *value);
 
 int handler_static(struct http_request *restrict request, struct http_response *restrict response, struct resources *restrict resources);

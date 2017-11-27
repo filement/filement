@@ -7,6 +7,9 @@
 
 #include <ctype.h>
 #include <stdlib.h>
+#if defined(OS_ANDROID)
+# include <sys/stat.h>
+#endif
 #include <sys/socket.h>
 
 #if defined(OS_MAC) && !defined(OS_IOS)

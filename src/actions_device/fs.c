@@ -11,13 +11,18 @@
 #include <math.h>
 
 #ifdef OS_BSD
-# include <sys/statvfs.h>
+# if !defined(OS_ANDROID)
+#  include <sys/statvfs.h>
+# else
+#  include <sys/vfs.h>
+#  define statvfs statfs
+# endif
 # include <sys/socket.h>
 # include <dirent.h>
 #else
-#include <windows.h>
-#include <wchar.h>
-#include "mingw.h"
+# include <windows.h>
+# include <wchar.h>
+# include "mingw.h"
 #endif
 
 #include "types.h"
@@ -2439,6 +2444,11 @@ double ratiow=0,ratioh=0;
    ratioh=max_height/(double)h;
    ratio=MIN(ratiow,ratioh);
    }
+
+# if defined(OS_ANDROID)
+#  undef round
+#  define round(n) (int)((n) + 0.5)
+# endif
    
    thumb_width=(int)round(w*ratio);
    thumb_height=(int)round(h*ratio);

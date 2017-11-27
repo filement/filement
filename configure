@@ -75,7 +75,7 @@ my $version = <VERSION>;
 chop $version;
 close VERSION;
 
-my ($flag_dev, $flag_debug, $flag_upgrade, $flag_upgrade_test, $uuid, $prefix) = (0, 0, 0, 0, '', '/usr/local');
+my ($flag_dev, $flag_debug, $flag_upgrade, $flag_upgrade_test, $uuid, $prefix, $android_ndk) = (0, 0, 0, 0, '', '/usr/local', '/usr/lib/android-ndk');
 
 # Parse command line options.
 for (@ARGV)
@@ -113,28 +113,27 @@ for (@ARGV)
 	{
 		$uuid = $1;
 	}
+	elsif (/^--android-ndk=(.*)$/)
+	{
+		$platform = 'android';
+		$android_ndk = $1;
+	}
 	else
 	{
 		print "Usage: $0 [OPTION ...]
-\t--dev          \tconfigure for flmntdev.com instead of filement.com
-\t--debug        \tconfigure with debug capabilities
-\t--prefix=PREFIX\tconfigure for installation in the directory PREFIX
-\t--host=PLATFORM\tconfigure for PLATFORM
-\t--target=TARGET\tconfigure for TARGET (default: device)
-\t--upgrade      \tEnable automatic upgrade
-\t--upgrade-test \tUse a different command for upgrade list (used for testing)
-\t--uuid=UUID    \tconfigure public cloud with the given UUID
+\t--dev            \tconfigure for flmntdev.com instead of filement.com
+\t--debug          \tconfigure with debug capabilities
+\t--prefix=PREFIX  \tconfigure for installation in the directory PREFIX
+\t--host=PLATFORM  \tconfigure for PLATFORM
+\t--target=TARGET  \tconfigure for TARGET (default: device)
+\t--upgrade        \tEnable automatic upgrade
+\t--upgrade-test   \tUse a different command for upgrade list (used for testing)
+\t--uuid=UUID      \tconfigure public cloud with the given UUID
+\t--android-ndk=NDK\tspecify path to Native Development Kit for Android
 ";
 		exit;
 	}
 }
-
-#my $flags, $cflags, $link;
-
-my $flags = '';
-my $definitions = ($flag_dev ? '-DTEST=-10' : '').($flag_debug ? ' -DRUN_MODE=1 -DDEBUG' : ' -DRUN_MODE=2').($flag_upgrade ? ' -DUPGRADE' : '').($flag_upgrade_test ? ' -DUPGRADE_TEST' : '');
-my $options = ($flag_debug ? ' -g -fstack-protector-all' : ' -fomit-frame-pointer');
-my $link = '';
 
 # Set default platform if no platform is specified.
 $platform = $Config{'osname'} if !defined($platform);
@@ -142,13 +141,22 @@ $platform = $Config{'osname'} if !defined($platform);
 # If --uuid is specified, treat the device as pubcloud.
 $target = 'pubcloud' if (defined($clouds{$uuid}));
 
-my ($cc, $shared, $suffix, $storage, $root, $libs, $libs_, $strip, $soname, $gmp);
+my ($cc, $shared, $suffix, $storage, $root, $libs, $libs_, $strip, $soname, $gmp, $setup);
+my $flags = '';
+my $definitions = ($flag_dev ? '-DTEST=-10' : '').($flag_debug ? ' -DRUN_MODE=1 -DDEBUG' : ' -DRUN_MODE=2').($flag_upgrade ? ' -DUPGRADE' : '').($flag_upgrade_test ? ' -DUPGRADE_TEST' : '');
+my $options = ($flag_debug ? ' -g -fstack-protector-all' : ' -fomit-frame-pointer');
+my $link = '';
 
 # TODO some targets are supported onlyon some platforms; pubcloud and distribute are supported only on linux
 
 # TODO link time optimization when creating the shared library and the executable (-flto)
 # TODO strip
 # TODO take into account upgrade
+
+# TODO support features instead of random platform macros
+# TODO target-specific sources (like for android) so that code doesn't mix
+
+my @features = (); # TODO make FILEMENT_UPGRADE a feature
 
 if ($platform eq 'darwin')
 {
@@ -162,13 +170,15 @@ if ($platform eq 'darwin')
 
 	$flags .= ' -O2' if !$flag_debug;
 	# -D_GNU_SOURCE -D_BSD_SOURCE -D_DEFAULT_SOURCE 
-	$definitions .= ' -DPLATFORM_ID=2 -DOS_MAC -DTLS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/Applications/Filement.app/\\\"';
+	$definitions .= ' -DPLATFORM_ID=2 -DOS_MAC -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/Applications/Filement.app/\\\"';
 	$options .= ' -pthread -Wno-unused-value -Wno-empty-body';
-	$link .= '-lz -lresolv -framework CoreFoundation -framework CoreServices -framework VideoDecodeAcceleration -framework QuartzCore -framework Security';
+	$link .= ' -lz -lresolv -framework CoreFoundation -framework CoreServices -framework VideoDecodeAcceleration -framework QuartzCore -framework Security';
 
 	$root = '';
 	$storage = 'storage_sqlite';
 	$libs = 'libepeg.a libjpeg.a libminiupnpc.a libavformat.a libavcodec.a libavutil.a libgnutls.a libnettle.a libhogweed.a libgmp.a';
+
+	push @features, 'FILEMENT_TLS', 'FILEMENT_THUMBS', 'FILEMENT_UPNP', 'FILEMENT_AV';
 }
 elsif ($platform eq 'linux')
 {
@@ -182,13 +192,15 @@ elsif ($platform eq 'linux')
 
 	$flags .= ' -pthread';
 	$flags .= ' -O2' if !$flag_debug;
-	$definitions .= ' -DPLATFORM_ID=4 -DOS_LINUX -DTLS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/\\\" -D_GNU_SOURCE -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700';
+	$definitions .= ' -DPLATFORM_ID=4 -DOS_LINUX -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/\\\" -D_GNU_SOURCE -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700';
 	$options .= ' `pkg-config --cflags libavformat libavutil` -Wno-unused-value'; # replace with -Wno-unused-result
-	$link .= '-lz -lgnutls `pkg-config --libs libavformat libavutil` -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
+	$link .= ' -lz -lgnutls `pkg-config --libs libavformat libavutil` -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
 
 	$root = '';
 	$storage = 'storage_sqlite';
 	$libs = 'libepeg.a libjpeg.a'.(($target eq 'pubcloud') ? '' : ' libminiupnpc.a');
+
+	push @features, 'FILEMENT_TLS', 'FILEMENT_THUMBS', 'FILEMENT_UPNP', 'FILEMENT_AV';
 }
 elsif ($platform eq 'freebsd')
 {
@@ -202,15 +214,45 @@ elsif ($platform eq 'freebsd')
 
 	$flags .= ' -pthread';
 	$flags .= ' -O2' if !$flag_debug;
-	$definitions .= ' -DPLATFORM_ID=6 -DOS_FREEBSD -DTLS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/\\\"';
+	$definitions .= ' -DPLATFORM_ID=6 -DOS_FREEBSD -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/\\\"';
 	$options .= ' `pkg-config --cflags libavformat libavutil` -Wno-unused-value'; # replace with -Wno-unused-result
-	$link .= '-lz -lgnutls `pkg-config --libs libavformat libavutil` -lm -lexecinfo';
+	$link .= ' -lz -lgnutls `pkg-config --libs libavformat libavutil` -lm -lexecinfo';
 
 	$root = '';
 	$storage = 'storage_sqlite';
 	$libs = 'libepeg.a libjpeg.a'; # TODO fix miniupnpc; its makefile is not compatible with freebsd
 
-	# TODO
+	push @features, 'FILEMENT_TLS', 'FILEMENT_THUMBS', 'FILEMENT_AV';
+}
+elsif ($platform eq 'android')
+{
+	$cc = 'arm-linux-androideabi-gcc';
+	$shared = '-shared';
+	$suffix = '.so';
+	$soname = '-soname';
+	$gmp = '';
+	$strip = "cp ../bin/device ../bin/device_stripped\\n\\tstrip -R .comment -R .note ../bin/device_stripped";
+	$strip = ''; # TODO remove this
+
+	$flags .= " --sysroot=$android_ndk/platforms/android-21/arch-arm -pthread -marm -Wno-unused-result"; # http://www.apps4android.org/?p=4926
+	$flags .= ' -O2' if !$flag_debug;
+	$definitions .= ' -DPLATFORM_ID=10 -DOS_ANDROID -D_GNU_SOURCE -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700'; # TODO set prefix
+	$options .= ' -I../android -Wno-unused-value'; # replace with -Wno-unused-result
+	$link .= ' -lz -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
+
+	$root = "$android_ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64";
+	$storage = 'storage_sqlite';
+	$libs = '../android/ifaddrs.o ../android/ifc_utils.o';
+	$setup = 'export OSTYPE="android"'
+
+	# TODO from the old make:
+	# 	-DEXECUTABLE="/data/data/com.filement.app/filement"
+	#	$CC $DEF $INC $OPTIONS $SHARED cache.c *.o lib/types.a lib/aes.a lib/stream.a lib/json.a ../android_libs/*.[ao] -o "../lib/libfilement$SUFFIX" $LIB
+
+	# TODO fix the uuid* functions in device/uuid.c
+	# TODO md5.o and device/uuid.c only for android
+
+	#$libs1 = 'lib/md5.o ../lib/filement_coreutils.a ../android_libs/copy_lib.o ../android_libs/cp-hash.o ../android_libs/cp_lib.o ../android_libs/extent-scan.o ../android_libs/faccessat.o ../android_libs/file-type.o ../android_libs/mv_lib.o ../android_libs/remove.o ../android_libs/rm_lib.o ../android_libs/root-dev-ino.o ../android_libs/xfts.o ../android/ifaddrs.o ../android/ifc_utils.o';
 }
 elsif ($platform eq 'ios')
 {
@@ -220,8 +262,8 @@ elsif ($platform eq 'ios')
 	$options .= ' -pthread -arch armv7 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk';
 	$options .= ' -O2' if !$flag_debug;
 	$definitions .= ' -DPLATFORM_ID=8 -DOS_MAC -DOS_IOS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/Applications/Filement.app/\\\"';
-	#$link = '-lz -lavformat -lavutil -lresolv';
-	$link = '-framework Foundation -framework AssetsLibrary -lz -lobjc -lresolv';
+	#$link = ' -lz -lavformat -lavutil -lresolv';
+	$link = ' -framework Foundation -framework AssetsLibrary -lz -lobjc -lresolv';
 	$flags = '-Wno-unused-value -Wno-empty-body';
 	$shared = '-dynamiclib';
 	$suffix = '.dylib';
@@ -237,7 +279,7 @@ elsif ($platform eq 'emulator')
 	$cc = 'gcc';
 	$options .= ' -Os' if !$flag_debug;
 	$definitions .= ' -DPLATFORM_ID=14 -DOS_LINUX -DEMULATOR -DPREFIX=\\\"'.$prefix.'\\\"';
-	$link = '-lz -lm -ldl';
+	$link = ' -lz -lm -ldl';
 	$flags = '-pthread';
 	$shared = '-shared';
 	$suffix = '.so';
@@ -254,7 +296,7 @@ elsif ($platform eq 'belkin')
 	$cc = 'mipsel-linux-uclibc-gcc';
 	$options .= ' -Os' if !$flag_debug;
 	$definitions .= ' -DPLATFORM_ID=14 -DOS_LINUX -DBELKIN -DPREFIX=\\\"'.$prefix.'\\\"';
-	$link = '-lz -lm -ldl';
+	$link = ' -lz -lm -ldl';
 	$flags = '-pthread';
 	$shared = '-shared';
 	$suffix = '.so';
@@ -271,7 +313,7 @@ elsif ($platform eq 'tplink')
 	$cc = 'mips-linux-gcc';
 	$options .= ' -Os' if !$flag_debug;
 	$definitions .= ' -DPLATFORM_ID=14 -DOS_LINUX -DTPLINK -DPREFIX=\\\"'.$prefix.'\\\"';
-	$link = '-lm -ldl -lrt';
+	$link = ' -lm -ldl -lrt';
 	$flags = '-pthread';
 	$shared = '-shared';
 	$suffix = '.so';
@@ -292,21 +334,23 @@ else
 	exit;
 }
 
-$definitions = '-D'.uc($target)." $definitions";
+$definitions = '-D'.uc($target)." $definitions ".join(' ', map {"-D$_"} @features);
 
 # TODO do make mrpropper (but manually since Makefile may not exist) // wtf? if it does not exist, there is no need to call mrpropper
 
 # Preprocess actions.
 open STDIN, '<', 'src/actions.in';
-system qq($cc -E -x c $definitions -o src/actions.out -);
+system qq(cpp -E -x c $definitions -o src/actions.out -);
 
 $options = "$definitions $options";
 
 $cc =~ s/\//\\\//g;
+$flags =~ s/\//\\\//g;
 $options =~ s/\//\\\//g;
 $root =~ s/\//\\\//g;
 $libs =~ s/\//\\\//g;
 $strip =~ s/\//\\\//g;
+$setup //= '';
 
 my @replace = (
 	'-e', "s/\@{CC}/$cc/g",
@@ -320,6 +364,7 @@ my @replace = (
 	'-e', "s/\@{LIBS}/$libs/g",
 	'-e', "s/\@{STRIP}/$strip/g",
 	'-e', "s/\@{SONAME}/$soname/g",
+	'-e', "s/\@{SETUP}/$setup/g",
 );
 
 my $length;
@@ -426,3 +471,4 @@ print "ROOT=$root\n";
 print "LIBS=$libs\n";
 print "STRIP=$strip\n";
 print "SONAME=$soname\n";
+print "SETUP=$setup\n";

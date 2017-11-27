@@ -7,15 +7,15 @@
 #ifdef OS_WINDOWS
 # include <sys/types.h>
 # include <string.h>
-#include <sys/stat.h>
-#define WINVER 0x0501
-#include <windows.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <iphlpapi.h>
-#include "mingw.h"
+# include <sys/stat.h>
+# define WINVER 0x0501
+# include <windows.h>
+# include <winsock2.h>
+# include <ws2tcpip.h>
+# include <iphlpapi.h>
+# include "mingw.h"
 #else
-#include <sys/socket.h>
+# include <sys/socket.h>
 #endif
 
 #include "types.h"

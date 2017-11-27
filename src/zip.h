@@ -1,3 +1,6 @@
+#if defined(OS_ANDROID)
+# include <zconf.h>
+#endif
 #include <zlib.h>
 
 #include "arch.h"

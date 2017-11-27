@@ -34,7 +34,7 @@ static size_t home_size;
 // WARNING: Too long home directory paths will cause this function to return error.
 bool startup_init(void)
 {
-#if defined(OS_IOS)
+#if defined(OS_ANDROID) || defined(OS_IOS)
 	return true;
 #endif
 

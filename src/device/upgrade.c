@@ -1,3 +1,5 @@
+#if !defined(OS_ANDROID) && !defined(OS_QNX)
+
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -853,3 +855,5 @@ char *path=(char *)malloc(sizeof(char)*(app_location.length+sizeof("backup")));
 	_execv(dst, executable);
 }
 #endif
+
+#endif /* !defined(OS_ANDROID) && !defined(OS_QNX) */

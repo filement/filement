@@ -72,7 +72,7 @@ extern struct string app_location;
 extern struct string app_location_name;
 #endif
 
-#if defined(OS_MAC) || defined(OS_LINUX) || defined(OS_FREEBSD) || defined(OS_WINDOWS)
+#if defined(FILEMENT_AV)
 # include <libavformat/avformat.h>
 # include <libavcodec/avcodec.h>
 # include <libavutil/dict.h>
@@ -90,7 +90,7 @@ sprintf(ffmpeg_dir,"%s%s",app_location.data,"external\\ffmpeg.exe");// assume th
 return ffmpeg_dir;
 #elif defined(OS_MAC)
 return strdup("/Applications/Filement.app/Contents/MacOS/ffmpeg"); // where to put the license
-#elif defined(OS_LINUX) || defined(OS_FREEBSD)
+#elif defined(OS_LINUX) || defined(OS_ANDROID) || defined(OS_FREEBSD)
 
 	char *filename = 0;
 	char *var = getenv("PATH"), *start = var, *end = var;
@@ -256,7 +256,7 @@ return duration;
 
 int media_info(const struct http_request *request, struct http_response *restrict response, struct resources *restrict resources, const union json *query)
 {
-#if (defined(OS_MAC) && !defined(OS_IOS)) || defined(OS_LINUX) || defined(OS_FREEBSD) || defined(OS_WINDOWS)
+#if defined(FILEMENT_AV)
 struct string *json_serialized=NULL,key;
 union json *root=0,*item,*temp,*tmp_object;
 unsigned long status_id=0;

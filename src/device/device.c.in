@@ -45,6 +45,11 @@
 # include "../access.h"
 #endif
 
+#if defined(OS_ANDROID)
+# include "io.h"
+# include "access.h"
+#endif
+
 #define UUID_BLANK "00000000" "00000000" "00000000" "00000000"
 
 #if defined(DEVICE)
@@ -99,6 +104,7 @@ bool filement_init(void)
 #if defined(DEVICE) && !defined(OS_WINDOWS)
 	if (!startup_init()) fail(0, "Filement already started");
 
+# if !defined(OS_ANDROID) && !defined(OS_QNX)
 	// Cancel process execution if an upgrade procedure is started but not finished.
 	// failsafe existence indicates that an upgrade procedure is started.
 	// The FILEMENT_SETUP environment variable indicates that the upgrade procedure finished.
@@ -110,6 +116,7 @@ bool filement_init(void)
 		free(failsafe);
 		if (upgrade) fail(0, "There is unfinished upgrade. Terminating.");
 	}
+# endif
 #endif
 
 	server_init();
@@ -233,11 +240,13 @@ bool filement_init(void)
 			break;
 		}
 
+#  if !defined(OS_ANDROID) && !defined(OS_QNX)
 		// Remove failsafe.
 		struct string *failsafe_dest = upgrade_failsafe();
 		startup_remove(failsafe_dest);
 		unlink(failsafe_dest->data);
 		free(failsafe_dest);
+#  endif
 
 		storage_setup(storage);
 # else

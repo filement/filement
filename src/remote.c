@@ -301,7 +301,7 @@ union json *storage_json(const char *target, size_t length, char uuid[UUID_SIZE 
 	// Connect to the remote storage server and fetch the JSON.
 	do
 	{
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 		// TODO change this
 		/*fd = socket_connect(HOST_DISTRIBUTE_REMOTE, PORT_HTTPS);
 		if (fd < 0) continue;

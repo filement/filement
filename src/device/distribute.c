@@ -133,14 +133,14 @@ void distribute_term(void)
 static bool distribute_connect(void)
 {
 	// Connect to distribute server.
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 	int sock = socket_connect(HOST_DISTRIBUTE, PORT_DISTRIBUTE_DEVICE_TLS);
 #else
 	int sock = socket_connect(HOST_DISTRIBUTE, PORT_DISTRIBUTE_DEVICE);
 #endif
 	if (sock >= 0)
 	{
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 		//if (!stream_init_tls_connect(&distribute, sock, HOST_DISTRIBUTE)) return true; // success
 		if (!stream_init_tls_connect(&distribute, sock, 0)) return true; // success
 #else

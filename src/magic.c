@@ -48,8 +48,8 @@ File starts with Start Of Image marker. Immediately after it there is another ma
 bytes 0-1:		Start Of Image			ffd8
 byte 2:									ff
 */
-#define JPEG_MASK_0_3			0xffffff00
-#define JPEG_MAGIC_0_3			0xffd8ff00
+#define JPEG_MASK_0_3			0xffffff00u
+#define JPEG_MAGIC_0_3			0xffd8ff00u
 static const struct string type_jpeg = STRING("image/jpeg");
 
 

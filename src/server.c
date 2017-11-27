@@ -12,7 +12,9 @@
 #ifdef OS_BSD
 # include <arpa/inet.h>
 # include <poll.h>
-# include <execinfo.h>
+# if !defined(OS_ANDROID)
+#  include <execinfo.h>
+# endif
 #else
 # define WINVER 0x0501
 # include <windows.h>
@@ -21,6 +23,10 @@
 # include "mingw.h"
 # undef close
 # define close CLOSE
+#endif
+
+#ifdef OS_ANDROID
+# include <netinet/in.h>
 #endif
 
 #include "types.h"
@@ -63,6 +69,20 @@ struct string SERVER;
 
 #if defined(OS_WINDOWS)
 # include "../windows/server.c"
+#endif
+
+#ifdef OS_ANDROID
+int g_server_socket = -1;
+int g_proxy_socket = -1;
+int g_proxy_tid = 0;
+int g_server_tid = 0;
+
+void g_kill_server_thrd(int sig)
+{
+if(g_server_socket>=0){close(g_server_socket);g_server_socket=-1;}
+g_server_tid=0;
+pthread_exit(0);
+}
 #endif
 
 #define close(f) do {warning(logs("close: "), logi(f), logs(" line="), logi(__LINE__)); (close)(f);} while (0)
@@ -396,9 +416,8 @@ void server_daemon(void)
 
 void segfault(int number)
 {
+#if !defined(OS_ANDROID)
 	void *array[16];
-
-	//error(logs("Segmentation fault"));
 
 	size_t frames = backtrace(array, (sizeof(array) / sizeof(*array)));
 	//error(logi(frames));
@@ -412,6 +431,7 @@ void segfault(int number)
 		write(2, syms[index], strlen(syms[index]));
 		write(2, "\n", 1);
 	}*/
+#endif
 
 	_exit(ERROR_MEMORY);
 }
@@ -439,7 +459,7 @@ void server_init(void)
 	if (!auth_init()) fail(2, "Unable to initialize auth");
 #endif
 
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 	if (tls_init() < 0) fail(2, "SSL initialization error");
 #endif
 
@@ -699,7 +719,7 @@ void server_listen(void *storage)
 
 					if (proxy.protocol == PROXY_HTTPS)
 					{
-# if defined(TLS)
+# if defined(FILEMENT_TLS)
 						status = stream_init_tls_connect(&connection->resources.stream, proxy.client, 0); // TODO set third argument
 # else
 						warning(logs("Unable to handle incoming HTTPS request because TLS is not supported"));
@@ -866,7 +886,7 @@ void server_term(void)
 
 	free(SERVER.data);
 
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 	tls_term();
 #endif
 

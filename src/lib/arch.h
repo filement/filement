@@ -44,7 +44,7 @@
 # define htole64(x) (x)
 # define betoh64(x) ( ( (uint64_t)(htonl( (uint32_t)(((uint64_t)x << 32) >> 32) )) << 32) | htonl( ((uint32_t)((uint64_t)x >> 32)) ) )
 # define letoh64(x) (x)
-#elif defined(OS_LINUX)
+#elif defined(OS_LINUX) || defined(OS_ANDROID)
 # include <byteswap.h>
 
 # undef htobe16

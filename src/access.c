@@ -9,8 +9,13 @@
 #include <time.h>
 #include <ctype.h>
 
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) || defined(OS_ANDROID)
 # include <sys/fsuid.h>
+#endif
+
+#if defined(OS_ANDROID)
+# include <sys/types.h>
+# include <dirent.h>
 #endif
 
 #ifdef OS_WINDOWS
@@ -690,6 +695,141 @@ struct blocks_array *access_granted_get_blocks_array(void)//TODO users
 		
 		return blocks_array;
 	}
+
+#elif defined(OS_ANDROID)
+	DIR *dir=0,*dirtest=0; 
+	struct dirent *entry=0,*entrytest=0;
+	int test=0;
+	i=0;
+		if( ( dir = opendir( "/mnt/" ) ) != NULL ) {	
+		//TODO readdir is not thread safe
+			while( ( entry = readdir( dir ) ) != NULL ) {
+					if( strcmp( (char*)entry->d_name, "." ) == 0 )continue;
+					if( strcmp( (char*)entry->d_name, ".." ) == 0 )continue;
+					if( strcmp( (char*)entry->d_name, "obb" ) == 0 )continue;
+					if( strcmp( (char*)entry->d_name, "asec" ) == 0 )continue;
+					if( strcmp( (char*)entry->d_name, "secure" ) == 0 )continue;
+				i++;
+			}
+			closedir(dir);
+		}	
+		if(!i)
+		{
+			blocks_array=(struct blocks_array *)malloc(sizeof(struct blocks_array) + sizeof(struct blocks *));
+			blocks_array->blocks_size=1;
+		    blocks_array->blocks[0]=(struct blocks *)malloc(sizeof(struct blocks));
+            blocks_array->blocks[0]->block_id = 1;
+			blocks_array->blocks[0]->location_id = 1;
+			blocks_array->blocks[0]->user_id = 0;
+			blocks_array->blocks[0]->location = string_alloc("/",1);
+			blocks_array->blocks[0]->size = 0;
+			return blocks_array;
+		}
+		
+		blocks_array=(struct blocks_array *)malloc(sizeof(struct blocks_array) + sizeof(struct blocks *)*i);
+		i=0;
+		blocks_array->blocks_size=0;
+	char dirname[4096];
+	char linkname[4096];
+	memcpy(dirname,"/mnt/",5);
+	int len=0;
+	int linklen=0;
+	
+		if( ( dir = opendir( "/mnt/" ) ) != NULL ) {		
+		//TODO readdir is not thread safe
+			while( ( entry = readdir( dir ) ) != NULL ) {
+					if( strcmp( (char*)entry->d_name, "." ) == 0 )continue;
+					if( strcmp( (char*)entry->d_name, ".." ) == 0 )continue;
+					if( strcmp( (char*)entry->d_name, "asec" ) == 0 )continue;
+					if(entry->d_type==DT_DIR || entry->d_type==DT_LNK)
+						{
+							
+							len=strlen((char*)entry->d_name);
+							//*format(dirname, str("mnt", 5), str((char*)entry->d_name, len)) = 0;
+							memcpy(dirname+5,(char*)entry->d_name,len);
+							dirname[len+5]=0;
+							if(entry->d_type==DT_DIR)
+								{
+								if( ( dirtest = opendir( dirname ) ) != NULL ) {
+									while( ( entrytest = readdir( dirtest ) ) != NULL ) {
+									if( strcmp( (char*)entrytest->d_name, "." ) == 0 )continue;
+									if( strcmp( (char*)entrytest->d_name, ".." ) == 0 )continue;
+										
+									test=1;
+									break;
+									}
+									closedir(dirtest);
+								}
+									if(test)
+									{
+									blocks_array->blocks[i]=(struct blocks *)malloc(sizeof(struct blocks));
+									blocks_array->blocks[i]->location = string_alloc(dirname,len+5);
+									}
+								}
+							else if(entry->d_type==DT_LNK)
+							{
+								linklen=readlink(dirname, linkname, 4090);
+								if(linklen<0)continue;
+								linkname[linklen]=0;
+								if(linkname[0]=='/')
+								{
+									if( ( dirtest = opendir( linkname ) ) != NULL ) {
+										while( ( entrytest = readdir( dirtest ) ) != NULL ) {
+											if( strcmp( (char*)entrytest->d_name, "." ) == 0 )continue;
+											if( strcmp( (char*)entrytest->d_name, ".." ) == 0 )continue;
+												
+											test=1;
+											break;
+											}
+										closedir(dirtest);
+									}
+									
+									if(test)
+									{
+									blocks_array->blocks[i]=(struct blocks *)malloc(sizeof(struct blocks));
+									blocks_array->blocks[i]->location = string_alloc(linkname,linklen);
+									}
+								}
+								else
+								{
+									memcpy(dirname+5,linkname,linklen);//TODO check do I have to 0
+									dirname[len+linklen+5]=0;
+									
+									if( ( dirtest = opendir( dirname ) ) != NULL ) {
+										while( ( entrytest = readdir( dirtest ) ) != NULL ) {
+											if( strcmp( (char*)entrytest->d_name, "." ) == 0 )continue;
+											if( strcmp( (char*)entrytest->d_name, ".." ) == 0 )continue;
+												
+											test=1;
+											break;
+											}
+										closedir(dirtest);
+									}
+									if(test)
+									{
+									blocks_array->blocks[i]=(struct blocks *)malloc(sizeof(struct blocks));
+									blocks_array->blocks[i]->location = string_alloc(dirname,linklen+5);
+									}
+								}
+							}
+							if(test)
+							{
+							blocks_array->blocks[i]->block_id = i+1;
+							blocks_array->blocks[i]->location_id = i+1;
+							blocks_array->blocks[i]->user_id = 0;
+							blocks_array->blocks[i]->size = 0;
+							blocks_array->blocks_size++;
+							i++;
+							}
+							test=0;
+						}
+					else continue;		
+				
+			}
+			closedir(dir);
+		}
+ 
+	return blocks_array;
 
 #else
 

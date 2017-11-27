@@ -12,13 +12,13 @@ struct stream
 	size_t _output_size, _output_index, _output_length;
 
 	int fd;
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 	void *_tls;
 	size_t _tls_retry; // amount of data that could not be written without blocking on the last request
 #endif
 };
 
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 int tls_init(void);
 void tls_term(void);
 

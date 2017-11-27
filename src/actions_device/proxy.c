@@ -350,6 +350,7 @@ static struct string *request_string(const struct http_request *request, const s
 	return result;
 }
 
+// TODO not used; is it necessary?
 static struct string *proxy_location(const char uuid[UUID_LENGTH], bool tls, unsigned *port)
 {
 	#define LOCATION_0 "GET /?{\"actions\":{\"location\":{\"device\":[\""
@@ -674,7 +675,7 @@ Host: greuhregierg
 		status = server;
 		goto error;
 	}
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 	status = (tls ? stream_init_tls_connect(&cloud, server, hostname.data) : stream_init(&cloud, server));
 #else
 	status = stream_init(&cloud, server);
@@ -735,6 +736,18 @@ int proxy_forward(const struct http_request *restrict request, struct http_respo
 	item = dict_get(query->object, &key);
 	if (!item || (json_type(item) != INTEGER)) return ERROR_MISSING;
 
+#if defined(OS_ANDROID)
+	const struct cache *cache;
+	char cache_key[CACHE_KEY_SIZE];
+
+	if (status = dlna_key(cache_key)) return status;
+	cache = cache_use(cache_key);
+	if (!cache) return ERROR_AGAIN; // TODO better solution for this race condition?
+
+	status = proxy_init(request, response, resources, cache->value, category, item->integer);
+
+	cache_finish(cache);
+#else
 	const struct cache *cache;
 
 	union json *keys = cache_keys(CACHE_PROXY), *cache_key;
@@ -744,9 +757,8 @@ int proxy_forward(const struct http_request *restrict request, struct http_respo
 	// assert(keys->array_node.length == 1);
 	cache_key = vector_get(&keys->array_node, 0);
 	cache = cache_use(cache_key->string_node.data);
-	if (!cache)
+	if (!cache) // TODO better solution for this race condition?
 	{
-		// TODO better solution for this race condition?
 		json_free(keys);
 		return ERROR_AGAIN;
 	}
@@ -756,6 +768,7 @@ int proxy_forward(const struct http_request *restrict request, struct http_respo
 	cache_finish(cache);
 
 	json_free(keys);
+#endif
 
 	// TODO check status
 

@@ -19,6 +19,7 @@ CC:=@{CC}
 CFLAGS:=-std=c99 -fPIC @{FLAGS} -fstrict-aliasing $(DEF) $(INC) $(WARNINGS)
 LDFLAGS:=-L`pwd`/../lib @{FLAGS} @{LINK}
 PATH:=@{ROOT}/bin:$(PATH)
+@{SETUP}
 
 # TODO propagate variables to other make calls
 

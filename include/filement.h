@@ -18,6 +18,10 @@ bool filement_upgrade(const char *executable);
 #endif
 void filement_reset(void);
 
+#if defined(OS_ANDROID)
+char *filement_test_lib(void);
+#endif
+
 #ifdef OS_WINDOWS
 extern struct string app_location;
 extern struct string app_revision;

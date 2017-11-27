@@ -67,7 +67,11 @@ time_t unzip_date(const char *restrict buffer)
 	mtime.tm_min = (time >> 5) & 0x3f;
 	mtime.tm_sec = (time << 1) & 0x1f;
 
+# if defined(OS_ANDROID) || defined(OS_WINDOWS)
+	return mktime(&mtime);
+# else
 	return timegm(&mtime);
+# endif
 }
 
 #endif

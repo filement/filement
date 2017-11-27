@@ -21,6 +21,12 @@
 # include "mingw.h"
 #endif
 
+#if defined(OS_ANDROID)
+// Fixes Bionic C Library missing declaration.
+// https://mail.gnome.org/archives/commits-list/2013-May/msg01329.html
+int res_init(void);
+#endif
+
 #include "types.h"
 #include "log.h"
 #include "format.h"

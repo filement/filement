@@ -13,9 +13,11 @@
 #ifdef OS_BSD
 # include <arpa/inet.h>
 # include <netdb.h>
+# include <netinet/in.h>
 # include <poll.h>
 # include <sys/mman.h>
 # include <sys/socket.h>
+# include <sys/types.h>          /* See NOTES */
 #endif
 
 #ifdef OS_WINDOWS

@@ -225,6 +225,7 @@ bool cache_init(void)
 {
 #if defined(OS_MAC) || defined(OS_LINUX) || defined(OS_FREEBSD)
 	// Delete old filement temporary files.
+	// TODO fix cache deletion on some systems (e.g. android)
 
 	struct string filename;
 	char path[KEY_POSITION + CACHE_KEY_SIZE + 1] = DIRECTORY CACHE_PREFIX;

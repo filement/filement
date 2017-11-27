@@ -56,7 +56,7 @@
 //  http://docs.fedoraproject.org/en-US/Fedora_Security_Team//html/Defensive_Coding/chap-Defensive_Coding-TLS.html#sect-Defensive_Coding-TLS-Pitfalls-GNUTLS
 //  http://docs.fedoraproject.org/en-US/Fedora_Security_Team//html/Defensive_Coding/chap-Defensive_Coding-TLS.html#ex-Defensive_Coding-TLS-Nagle
 
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 // TLS implementation based on X.509
 
 # include "gnutls/gnutls.h"					// libgnutls
@@ -64,8 +64,10 @@
 // certificate authorities
 #if defined(OS_MAC)
 # define TLS_CA "/Applications/Filement.app/Contents/Resources/ca.crt"
+#elif defined(OS_ANDROID)
+# define TLS_CA ""
 #elif !defined(OS_WINDOWS)
-# define TLS_CA "/usr/local/share/filement/ca.crt"
+# define TLS_CA (PREFIX "/share/filement/ca.crt")
 #else
 extern char *tls_location;
 # define TLS_CA tls_location
@@ -257,7 +259,7 @@ error:
 	gnutls_deinit(session);
 	return -1;
 }
-#endif /* TLS */
+#endif /* FILEMENT_TLS */
 
 int stream_init(struct stream *restrict stream, int fd)
 {
@@ -283,7 +285,7 @@ int stream_init(struct stream *restrict stream, int fd)
 #endif
 	stream->fd = fd;
 
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 	stream->_tls = 0;
 	stream->_tls_retry = 0;
 #endif
@@ -301,7 +303,7 @@ int stream_term(struct stream *restrict stream)
 	free(stream->_output);
 	stream->_output = 0;
 
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 	if (stream->_tls)
 	{
 		// TODO: check gnutls_bye return status
@@ -316,7 +318,7 @@ int stream_term(struct stream *restrict stream)
 
 size_t stream_cached(const struct stream *stream)
 {
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 	return ((stream->_input_length - stream->_input_index) + (stream->_tls ? gnutls_record_check_pending(stream->_tls) : 0));
 #else
 	return (stream->_input_length - stream->_input_index);
@@ -420,7 +422,7 @@ read:
 		// Read until the buffer contains enough data to satisfy the request
 		while (1)
 		{
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 			if (stream->_tls) size = gnutls_read(stream->_tls, stream->_input + stream->_input_length, stream->_input_size - stream->_input_length);
 			else
 #endif
@@ -437,7 +439,7 @@ read:
 			// assert(size < 0);
 			// TODO handle all possible errors and handle them properly
 
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 			if (stream->_tls)
 			{
 				switch (size)
@@ -500,7 +502,7 @@ static ssize_t stream_write_internal(struct stream *restrict stream, const char 
 {
 	ssize_t status;
 
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 	if (stream->_tls)
 	{
 		status = gnutls_write(stream->_tls, buffer, (stream->_tls_retry ? stream->_tls_retry : ((size > TLS_RECORD) ? TLS_RECORD : size)));
@@ -540,14 +542,14 @@ int stream_write(struct stream *restrict stream, const struct string *buffer)
 	ssize_t size;
 	size_t available;
 	size_t index = 0;
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 	size_t rest;
 #endif
 
 	// If there is buffered data in stream->_output, send it first.
 	while (available = stream->_output_length - stream->_output_index)
 	{
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 		// Send as much data as possible in a single request for TLS unless we must retry the last write attempt.
 		// Add more data to the output buffer if the available data is less than the optimal amount.
 		if (stream->_tls && !stream->_tls_retry && (available < TLS_RECORD))
@@ -627,7 +629,7 @@ int stream_write(struct stream *restrict stream, const struct string *buffer)
 	// Send the data in buffer.
 	while (available = buffer->length - index)
 	{
-#if defined(TLS)
+#if defined(FILEMENT_TLS)
 		// Buffer the data instead of sending it if it is less than the optimal size for TLS record.
 		if (stream->_tls && (available < TLS_RECORD))
 		{

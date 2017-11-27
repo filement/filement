@@ -95,7 +95,7 @@ void *pthread_upnp_dlna(void *arg)
 	SSDPDThread(pipe);
 }
 
-int DLNAisEnabled()
+int DLNAisEnabled(void)
 {
 	pthread_mutex_lock (&DLNAmutex);
 	int test_enabled = DLNA;

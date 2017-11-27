@@ -1,5 +1,3 @@
-#define FILEMENT_SESSION
-
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -93,8 +91,6 @@ static const struct string version = {"HTTP/1.1", 8}, terminator = {"\r\n", 2};
 // TODO: maybe stream should be closed on stream error (in response_content)
 
 // TODO fix response functions return values
-
-// TODO rename response_header
 
 // All actions for current target. Sorted alphabetically at compile time by actions_sort.pl
 static const struct

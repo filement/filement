@@ -25,7 +25,11 @@
 #if !defined(OS_WINDOWS)
 # include <arpa/inet.h>
 # include <netdb.h>
-# include <ifaddrs.h>
+# ifdef OS_ANDROID
+#  include "ifaddrs.h"
+# else
+#  include <ifaddrs.h>
+# endif
 
 # include "actions.h"
 # include "protocol.h"

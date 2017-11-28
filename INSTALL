@@ -47,7 +47,15 @@ If you want to use the graphical interface (using GTK+), some additional package
 
 	cd /usr/ports/multimedia/x11-toolkits/gtk20 && make install clean
 
-## Installation
+## Installation on Android
+
+	apt-get install google-android-ndk-installer
+
+	./configure --android-ndk=<path_to_ndk>
+
+	make android.apk
+
+## Installation for desktop platforms
 
 Download the source.
 
@@ -93,3 +101,6 @@ TODO
 	fix upgrade
 		how do I know the executable so that I can restart it?
 	debian and fedora package
+
+	check if android works
+		possible issues: src/server.c has lots of changes and is very hard to check

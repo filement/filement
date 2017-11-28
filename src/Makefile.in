@@ -27,7 +27,7 @@ force:
 	@true
 
 sqlite.o: sqlite.c
-	$(CC) -std=c99 -pthread -O2 -fomit-frame-pointer -fPIC -c sqlite.c -o $@
+	$(CC) -std=c99 -pthread @{STORAGE_FLAGS} -O2 -fomit-frame-pointer -fPIC -c sqlite.c -o $@
 
 storage_sqlite: sqlite.o storage_sqlite.o
 	ar rcs storage.a sqlite.o storage_sqlite.o

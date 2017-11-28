@@ -37,6 +37,9 @@ filement.dmg: mac/build/Release/Filement.app/Contents/MacOS/Filement
 	hdiutil convert /tmp/temp.dmg -ov -format UDZO -imagekey zlib-level=9 -o filement.dmg
 	rm /tmp/temp.dmg
 
+filement.apk:
+	$(MAKE) -C src libfilement.so
+
 check:
 	$(MAKE) -C tests check
 

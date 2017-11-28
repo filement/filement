@@ -783,7 +783,7 @@ enum
 
 // TODO replace -1 with the appropriate error code
 
-static const char state[STATES_COUNT][CLASSES_COUNT] = {
+static const signed char state[STATES_COUNT][CLASSES_COUNT] = {
 //	invalid	sp/tab	\r		\n		digit	H		T		P		letter	/		"		\		.		:		punc	sep
 	-1,		-1,		S_ML,	-1,		-1,		S_M,	S_M,	S_M,	S_M,	-1,		-1,		-1,		-1,		-1,		-1,		-1,		//S_MF	first method character or \r
 	-1,		-1,		-1,		S_MF,	-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		-1,		//S_ML	\n before first method character
@@ -891,7 +891,7 @@ int http_parse(struct http_context *restrict context, struct stream *restrict st
 	if (status = stream_read(stream, &buffer, cached + 1)) return status;
 
 	unsigned char byte;
-	char state_new;
+	signed char state_new;
 	struct string token;
 	for(; context->index < buffer.length; context->index += 1)
 	{

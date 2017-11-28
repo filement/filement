@@ -1,3 +1,5 @@
+#if defined(FILEMENT_AV)
+
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -65,22 +67,18 @@
 WINBASEAPI BOOL WINAPI MoveFileWithProgressA(LPCSTR,LPCSTR,LPPROGRESS_ROUTINE,LPVOID,DWORD);
 WINBASEAPI BOOL WINAPI MoveFileWithProgressW(LPCWSTR,LPCWSTR,LPPROGRESS_ROUTINE,LPVOID,DWORD);
 #define MoveFileWithProgress MoveFileWithProgressA
-#endif
 
-#ifdef OS_WINDOWS
 extern struct string app_location;
 extern struct string app_location_name;
 #endif
 
-#if defined(FILEMENT_AV)
-# include <libavformat/avformat.h>
-# include <libavcodec/avcodec.h>
-# include <libavutil/dict.h>
-# include <libavutil/avassert.h>
-# include <libavutil/avutil.h>
-#endif
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libavutil/dict.h>
+#include <libavutil/avassert.h>
+#include <libavutil/avutil.h>
 
-char *get_ffmpeg_exec_path(void)
+static char *get_ffmpeg_exec_path(void)
 {
 #if defined(OS_WINDOWS)
 //return strdup("C:\\ffmpeg_build\\bin\\ffmpeg.exe");
@@ -180,6 +178,27 @@ static char *urlencode(char *str) {
 }
 
 #ifdef OS_WINDOWS
+unsigned long ReadFromPipe(HANDLE pipe,char *buffer,unsigned long bufsize) // to make it bigger than int 
+{ 
+   DWORD dwRead;
+   BOOL bSuccess = FALSE;
+  
+	  bSuccess = ReadFile( pipe, buffer, bufsize, &dwRead, NULL);
+	  if( ! bSuccess || dwRead == 0 ) return 0;
+   
+   return (unsigned long)dwRead;
+}
+#else
+static void remove_zombies(int sig)
+{
+	int status;
+
+   waitpid(-1, &status, WNOHANG);
+   
+} 
+#endif
+
+#ifdef OS_WINDOWS
 
 static const char *quote_arg(const char *arg)
 {
@@ -256,7 +275,6 @@ return duration;
 
 int media_info(const struct http_request *request, struct http_response *restrict response, struct resources *restrict resources, const union json *query)
 {
-#if defined(FILEMENT_AV)
 struct string *json_serialized=NULL,key;
 union json *root=0,*item,*temp,*tmp_object;
 unsigned long status_id=0;
@@ -347,12 +365,9 @@ if(root)json_free(root);
    if(fmt_ctx)avformat_close_input(&fmt_ctx);
 if(!local_errno)local_errno=errno;
 return remote_json_error(request, response, resources, local_errno);
-#else
-	return NotFound;
-#endif
 }
 
-char *restrict ffmpeg_subtitles(const struct string *option)
+static char *restrict ffmpeg_subtitles(const struct string *option)
 {
 
 	struct string subtitles = string("subtitles=");
@@ -655,7 +670,6 @@ free(tmpstr);
 	char *szexec=get_ffmpeg_exec_path();
 
 	struct sigaction sa;
-	void remove_zombies(int sig);
 	int pid;
 	int pipefd[2];
 	fflush(stdout);
@@ -1440,7 +1454,6 @@ free(tmpstr);
 	char *szexec=get_ffmpeg_exec_path();
 
 	struct sigaction sa;
-	void remove_zombies(int sig);
 	int pid;
 	int pipefd[2];
 	fflush(stdout);
@@ -1527,23 +1540,4 @@ error:
 	return NotFound;
 }
 
-#ifdef OS_WINDOWS
-unsigned long ReadFromPipe(HANDLE pipe,char *buffer,unsigned long bufsize) // to make it bigger than int 
-{ 
-   DWORD dwRead;
-   BOOL bSuccess = FALSE;
-  
-	  bSuccess = ReadFile( pipe, buffer, bufsize, &dwRead, NULL);
-	  if( ! bSuccess || dwRead == 0 ) return 0;
-   
-   return (unsigned long)dwRead;
-}
-#else
-void remove_zombies(int sig)
-{
-	int status;
-
-   waitpid(-1, &status, WNOHANG);
-   
-} 
-#endif
+#endif /* FILEMENT_AV */

@@ -83,6 +83,9 @@
  * <machine/endian.h> where the appropriate definitions are actually
  * made).
  */
+#if defined(OS_ANDROID)
+# include <sys/endian.h>
+#endif
 #if !defined(BYTE_ORDER) || (BYTE_ORDER != LITTLE_ENDIAN && BYTE_ORDER != BIG_ENDIAN)
 #error Define BYTE_ORDER to be equal to either LITTLE_ENDIAN or BIG_ENDIAN
 #endif

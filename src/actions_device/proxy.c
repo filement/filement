@@ -773,8 +773,4 @@ int proxy_forward(const struct http_request *restrict request, struct http_respo
 	// TODO check status
 
 	return ERROR_CANCEL;
-
-error:
-	json_free(keys);
-	return ERROR_MISSING;
 }

@@ -141,7 +141,7 @@ $platform = $Config{'osname'} if !defined($platform);
 # If --uuid is specified, treat the device as pubcloud.
 $target = 'pubcloud' if (defined($clouds{$uuid}));
 
-my ($cc, $shared, $suffix, $storage, $root, $libs, $libs_, $strip, $soname, $gmp, $setup);
+my ($cc, $shared, $suffix, $storage, $storage_flags, $root, $libs, $libs_, $strip, $soname, $gmp, $setup);
 my $flags = '';
 my $definitions = ($flag_dev ? '-DTEST=-10' : '').($flag_debug ? ' -DRUN_MODE=1 -DDEBUG' : ' -DRUN_MODE=2').($flag_upgrade ? ' -DUPGRADE' : '').($flag_upgrade_test ? ' -DUPGRADE_TEST' : '');
 my $options = ($flag_debug ? ' -g -fstack-protector-all' : ' -fomit-frame-pointer');
@@ -242,17 +242,14 @@ elsif ($platform eq 'android')
 
 	$root = "$android_ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64";
 	$storage = 'storage_sqlite';
+	$storage_flags = "--sysroot=$android_ndk/platforms/android-21/arch-arm";
 	$libs = '../android/ifaddrs.o ../android/ifc_utils.o';
-	$setup = 'export OSTYPE="android"'
+	$setup = 'export OSTYPE="android"';
 
 	# TODO from the old make:
 	# 	-DEXECUTABLE="/data/data/com.filement.app/filement"
-	#	$CC $DEF $INC $OPTIONS $SHARED cache.c *.o lib/types.a lib/aes.a lib/stream.a lib/json.a ../android_libs/*.[ao] -o "../lib/libfilement$SUFFIX" $LIB
-
 	# TODO fix the uuid* functions in device/uuid.c
 	# TODO md5.o and device/uuid.c only for android
-
-	#$libs1 = 'lib/md5.o ../lib/filement_coreutils.a ../android_libs/copy_lib.o ../android_libs/cp-hash.o ../android_libs/cp_lib.o ../android_libs/extent-scan.o ../android_libs/faccessat.o ../android_libs/file-type.o ../android_libs/mv_lib.o ../android_libs/remove.o ../android_libs/rm_lib.o ../android_libs/root-dev-ino.o ../android_libs/xfts.o ../android/ifaddrs.o ../android/ifc_utils.o';
 }
 elsif ($platform eq 'ios')
 {
@@ -344,13 +341,36 @@ system qq(cpp -E -x c $definitions -o src/actions.out -);
 
 $options = "$definitions $options";
 
-$cc =~ s/\//\\\//g;
+$storage_flags //= '';
+$setup //= '';
+
 $flags =~ s/\//\\\//g;
 $options =~ s/\//\\\//g;
 $root =~ s/\//\\\//g;
 $libs =~ s/\//\\\//g;
+$storage_flags =~ s/\//\\\//g;
 $strip =~ s/\//\\\//g;
-$setup //= '';
+
+# Dump all configuration options for debug purposes.
+open STDOUT, '>', 'config.log';
+print "version=$version\n";
+print "uuid=$uuid\n";
+print "\n";
+print "CC=$cc\n";
+print "CFLAGS=$options\n";
+print "FLAGS=$flags\n";
+print "LINK=$link\n";
+print "SHARED=$shared\n";
+print "SUFFIX=$suffix\n";
+print "STORAGE=$storage\n";
+print "STORAGE_FLAGS=$storage_flags\n";
+print "ROOT=$root\n";
+print "LIBS=$libs\n";
+print "STRIP=$strip\n";
+print "SONAME=$soname\n";
+print "SETUP=$setup\n";
+print "\n";
+print "features: @features\n";
 
 my @replace = (
 	'-e', "s/\@{CC}/$cc/g",
@@ -360,6 +380,7 @@ my @replace = (
 	'-e', "s/\@{SHARED}/$shared/g",
 	'-e', "s/\@{SUFFIX}/$suffix/g",
 	'-e', "s/\@{STORAGE}/$storage/g",
+	'-e', "s/\@{STORAGE_FLAGS}/$storage_flags/g",
 	'-e', "s/\@{ROOT}/$root/g",
 	'-e', "s/\@{LIBS}/$libs/g",
 	'-e', "s/\@{STRIP}/$strip/g",
@@ -454,21 +475,3 @@ if (defined($clouds{$uuid}))
 	system 'sed', @replace, 'src/storage_mysql.h.in';
 	chmod 0444, 'src/storage_mysql.h';
 }
-
-open STDOUT, '>', 'config.log';
-print "version=$version\n";
-print "length=$length\n";
-print "uuid=$uuid\n";
-print "\n";
-print "CC=$cc\n";
-print "CFLAGS=$options\n";
-print "FLAGS=$flags\n";
-print "LINK=$link\n";
-print "SHARED=$shared\n";
-print "SUFFIX=$suffix\n";
-print "STORAGE=$storage\n";
-print "ROOT=$root\n";
-print "LIBS=$libs\n";
-print "STRIP=$strip\n";
-print "SONAME=$soname\n";
-print "SETUP=$setup\n";

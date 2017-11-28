@@ -105,7 +105,7 @@ reachable
 		config.register
 # endif
 
-# if !defined(OS_ANDROID) && !defined(OS_QNX) && !defined(OS_IOS)
+# if defined(FILEMENT_AV)
 		// TODO iOS
 		media.stream
 		media.convert

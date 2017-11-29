@@ -29,7 +29,7 @@ filement.dmg: mac/build/Release/Filement.app/Contents/MacOS/Filement
 	hdiutil create '/tmp/temp.dmg' -volname "Filement" -ov -fs 'Case-sensitive HFS+' -fsargs "-c c=64,a=16,e=16" -srcfolder $(mac_target) -srcfolder "mac/.background" -format UDRW -size 65536k
 	hdiutil attach -readwrite -noverify '/tmp/temp.dmg'
 	ln -s /Applications /Volumes/Filement
-	osascript < mac/makeimage
+	osascript < mac/image.scpt
 	rmdir /Volumes/Filement/.Trashes
 	chmod -Rf go-w /Volumes/Filement
 	sync

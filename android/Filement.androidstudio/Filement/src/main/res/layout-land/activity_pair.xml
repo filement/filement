@@ -1,0 +1,131 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0281b9"
+    tools:context=".Filement" >
+
+    <!--
+         The primary full-screen view. This can be replaced with whatever view
+         is needed to present your content, e.g. VideoView, SurfaceView,
+         TextureView, etc.
+    -->
+
+    <!--
+         This FrameLayout insets its children based on system windows using
+         android:fitsSystemWindows.
+    -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="5dp"
+        android:orientation="vertical" >
+        
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#ffffff"
+            android:layout_margin="10dp"
+            android:text="@string/PairDevDescr" />
+
+        
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.0" >
+
+      	  <LinearLayout
+            android:layout_width="0dp" 
+            android:layout_height="wrap_content"
+            android:layout_weight=".50"
+            android:orientation="vertical" >
+            
+            <EditText
+                android:id="@+id/EmailInput"
+                
+           		 android:layout_width="match_parent"
+           		 android:layout_height="wrap_content"
+           		 android:layout_weight=".25"
+                android:ems="10"
+                android:padding="8dp"
+           		android:textColor="#111111"
+           	 	android:background="@drawable/background_radius"
+                android:hint="@string/account_email"
+                android:inputType="textEmailAddress" >
+
+                <requestFocus />
+            </EditText>
+          
+           
+         </LinearLayout>
+         
+        <LinearLayout
+            android:layout_width="0dp" 
+            android:layout_height="wrap_content"
+            android:layout_weight=".50"
+            android:orientation="vertical" >
+           
+		 <EditText
+            android:id="@+id/DeviceNameInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight=".25"
+            android:ems="10"
+                android:padding="8dp"
+           		android:textColor="#111111"
+           	 	android:background="@drawable/background_radius"
+            
+            android:hint="@string/device_name"
+            android:text="@string/my_android"
+             />
+		 
+        <EditText
+            android:id="@+id/PasswordInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight=".25"
+            android:ems="10"
+                android:padding="8dp"
+           		android:textColor="#111111"
+           	 	android:background="@drawable/background_radius"
+            android:hint="@string/device_password"
+            android:inputType="textPassword" />
+        </LinearLayout>   
+        
+        
+        </LinearLayout>
+
+        
+
+        <Button
+            android:id="@+id/PairButton2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            style="@style/TextShadow"
+            android:background="@drawable/gradient_green"
+            android:text="@string/pair" />
+
+        <TextView
+            android:id="@+id/PairStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <ProgressBar
+            android:id="@+id/PairingProgress"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_gravity="center"
+            android:visibility="invisible" />
+
+    </LinearLayout>
+
+    
+
+</FrameLayout>

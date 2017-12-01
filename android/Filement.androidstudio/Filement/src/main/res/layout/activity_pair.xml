@@ -1,0 +1,117 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0281b9"
+    tools:context=".Filement" >
+
+    <!--
+         The primary full-screen view. This can be replaced with whatever view
+         is needed to present your content, e.g. VideoView, SurfaceView,
+         TextureView, etc.
+    -->
+
+    <!--
+         This FrameLayout insets its children based on system windows using
+         android:fitsSystemWindows.
+    -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical" >
+        
+        <TextView
+        android:id="@+id/textView1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:textColor="#ffffff"
+        android:text="@string/PairDevDescr" />
+
+        <EditText
+            android:id="@+id/DeviceNameInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="6dp"
+            android:ems="10"
+            android:padding="8dp"
+            android:textColor="#111111"
+            android:background="@drawable/background_radius"
+            android:hint="@string/device_name"
+            android:text="@string/my_android" />
+
+        <EditText
+            android:id="@+id/EmailInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:layout_margin="6dp"
+            android:ems="10"
+            android:textColor="#111111"
+            android:background="@drawable/background_radius"
+            android:hint="@string/account_email"
+            android:inputType="textEmailAddress" />
+
+        <EditText
+            android:id="@+id/PasswordInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:layout_margin="6dp"
+            android:ems="10"
+            android:textColor="#111111"
+            android:background="@drawable/background_radius"
+            android:hint="@string/device_password"
+            android:inputType="textPassword" />
+
+        <Button
+            android:id="@+id/PairButton2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            style="@style/TextShadow"
+            android:background="@drawable/gradient_green"
+            android:text="@string/pair" />
+
+        <LinearLayout
+            android:id="@+id/pair_descr_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="6dp"
+            android:orientation="vertical"
+            android:visibility="invisible" >
+
+            <ImageView
+                android:id="@+id/imageView1"
+                android:layout_width="35dp"
+                android:layout_height="28dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_margin="6dp"
+                android:layout_weight="1"
+                android:src="@drawable/error" />
+
+            <TextView
+                android:id="@+id/PairStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_margin="6dp"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="#ffffff" />
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/PairingProgress"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="invisible" />
+
+    </LinearLayout>
+
+    
+
+</FrameLayout>

@@ -1,0 +1,93 @@
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0281b9"
+    tools:context=".Filement" >
+
+    <!--
+         The primary full-screen view. This can be replaced with whatever view
+         is needed to present your content, e.g. VideoView, SurfaceView,
+         TextureView, etc.
+    -->
+
+    <!--
+         This FrameLayout insets its children based on system windows using
+         android:fitsSystemWindows.
+    -->
+
+    <RelativeLayout
+        android:layout_width="235dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="right" >
+
+        <Button
+            android:id="@+id/CreateAccButton"
+            style="@style/TextShadow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="22dp"
+            android:background="@drawable/gradient_green"
+            android:text="@string/CreateButton" />
+
+        <Button
+            android:id="@+id/SignInButton"
+            style="@style/TextShadow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_below="@+id/CreateAccButton"
+            android:layout_marginTop="15dp"
+            android:background="@drawable/gradient_green"
+            android:text="@string/SignButton" />
+        
+        <Button
+            android:id="@+id/PairButton"
+            style="@style/TextShadow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_below="@+id/SignInButton"
+            android:layout_marginTop="15dp"
+            android:background="@drawable/gradient_green"
+            android:text="@string/PairButton" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="225dp"
+        android:layout_height="match_parent"
+        android:gravity="top" >
+
+        <ImageView
+            android:id="@+id/imageView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="20dp"
+            android:layout_marginLeft="96dp"
+            
+            android:src="@drawable/filementlogo" />
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/imageView1"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="34dp"
+            android:gravity="center"
+            android:text="Filement provides secure, direct access to your devices."
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textSize="14sp" />
+
+    </RelativeLayout>
+
+</FrameLayout>

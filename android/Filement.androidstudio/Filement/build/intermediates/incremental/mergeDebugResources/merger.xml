@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merger version="3"><dataSet config="com.android.support:gridlayout-v7:18.0.0$Generated" generated="true"><source path="/home/martin/.gradle/caches/transforms-1/files-1.1/gridlayout-v7-18.0.0.aar/2cd61d951b3b7f9eb722983109dd7fa3/res"/></dataSet><dataSet config="com.android.support:gridlayout-v7:18.0.0" from-dependency="true" generated-set="com.android.support:gridlayout-v7:18.0.0$Generated"><source path="/home/martin/.gradle/caches/transforms-1/files-1.1/gridlayout-v7-18.0.0.aar/2cd61d951b3b7f9eb722983109dd7fa3/res"><file path="/home/martin/.gradle/caches/transforms-1/files-1.1/gridlayout-v7-18.0.0.aar/2cd61d951b3b7f9eb722983109dd7fa3/res/values/values.xml" qualifiers=""><declare-styleable name="GridLayout">
+
+        
+
+
+        
+        <attr name="orientation">
+
+            
+            <enum name="horizontal" value="0"/>
+            
+            <enum name="vertical" value="1"/>
+        </attr>
+        
+        <attr format="integer" name="rowCount"/>
+        
+        <attr format="integer" name="columnCount"/>
+        
+        <attr format="boolean" name="useDefaultMargins"/>
+        
+        <attr name="alignmentMode">
+
+            
+            <enum name="alignBounds" value="0"/>
+            
+            <enum name="alignMargins" value="1"/>
+        </attr>
+        
+        <attr format="boolean" name="rowOrderPreserved"/>
+        
+        <attr format="boolean" name="columnOrderPreserved"/>
+    </declare-styleable><declare-styleable name="GridLayout_Layout">
+
+        
+
+
+        
+
+        <attr name="android:layout_width"/>
+        <attr name="android:layout_height"/>
+        
+        <attr name="android:layout_margin"/>
+        
+        <attr name="android:layout_marginLeft"/>
+        
+        <attr name="android:layout_marginTop"/>
+        
+        <attr name="android:layout_marginRight"/>
+        
+        <attr name="android:layout_marginBottom"/>
+
+        
+
+
+        
+        <attr format="integer" name="layout_row"/>
+        
+        <attr format="integer" min="1" name="layout_rowSpan"/>
+        
+        <attr format="integer" name="layout_column"/>
+        
+        <attr format="integer" min="1" name="layout_columnSpan"/>
+        
+        <attr name="layout_gravity">
+
+            
+            <flag name="top" value="0x30"/>
+            
+            <flag name="bottom" value="0x50"/>
+            
+            <flag name="left" value="0x03"/>
+            
+            <flag name="right" value="0x05"/>
+            
+            <flag name="center_vertical" value="0x10"/>
+            
+            <flag name="fill_vertical" value="0x70"/>
+            
+            <flag name="center_horizontal" value="0x01"/>
+            
+            <flag name="fill_horizontal" value="0x07"/>
+            
+            <flag name="center" value="0x11"/>
+            
+            <flag name="fill" value="0x77"/>
+            
+            <flag name="clip_vertical" value="0x80"/>
+            
+            <flag name="clip_horizontal" value="0x08"/>
+            
+            <flag name="start" value="0x00800003"/>
+            
+            <flag name="end" value="0x00800005"/>
+        </attr>
+    </declare-styleable><dimen name="default_gap">16dip</dimen></file></source></dataSet><dataSet config="main$Generated" generated="true"><source path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res"/><source path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/build/generated/res/rs/debug"/><source path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/build/generated/res/resValues/debug"/></dataSet><dataSet config="main" generated-set="main$Generated"><source path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res"><file name="activity_pair" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/layout-land/activity_pair.xml" qualifiers="land" type="layout"/><file name="activity_filement" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/layout-land/activity_filement.xml" qualifiers="land" type="layout"/><file name="ic_launcher" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/drawable-mdpi/ic_launcher.png" qualifiers="mdpi-v4" type="drawable"/><file name="push_up_out" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/anim/push_up_out.xml" qualifiers="" type="anim"/><file name="push_left_in" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/anim/push_left_in.xml" qualifiers="" type="anim"/><file path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/values-v11/styles.xml" qualifiers="v11"><style name="AppBaseTheme" parent="android:Theme.Holo.Light">
+        
+    </style><style name="FullscreenTheme" parent="android:Theme.Holo">
+        <item name="android:actionBarStyle">@style/FullscreenActionBarStyle</item>
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="android:windowBackground">@null</item>
+        <item name="buttonBarStyle">?android:attr/buttonBarStyle</item>
+        <item name="buttonBarButtonStyle">?android:attr/buttonBarButtonStyle</item>
+    </style><style name="FullscreenActionBarStyle" parent="android:Widget.Holo.ActionBar">
+        <item name="android:background">@color/black_overlay</item>
+    </style></file><file name="ic_launcher" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/drawable-hdpi/ic_launcher.png" qualifiers="hdpi-v4" type="drawable"/><file path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/values/strings.xml" qualifiers=""><string name="app_name">Filement</string><string name="dummy_button">Dummy Button</string><string name="dummy_content">DUMMY\nCONTENT</string><string name="CreateButton">Create an account</string><string name="PairButton">Pair Device</string><string name="SignButton">Sign In</string><string name="device_name">Device Name</string><string name="my_android">My Android</string><string name="account_email">Email</string><string name="pin">Pin</string><string name="PIN">PIN</string><string name="device_password">Device Password</string><string name="pair">Pair</string><string name="yes">Yes</string><string name="no">No</string><string name="logo">Logo</string><string name="filement_service_started">Filement is started.Click to get access.</string><string name="filement_service_no_conn">There is no internet connectivity.</string><string name="filement_service_stopped">Filement service has been stopped.</string><string name="filement_service_label">Filement service</string><string name="filement_server_problem">Filement can\'t start the service.</string><string name="filement">Filement</string><string name="loading_video">Loading video</string><string name="paired_descr">Your device is currently paired with your account. You can turn it On/Off.</string><string name="enable">Enable Filement</string><string-array name="spinner">
+        <item>Yes</item>
+        <item>No</item>
+    </string-array><string name="PairDevDescr">You can pair your device with your account, by filling the fields below. Email and PIN can be acquired by clicking on \"Add Device\" in Filement.com.</string><string name="started_service">Filement Service is started.</string><string name="description_text">Welcome description text</string></file><file path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/values/colors.xml" qualifiers=""><color name="username_text">#ffffffff</color><color name="username_edit">#ff000000</color><color name="password_text">#ffffffff</color><color name="password_edit">#ff000000</color><color name="ssl_text_label">#ffffffff</color><color name="ssl_text_value">#ffffffff</color><color name="white">#ffffffff</color><color name="black">#ff000000</color><color name="black_overlay">#ff000000</color></file><file path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/values/styles.xml" qualifiers=""><style name="AppBaseTheme" parent="android:Theme.Light">
+        
+    </style><style name="AppTheme" parent="AppBaseTheme">
+        
+    </style><style name="FullscreenTheme" parent="android:Theme.NoTitleBar">
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowBackground">@color/white</item>
+        
+    </style><style name="ButtonBar">
+        <item name="android:paddingLeft">2dp</item>
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:paddingRight">2dp</item>
+        <item name="android:paddingBottom">0dp</item>
+        <item name="android:background">@android:drawable/bottom_bar</item>
+    </style><style name="TextShadow">
+    <item name="android:paddingLeft">4px</item>
+    <item name="android:paddingBottom">4px</item>
+    <item name="android:textColor">#ffffffff</item>
+    <item name="android:textSize">24sp</item>
+    <item name="android:shadowColor">#000000</item>
+    <item name="android:shadowDx">1</item>
+    <item name="android:shadowDy">1</item>
+    <item name="android:shadowRadius">1</item>
+  </style><style name="ButtonBarButton"/></file><file path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/values/attrs.xml" qualifiers=""><declare-styleable name="ButtonBarContainerTheme">
+        <attr format="reference" name="buttonBarStyle"/>
+        <attr format="reference" name="buttonBarButtonStyle"/>
+    </declare-styleable></file><file name="ic_launcher" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/drawable-xhdpi/ic_launcher.png" qualifiers="xhdpi-v4" type="drawable"/><file name="ic_launcher" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/drawable-xxhdpi/ic_launcher.png" qualifiers="xxhdpi-v4" type="drawable"/><file name="filementlogo" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/drawable/filementlogo.png" qualifiers="" type="drawable"/><file name="gradient_blue" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/drawable/gradient_blue.xml" qualifiers="" type="drawable"/><file name="background_radius" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/drawable/background_radius.xml" qualifiers="" type="drawable"/><file name="ic_launcher" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/drawable/ic_launcher.png" qualifiers="" type="drawable"/><file name="gradient_green" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/drawable/gradient_green.xml" qualifiers="" type="drawable"/><file name="error" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/drawable/error.png" qualifiers="" type="drawable"/><file name="default_video_poster" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/drawable/default_video_poster.png" qualifiers="" type="drawable"/><file name="custom_screen" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/layout/custom_screen.xml" qualifiers="" type="layout"/><file name="test_layout_begin" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/layout/test_layout_begin.xml" qualifiers="" type="layout"/><file name="activity_pair" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/layout/activity_pair.xml" qualifiers="" type="layout"/><file name="activity_filement_paired" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/layout/activity_filement_paired.xml" qualifiers="" type="layout"/><file name="activity_webviewlogin" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/layout/activity_webviewlogin.xml" qualifiers="" type="layout"/><file name="testwebvlayout" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/layout/testwebvlayout.xml" qualifiers="" type="layout"/><file name="video_loading_progress" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/layout/video_loading_progress.xml" qualifiers="" type="layout"/><file name="activity_filement" path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/layout/activity_filement.xml" qualifiers="" type="layout"/><file path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/main/res/values-v14/styles.xml" qualifiers="v14"><style name="AppBaseTheme" parent="android:Theme.Holo.Light.DarkActionBar">
+        
+    </style></file></source><source path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/build/generated/res/rs/debug"/><source path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/build/generated/res/resValues/debug"/></dataSet><dataSet config="debug$Generated" generated="true"><source path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/debug/res"/></dataSet><dataSet config="debug" generated-set="debug$Generated"><source path="/home/martin/dev/filement/android/Filement.androidstudio/Filement/src/debug/res"/></dataSet><mergedItems><configuration qualifiers=""><declare-styleable name="ButtonBarContainerTheme"><attr format="reference" name="buttonBarStyle"/><attr format="reference" name="buttonBarButtonStyle"/></declare-styleable><declare-styleable name="GridLayout"><attr name="orientation">
+
+            
+            <enum name="horizontal" value="0"/>
+            
+            <enum name="vertical" value="1"/>
+        </attr><attr format="integer" name="rowCount"/><attr format="integer" name="columnCount"/><attr format="boolean" name="useDefaultMargins"/><attr name="alignmentMode">
+
+            
+            <enum name="alignBounds" value="0"/>
+            
+            <enum name="alignMargins" value="1"/>
+        </attr><attr format="boolean" name="rowOrderPreserved"/><attr format="boolean" name="columnOrderPreserved"/></declare-styleable><declare-styleable name="GridLayout_Layout"><attr name="android:layout_width"/><attr name="android:layout_height"/><attr name="android:layout_margin"/><attr name="android:layout_marginLeft"/><attr name="android:layout_marginTop"/><attr name="android:layout_marginRight"/><attr name="android:layout_marginBottom"/><attr format="integer" name="layout_row"/><attr format="integer" min="1" name="layout_rowSpan"/><attr format="integer" name="layout_column"/><attr format="integer" min="1" name="layout_columnSpan"/><attr name="layout_gravity">
+
+            
+            <flag name="top" value="0x30"/>
+            
+            <flag name="bottom" value="0x50"/>
+            
+            <flag name="left" value="0x03"/>
+            
+            <flag name="right" value="0x05"/>
+            
+            <flag name="center_vertical" value="0x10"/>
+            
+            <flag name="fill_vertical" value="0x70"/>
+            
+            <flag name="center_horizontal" value="0x01"/>
+            
+            <flag name="fill_horizontal" value="0x07"/>
+            
+            <flag name="center" value="0x11"/>
+            
+            <flag name="fill" value="0x77"/>
+            
+            <flag name="clip_vertical" value="0x80"/>
+            
+            <flag name="clip_horizontal" value="0x08"/>
+            
+            <flag name="start" value="0x00800003"/>
+            
+            <flag name="end" value="0x00800005"/>
+        </attr></declare-styleable></configuration></mergedItems></merger>

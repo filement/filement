@@ -46,7 +46,7 @@
 
 #include "status.h" /* TODO deprecated */
 
-#if defined(DEVICE) && !defined(OS_IOS) && !defined(OS_FREEBSD)
+#if defined(FILEMENT_UPNP)
 # include "miniupnpc_filement.h"
 #endif
 
@@ -157,7 +157,7 @@ bool address_local_network(const struct sockaddr_storage *restrict address)
 	else return false;
 }
 
-#if defined(DEVICE) && !defined(OS_IOS) && !defined(OS_FREEBSD)
+#if defined(FILEMENT_UPNP)
 void *pthread_upnp_forward_port(void *arg)
 {
 	int port = *(int *)arg;
@@ -581,7 +581,7 @@ void server_listen(void *storage)
 	connections_count = PORT_DIFF;
 #endif
 
-#if defined(DEVICE) && !defined(OS_IOS) && !defined(OS_FREEBSD)
+#if defined(FILEMENT_UPNP)
 	// Start a thread to notify routers for port forwarding.
 	// TODO is this okay?
 	int listening_port[PORT_DIFF];

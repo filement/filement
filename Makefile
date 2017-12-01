@@ -39,6 +39,10 @@ filement.dmg: mac/build/Release/Filement.app/Contents/MacOS/Filement
 
 filement.apk:
 	$(MAKE) -C src libfilement.so
+	rm -f android/Filement.androidstudio/Filement/src/main/jniLibs/armeabi/libfilement.so 
+	ln -f lib/libfilement.so android/Filement.androidstudio/Filement/src/main/jniLibs/armeabi/libfilement.so
+	cd android/Filement.androidstudio && ./gradlew assemble
+	mv android/Filement.androidstudio/Filement/build/outputs/apk/release/Filement-release-unsigned.apk filement.apk
 
 check:
 	$(MAKE) -C tests check
@@ -71,4 +75,5 @@ clean:
 	rm -f filement.dmg
 
 mrproper: clean
+	rm config.log
 	$(MAKE) -C src mrproper

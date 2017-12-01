@@ -49,10 +49,20 @@ If you want to use the graphical interface (using GTK+), some additional package
 
 ## Installation on Android
 
-	apt-get install google-android-ndk-installer
+Install required packages.
+
+	sudo apt-get install google-android-ndk-installer
+
+Download Android studio from https://developer.android.com/studio/index.html and install it.
+Installation of additional packages like a specific SDK version may be required.
+
+If you need to debug the application, some additional packages are needed.
+
+	sudo apt-get install android-tools-adb
+
+Configure and compile for Android. This will require specifying the path to your NDK directory. This will typically be /usr/lib/android-ndk/ (you can check with `dpkg -L google-android-ndk-installer`).
 
 	./configure --android-ndk=<path_to_ndk>
-
 	make android.apk
 
 ## Installation for desktop platforms

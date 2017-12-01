@@ -1172,7 +1172,7 @@ success:
 	return fd;
 }
 
-#if defined(DEVICE) && !defined(OS_IOS) && !defined(OS_FREEBSD)
+#if defined(FILEMENT_UPNP)
 int session_upnp_nearby(const struct http_request *request, struct http_response *restrict response, struct resources *restrict resources, const union json *query)
 {
 struct vector *filement_get_upnp_forwardings(void);

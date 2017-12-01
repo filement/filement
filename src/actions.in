@@ -64,7 +64,11 @@ fs.stat
 	fs.granted_list
 
 	// TODO IOS
-	fs.create_thumb
+
+# if defined(FILEMENT_THUMBS)
+		fs.create_thumb
+# endif
+
 	fs.mkfile
 	fs.mkdir
 	fs.remove
@@ -91,7 +95,7 @@ reachable
 	session.grant
 	session.grant_login
 
-# if !defined(OS_IOS) && !defined(OS_FREEBSD)
+# if defined(FILEMENT_UPNP)
 		// TODO iOS
 		session.upnp_nearby
 # endif

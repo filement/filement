@@ -153,10 +153,10 @@ my $link = '';
 # TODO strip
 # TODO take into account upgrade
 
-# TODO support features instead of random platform macros
+# TODO add features: FILEMENT_UPGRADE, FILEMENT_FSEARCH
 # TODO target-specific sources (like for android) so that code doesn't mix
 
-my @features = (); # TODO make FILEMENT_UPGRADE a feature
+my @features = ();
 
 if ($platform eq 'darwin')
 {
@@ -182,6 +182,8 @@ if ($platform eq 'darwin')
 }
 elsif ($platform eq 'linux')
 {
+	# gcc -dumpmachine | awk -F '[-]' '{print $1;}'
+
 	$cc = 'gcc';
 	$shared = '-shared';
 	$suffix = '.so';
@@ -243,13 +245,15 @@ elsif ($platform eq 'android')
 	$root = "$android_ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64";
 	$storage = 'storage_sqlite';
 	$storage_flags = "--sysroot=$android_ndk/platforms/android-21/arch-arm";
-	$libs = '../android/ifaddrs.o ../android/ifc_utils.o';
+	$libs = '../android/ifaddrs.o ../android/ifc_utils.o ../android/java.o';
 	$setup = 'export OSTYPE="android"';
 
 	# TODO from the old make:
 	# 	-DEXECUTABLE="/data/data/com.filement.app/filement"
 	# TODO fix the uuid* functions in device/uuid.c
 	# TODO md5.o and device/uuid.c only for android
+
+	#push @features, '';
 }
 elsif ($platform eq 'ios')
 {

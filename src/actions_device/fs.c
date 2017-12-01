@@ -2406,7 +2406,7 @@ path -> path of the stat
 	return status;
 }
 
-#if !defined(OS_IOS)
+#if defined(FILEMENT_THUMBS)
 static void create_thumb(struct string *path,struct string *buffer,int max_width,int max_height,int quality)
 {
 
@@ -2468,7 +2468,6 @@ double ratiow=0,ratioh=0;
 
 return ;
 }
-#endif
 
 int fs_create_thumb(const struct http_request *request, struct http_response *restrict response, struct resources *restrict resources, const union json *query)
 {
@@ -2606,10 +2605,8 @@ path -> path of the stat
 	key = string("image/jpeg");
 	if(string_diff(type,&key))goto error;
  
-#if !defined(OS_IOS)
 	create_thumb(path,&buffer,max_width,max_height,quality);
-#endif
-	
+
 	if(!buffer.length || !buffer.data){goto error;}
 
 	key = string("Content-Type");
@@ -2648,3 +2645,4 @@ error:
 	free(save_path);
 	return BadRequest;
 }
+#endif

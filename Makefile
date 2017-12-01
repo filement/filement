@@ -42,7 +42,11 @@ filement.apk:
 	rm -f android/Filement.androidstudio/Filement/src/main/jniLibs/armeabi/libfilement.so 
 	ln -f lib/libfilement.so android/Filement.androidstudio/Filement/src/main/jniLibs/armeabi/libfilement.so
 	cd android/Filement.androidstudio && ./gradlew assemble
-	mv android/Filement.androidstudio/Filement/build/outputs/apk/release/Filement-release-unsigned.apk filement.apk
+	mv android/Filement.androidstudio/Filement/build/outputs/apk/release/Filement-release-unsigned.apk "$@"
+	jarsigner -verbose -keystore filecert.keystore "$@" filecert
+
+	# keytool -genkey -v -keystore filecert.keystore -alias filecert -keyalg RSA -validity 1
+	# jarsigner -verify "$@"
 
 check:
 	$(MAKE) -C tests check

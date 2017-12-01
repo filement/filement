@@ -60,6 +60,8 @@ If you need to debug the application, some additional packages are needed.
 
 	sudo apt-get install android-tools-adb
 
+TODO install java sdk
+
 Configure and compile for Android. This will require specifying the path to your NDK directory. This will typically be /usr/lib/android-ndk/ (you can check with `dpkg -L google-android-ndk-installer`).
 
 	./configure --android-ndk=<path_to_ndk>
@@ -111,6 +113,5 @@ TODO
 	fix upgrade
 		how do I know the executable so that I can restart it?
 	debian and fedora package
-
-	check if android works
+	fix android problems
 		possible issues: src/server.c has lots of changes and is very hard to check

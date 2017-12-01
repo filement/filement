@@ -69,7 +69,7 @@ Device Proxy
 Filement is still in testing stage of development. There are known bugs and pieces of the code that need improvement.
 
 The repository contains:
-* the source of the device application for MacOS X, Linux, FreeBSD and Windows.
+* the source of the device application for MacOS X, Linux, FreeBSD and Windows and Android.
 * the source of the distribute server
 * the source of the filement cloud
 * the source of the FTP and cloud proxies
@@ -78,6 +78,6 @@ The repository contains:
 After the release of the project under GPL, an ongoing effort to improve the project has started. This includes fixing compilation problems, simplifying the compilation process, updating documentation and fixing some known issues.
 So far the device application has been updated for MacOS X and Linux and has been ported to FreeBSD. The gtk+ interface for Linux and FreeBSD has been improved.
 
-The source of the device application for the remaining platforms will be included at some point. There is a disabled automatic upgrade functionality which requires some maintenance and will eventually be re-enabled.
+The source of the device application for routers will be included at some point. There is a disabled automatic upgrade functionality which requires some maintenance and will eventually be re-enabled.
 
 For any questions you can contact Martin Kunev in the mail of Google.

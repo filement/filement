@@ -9,6 +9,7 @@ src/distribute/ftp.c
 src/actions_sorted.h
 src/actions.out
 mac/build
+android/Filement.androidstudio/build
 src/external/gnutls.compile
 src/Makefile
 src/distribute/authorize.c

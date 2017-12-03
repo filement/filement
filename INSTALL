@@ -94,6 +94,10 @@ If you install the graphical interface, you may want to update the index of avai
 
 # Running Filement
 
+In order to start using Filement, you need to create an account in filement.com and then register your device.
+Visit http://www.filement.com/register to create an account.
+
+Registration is done by running any of the filement executables and specifying the email of your account and a name and password for the device. The password is used to protect the access to the device from within your account.
 Two executables are available. Both can be used to start the filement device server. On the first start, the device must be registered in the Filement infrastructure. After the registration, the device will start automatically on login.
 
 executable name: filement
@@ -101,6 +105,15 @@ executable name: filement
 
 executable name: filement-gtk
 	Intended to be used from a graphical environment (available in the category Network applications).
+
+# Uninstalling Filement
+
+To uninstall Filement from your PC, execute make in the directory where you compiled Filement:
+
+	make uninstall
+
+
+##
 
 TODO
 	command line app

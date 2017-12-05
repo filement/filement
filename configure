@@ -172,6 +172,9 @@ if ($platform eq 'darwin')
 		$flag_upgrade = 1;
 	}
 
+	# clang -### 2>&1 | grep Target | awk -F '[ -]' '{print $2;}'
+	# TODO make sure ffmpeg is added
+
 	$cc = 'clang';
 	$shared = '-dynamiclib';
 	$suffix = '.dylib';

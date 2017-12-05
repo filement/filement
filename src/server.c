@@ -400,7 +400,6 @@ void server_daemon(void)
 	umask(0);
 
 	// TODO: this is not the best solution but it works for most cases
-	// TODO: check for errors?
 	//close(0);
 	//close(1);
 	//close(2);

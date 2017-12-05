@@ -27,8 +27,6 @@ static void *storage;
 
 // This is executed when an upgrade attempt failed and possibly left the device unusable.
 
-// TODO: is it possible that 2 failsafes are running at the same time?
-
 void filement_term(void)
 {
 	free(UUID.data);
@@ -56,17 +54,6 @@ int main(void)
 	#undef ERROR_DAEMON
 
 	umask(0);
-
-	// TODO: this is not the best solution but it works for most cases
-	// TODO: check for errors?
-	//close(0);
-	//close(1);
-	//close(2);
-
-	// TODO: check for errors?
-	//open("/dev/null", O_RDONLY);
-	//open("/dev/null", O_WRONLY);
-	//dup(1);
 
 #ifdef OS_BSD
 	struct sigaction action = {
@@ -97,13 +84,16 @@ int main(void)
 	// Perform device upgrade.
 	// TODO: better handling for upgrade fail
 	bool success;
-#if defined(OS_MAC) || defined(OS_LINUX) || defined(OS_FREEBSD)
-	success = filement_upgrade(0);
-#elif defined(OS_WINDOWS)
+#if !defined(OS_WINDOWS)
+# if defined(OS_MAC)
+	struct string command = string(PREFIX "/Contents/MacOS/Filement");
+# else /* defined(OS_LINUX) || defined(OS_FREEBSD) */
+	struct string command = string("filement")
+# endif
+	success = filement_upgrade(&command);
+	return success;
+#else /* defined(OS_WINDOWS) */
 	if (!do_upgrade) windows_upgrade();
 	return 0;
 #endif
-	if (!success) error(logs("Upgrade failed"));
-
-	return 0;
 }

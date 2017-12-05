@@ -6,14 +6,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <pthread.h>		// libpthread
+#include <pthread.h>
 
 #import "AppDelegate.h"
 #import "filement.h"
 
 // TODO: is the icon for retina display OK?
 
-static bool mac_startup_add(const struct string *file)
+bool startup_mac_add(const struct string *file)
 {
 	// Get application path
 	NSString *path;
@@ -36,7 +36,7 @@ static bool mac_startup_add(const struct string *file)
 	return true;
 }
 
-static bool mac_startup_remove(const struct string *file)
+bool startup_mac_remove(const struct string *file)
 {
 	// Get application path
 	NSString *path;
@@ -190,7 +190,7 @@ static void serve(NSMenu *menu)
 			// Device registered successfully
 
 			struct string path = string("/Applications/Filement.app");
-			mac_startup_add(&path);
+			startup_mac_add(&path);
 
 			[NSApp beginSheet:finish_sheet modalForWindow:(NSWindow *)window modalDelegate:self didEndSelector:nil contextInfo:nil];
 			return;
@@ -223,7 +223,7 @@ static void serve(NSMenu *menu)
 - (IBAction)dialog_reset_yes: (id)sender
 {
 	struct string path = string("/Applications/Filement.app");
-	mac_startup_remove(&path);
+	startup_mac_remove(&path);
 
 	filement_reset();
 }

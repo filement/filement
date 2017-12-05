@@ -1,12 +1,8 @@
+#include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
-#if defined(OS_LINUX)
-# include <sys/sendfile.h>
-#elif defined(OS_FREEBSD)
-# include <sys/socket.h>
-#endif
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -16,9 +12,10 @@
 
 #include "types.h"
 #include "format.h"
-#include "filement.h"
-
 #include "log.h"
+#include "filement.h"
+#include "io.h"
+#include "device/startup.h"
 
 // GTK+ 3 compatibility
 #define gtk_box_new(o, s) (((o) == GTK_ORIENTATION_VERTICAL) ? gtk_vbox_new(TRUE, (s)) : gtk_hbox_new(TRUE, (s)))
@@ -33,12 +30,18 @@
 #define DIALOG_HEIGHT 150
 
 #define ICON_SMALL "/usr/share/icons/hicolor/48x48/apps/filement.png"
-#define SHARE_LOGO (PREFIX "share/filement/logo.png")
-#define SHARE_BACKGROUND (PREFIX "share/filement/background.png")
+#define SHARE_LOGO (STARTUP_PREFIX "share/filement/logo.png")
+#define SHARE_BACKGROUND (STARTUP_PREFIX "share/filement/background.png")
 
-#define PATH_RELATIVE "/.config/autostart/filement.desktop"
+#define STARTUP_PREFIX "/.config/autostart/"
+#define STARTUP_SUFFIX ".desktop"
 
-#define BUFFER_SIZE 256
+#define STARTUP_HEAD \
+	"[Desktop Entry]\n" \
+	"Type=Application\n" \
+	"Terminal=false\n" \
+	"Exec="
+#define STARTUP_TAIL "\n"
 
 struct info
 {
@@ -109,64 +112,76 @@ static void register_start(GtkWidget *widget, gpointer data)
 	pthread_detach(thread_id);
 }
 
-static void gtk_startup_add(void)
+static char *startup_filename(char *command, size_t command_size)
 {
-	// TODO show error messages with the GUI
-
-	// Open source file and collect data about it.
-	struct stat info;
-	int src = open("/usr/share/applications/filement.desktop", O_RDONLY);
-	if (src < 0)
-	{
-		_exit(1); // TODO print error
-	}
-	if (fstat(src, &info) < 0)
-	{
-		_exit(1); // TODO print error
-	}
-
-	// Generate destination file name.
 	char *home = getenv("HOME");
-	size_t home_length = strlen(home);
-	char startup[BUFFER_SIZE];
-	if ((home_length + sizeof(PATH_RELATIVE)) > BUFFER_SIZE)
-	{
-		error(logs("Home directory path too long."));
-		close(src);
-		return;
-	}
-	format_bytes(format_bytes(startup, home, home_length), PATH_RELATIVE, sizeof(PATH_RELATIVE));
+	size_t home_size = strlen(home);
 
-	// Write the destination file.
-	// TODO create directory if it doesn't exist
-	int dest = creat(startup, 0644);
-	if (dest < 0)
-		error(logs("Cannot create startup item for filement."));
-#if defined(OS_LINUX)
-	else if (sendfile(dest, src, 0, (size_t)info.st_size) < 0)
-#elif defined(OS_FREEBSD)
-	else if (sendfile(dest, src, 0, (size_t)info.st_size, 0, 0, 0) < 0)
-#endif
-		error(logs("Cannot add startup information for filement."));
+	char *filename = malloc(home_size + sizeof(STARTUP_PREFIX) - 1 + command_size + sizeof(STARTUP_SUFFIX)), *end;
+	format_bytes(format_bytes(format_bytes(format_bytes(filename, home, home_size), STARTUP_PREFIX, sizeof(STARTUP_PREFIX) - 1), command, command_size), STARTUP_SUFFIX, sizeof(STARTUP_SUFFIX));
 
-	close(dest);
-	close(src);
+	return filename;
 }
 
-static void gtk_startup_remove(void)
+// TODO show error messages with the GUI?
+static bool startup_gtk_add(const struct string *command)
 {
-	// Generate destination file name.
-	char *home = getenv("HOME");
-	size_t home_length = strlen(home);
-	char startup[BUFFER_SIZE];
-	if ((home_length + sizeof(PATH_RELATIVE)) > BUFFER_SIZE)
-	{
-		error(logs("Home directory path too long."));
-		return;
-	}
-	format_bytes(format_bytes(startup, home, home_length), PATH_RELATIVE, sizeof(PATH_RELATIVE));
+	char *filename;
+	int file;
 
-	unlink(startup);
+	char *buffer;
+	size_t buffer_size;
+
+	bool success;
+
+	filename = startup_filename(command->data, command->length);
+	if (!filename)
+		return false;
+
+	buffer = malloc(sizeof(STARTUP_HEAD) - 1 + command->length + sizeof(STARTUP_TAIL));
+	if (buffer < 0)
+	{
+		free(filename);
+		return false;
+	}
+	format_bytes(format_bytes(format_bytes(buffer, STARTUP_HEAD, sizeof(STARTUP_HEAD) - 1), command->data, command->length), STARTUP_TAIL, sizeof(STARTUP_TAIL));
+
+	// TODO create directory if it doesn't exist
+	file = creat(filename, 0644);
+	if (file < 0)
+	{
+		error(logs("Cannot create startup item for "), logs(command->data, command->length), logs("."));
+		free(buffer);
+		free(filename);
+		return false;
+	}
+
+	success = writeall(file, buffer, buffer_size);
+
+	close(file);
+	free(buffer);
+
+	if (!success)
+	{
+		error(logs("Cannot write to startup item for "), logs(command->data, command->length), logs("."));
+		unlink(filename);
+	}
+
+	free(filename);
+
+	return success;
+}
+
+static bool startup_gtk_remove(const struct string *command)
+{
+	char *filename = startup_filename(command->data, command->length);
+	if (filename)
+	{
+		bool success = (unlink(filename) == 0);
+		free(filename);
+		return (success ? success : (errno == ENOENT));
+	}
+	return false;
 }
 
 static void register_finish(GtkWidget *widget, gpointer data)
@@ -177,6 +192,8 @@ static void register_finish(GtkWidget *widget, gpointer data)
 
 	if (registered)
 	{
+		struct string filement_gtk = string("filement-gtk");
+
 		// Registration is successful. Filement will now work as a daemon.
 		// Destroy the interface and add startup item.
 
@@ -184,7 +201,7 @@ static void register_finish(GtkWidget *widget, gpointer data)
 		gtk_widget_destroy(window);
 		gtk_main_quit();
 
-		gtk_startup_add();
+		startup_gtk_add(&filement_gtk);
 	}
 }
 
@@ -341,12 +358,14 @@ static void menu_cancel(GtkWidget *widget, gpointer data)
 
 static void menu_reset(GtkWidget *widget, gpointer data)
 {
+	struct string filement_gtk = string("filement-gtk");
+
 	gtk_widget_hide(status);
 	gtk_widget_destroy(status);
 
 	gtk_main_quit();
 
-	gtk_startup_remove();
+	startup_gtk_remove(&filement_gtk);
 	filement_reset(); // terminates the program
 }
 
@@ -427,19 +446,29 @@ static void *main_server(void *arg)
 
 int main(int argc, char *argv[])
 {
+	int registered;
+
+	startup_add = &startup_gtk_add;
+	startup_remove = &startup_gtk_remove;
+
 	filement_daemon();
+	registered = filement_init();
+
+#if defined(FILEMENT_UPGRADE)
+	// Check for new version of the Filement device software.
+	// WARNING: This will not upgrade the gtk+ specific code.
+	if (!filement_upgrade("filement"))
+		error(logs("Upgrade failed"));
+#endif
 
 	gdk_threads_init();
 	gtk_init(&argc, &argv);
 
 	// Initialize the device. If it is not registered, display registration window.
 	// Start serving after the initialization is complete.
-	if (filement_init() || interface_register())
+	if (registered || interface_register())
 	{
 		pthread_t thread;
-
-		// Check for new version of the Filement device software.
-		//filement_upgrade("filement-gtk"); // TODO report error here
 
 		pthread_create(&thread, 0, &main_server, 0);
 		pthread_detach(thread);

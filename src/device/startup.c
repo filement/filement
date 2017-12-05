@@ -31,6 +31,11 @@ static int startup_file = -1;
 static char path[PATH_LENGTH_MAX];
 static size_t home_size;
 
+#if !defined(OS_WINDOWS)
+bool (*startup_add)(const struct string *);
+bool (*startup_remove)(const struct string *);
+#endif
+
 // WARNING: Too long home directory paths will cause this function to return error.
 bool startup_init(void)
 {
@@ -166,7 +171,7 @@ static bool removed(const char *restrict path, const struct string *restrict com
 	return true;
 }
 
-bool startup_add(const struct string *command)
+bool startup_cmd_add(const struct string *command)
 {
 	format_bytes(path + home_size, STARTUP_CSH, sizeof(STARTUP_CSH));
 	if (!added(path, command))
@@ -183,7 +188,7 @@ bool startup_add(const struct string *command)
 	return true;
 }
 
-bool startup_remove(const struct string *command)
+bool startup_cmd_remove(const struct string *command)
 {
 	bool success;
 

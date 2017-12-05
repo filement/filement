@@ -74,6 +74,8 @@ extern struct string app_location_name;
 
 #define TEMP_DIR "/tmp/filement/"
 
+#define FAILSAFE "/bin/filement_failsafe"
+
 #define RECORD_LENGTH_MAX 1024
 
 #if defined(OS_WINDOWS)
@@ -95,8 +97,6 @@ struct entry
 };
 
 // TODO: the data received from the network should be checked
-
-// TODO: support renaming the executable file. the problem now is that the new name is not available so it can't be execve() or startup_add()
 
 static struct string *basename_(const struct string *dest)
 {
@@ -219,6 +219,7 @@ static void upgrade_term(struct vector *restrict vector)
 	vector_term(vector);
 }
 
+#if defined(OS_WINDOWS)
 struct string *upgrade_failsafe(void)
 {
 	char *var = getenv("HOME");
@@ -249,6 +250,7 @@ struct string *upgrade_failsafe(void)
 
 	return path;
 }
+#endif
 
 static struct string *temp_filename(const struct string *filename)
 {
@@ -281,6 +283,7 @@ static struct string *temp_filename(const struct string *filename)
 	return result;
 }
 
+// TODO fix this function
 #if !defined(OS_WINDOWS)
 static bool remove_directory(const char *dir)
 #else
@@ -504,16 +507,12 @@ error:
 static bool clean(const struct vector *remove)
 {
 	size_t index;
-	struct entry *file;
-
-	// TODO: check for errors
-
-	for(index = 1; index < remove->length; ++index)
+	for(index = 1; index < remove->length; ++index) // Skip failsafe (located at index 0).
 	{
-		file = vector_get(remove, index);
-		unlink(file->line->data);
+		struct entry *file = vector_get(remove, index);
+		if (unlink(file->line->data) < 0)
+			warning(logs("Unable to remove upgrade file: "), logs(file->line->data, file->line->length));
 	}
-
 	return true;
 }
 
@@ -523,19 +522,27 @@ static bool clean(const struct vector *remove)
 // WARNING: Only registered devices can be upgraded.
 bool filement_upgrade(const char *exec)
 {
+# if !defined(FILEMENT_UPGRADE)
+	return true;
+# endif
+
 	// Connect to the distribute server and check for a new version.
 
-	// TODO: check for permissions. cancel if permissions are not sufficient
+	// Perform a quick check that will likely show whether the application has the permissions necessary for upgrade.
+	if (access(PREFIX, W_OK) < 0)
+	{
+		warning(logs("No permissions to perform upgrade"));
+		return true;
+	}
 
-	// Upgrade is supported only for MacOS X and Linux.
-#if defined(OS_LINUX) || defined(OS_FREEBSD)
-	// Upgrade requires root permissions.
-	if (getuid()) return true;
-#elif !defined(OS_MAC)
-	return true;
-#endif
+	// TODO is this necessary?
+/*
+	umask(0);
+*/
 
 	struct vector download, remove;
+
+	warning(logs("Upgrading Filement"));
 
 	if (!vector_init(&download, VECTOR_SIZE_BASE)) fail(1, "Memory error");
 	if (!vector_init(&remove, VECTOR_SIZE_BASE))
@@ -552,104 +559,91 @@ bool filement_upgrade(const char *exec)
 		return true;
 	}
 
-	// Remove file 0 is a failsafe for emergency.
+	// File 0 in remove is a failsafe for emergency.
 
 	struct stream stream;
 	struct string host = string(HOST_DISTRIBUTE_HTTP);
 	struct paste copy;
 
-	do
+	// Install the new version
+
+	// Connect to the server
+	int fd = socket_connect(HOST_DISTRIBUTE_HTTP, PORT_DISTRIBUTE_HTTP);
+	if (fd < 0)
 	{
-		// Install the new version
+		error_("Unable to connect to distribute server");
+		goto error;
+	}
+	if (stream_init(&stream, fd)) fail(1, "Memory error");
 
-		// Connect to the server
-		int fd = socket_connect(HOST_DISTRIBUTE_HTTP, PORT_DISTRIBUTE_HTTP);
-		if (fd < 0)
-		{
-			error_("Unable to connect to distribute server");
-			break;
-		}
-		if (stream_init(&stream, fd)) fail(1, "Memory error");
+	// Download all the necessary files in a temporary directory
+	if (!download_temp(&stream, &download)) // TODO maybe it's better to make sure this is in the same filesystem
+	{
+		error_("Unable to download upgrade");
+		goto error;
+	}
 
-		// Download all the necessary files in a temporary directory
-		if (!download_temp(&stream, &download))
-		{
-			error_("Unable to download upgrade");
-			break;
-		}
+#if defined(DEVICE)
+	// Create failsafe in case the upgrade is terminated prematurely.
 
-#ifdef DEVICE /* failsafe doesn't need this */
-		// Create failsafe in case the upgrade is terminated prematurely.
+	struct string *failsafe_src = ((struct entry *)vector_get(&remove, 0))->line, failsafe_dest = string(PREFIX FAILSAFE);
 
-		struct string *failsafe_src = ((struct entry *)vector_get(&remove, 0))->line, *failsafe_dest = upgrade_failsafe();
-		if (!failsafe_dest) break;
+	bool success = (*startup_add)(&failsafe_dest);
+	if (!success)
+	{
+		error_("Cannot add startup item");
+		goto error;
+	}
 
-		copy.source = failsafe_src;
-		copy.destination = failsafe_dest;
-		format_byte(copy.progress, 0, CACHE_KEY_SIZE);
-		copy.mode = 0;
+	copy.source = failsafe_src;
+	copy.destination = &failsafe_dest;
+	format_byte(copy.progress, 0, CACHE_KEY_SIZE);
+	copy.mode = 0;
 
-		if (http_transfer(&stream, &host, failsafe_src, &copy))
-		{
-			error_("Transfer error while downloading failsafe");
-			break;
-		}
-		if (chmod(failsafe_dest->data, 0100) < 0) // Make the failsafe executable
-		{
-			error_("Cannot set failsafe permissions");
-			break;
-		}
-
-		bool success = startup_add(failsafe_dest);
-		free(failsafe_dest);
-		if (!success)
-		{
-			error_("Cannot add startup item");
-			break;
-		}
+	if (http_transfer(&stream, &host, failsafe_src, &copy)) // TODO last argument shouldn't be obligatory
+	{
+		// TODO remove failsafe from startup
+		error_("Transfer error while downloading failsafe");
+		goto error;
+	}
+	if (chmod(failsafe_dest.data, 0100) < 0) // Make the failsafe executable
+	{
+		// TODO remove failsafe from startup
+		error_("Cannot set failsafe permissions");
+		goto error;
+	}
 #endif
 
-		stream_term(&stream);
-		close(fd);
+	stream_term(&stream);
+	close(fd);
 
-		// TODO: make things work without chdir?
-		chdir(UPGRADE_PREFIX);
+	chdir(PREFIX);
 
-		// WARNING: Operations below can leave the device unusable.
+	// WARNING: Operations below can leave the device unusable.
 
-		// Replace files. Delete unnecessary files.
-		replace(&download);
-		clean(&remove); // TODO: delete unnecessary files (skip failsafe from the remove vector)
+	// Replace files. Delete unnecessary files.
+	replace(&download);
+	clean(&remove);
 
-		if (remove_directory(TEMP_DIR) < 0) warning_("Unable to delete directory " TEMP_DIR);
+	upgrade_term(&download);
+	upgrade_term(&remove);
 
-		// Free all allocated resources (memory, file descriptors, mutexes, locks, etc.).
-		filement_term();
-		// TODO: are there some file descriptors or allocated memory chunks to free?
+	if (remove_directory(TEMP_DIR) < 0) warning_("Unable to delete directory " TEMP_DIR);
 
-		// Start the new version.
-		if (exec)
-		{
-			debug(logs("Restarting filement..."));
+	// Free all allocated resources (memory, file descriptors, mutexes, locks, etc.).
+	filement_term();
+	// TODO: are there some more file descriptors or allocated memory chunks to free?
 
-			// Make device perform setup when started.
-			extern const struct string app_version;
-			if (setenv("FILEMENT_SETUP", app_version.data, 1) < 0)
-			{
-				error_("Unable to set $FILEMENT_SETUP");
-				break;
-			}
+	// Start the new version.
+	debug(logs("Restarting filement..."));
+	if (setenv("FILEMENT_SETUP", "1", 1) < 0) // indicate that upgrade finished successfully
+		error_("Unable to set FILEMENT_SETUP environment variable");
+	else
+		execlp(exec, exec, 0);
+	error(logs("Unable to restart filement"));
+	return false;
 
-			execl(exec, exec, 0); // TODO: this will cancel all requests
-			error(logs("Unable to restart filement"));
-		}
-		else
-		{
-			debug(logs("Upgrade finished..."));
-			_exit(0);
-		}
-	} while (false);
-
+error:
 	upgrade_term(&download);
 	upgrade_term(&remove);
 	return false;

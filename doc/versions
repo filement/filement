@@ -1,3 +1,53 @@
+The version of each application which is part of the Filement platform consists of 3 numbers:
+
+* major - indicates the stage of the application; increased when fundamental changes occur
+* minor - indicates the supported protocols and APIs; increased when protocols or APIs change
+* revision - indicates bug fixes; increased when a new build is published
+
+## Device application upgrade
+
+The device application requires special care with respect to versions as it is installed on client devices and the user controls upgrades. The upgrade process is platform-specific, but an automatic upgrade functionality is provided for platforms that support it. The automatic upgrade happens on application startup. Automatic upgrade should be used only when the application is not installed by a package manager or a store (otherwise it's that system's responsibility to upgrade the application). Upgrade is also not performed when permissions don't allow it (e.g. routers with read-only filesystem or when the application was installed as root but is run as a regular user).
+
+Application startup sequence:
+filement_init()
+	The application checks whether there is another instance of itself running or whether there is an unfinished upgrade. If any of these is true, it terminates.
+	The application checks whether the version of the running executable matches the one in the database. If not, that means an upgrade has just been performed successfully and the application sends a notification about its new version to the distribute server. The application also deletes the failsafe upgrade application and removes it from the startup items.
+	TODO
+filement_upgrade()
+	The application asks the distribute server whether a new version is available and if so an upgrade is performed. Can only be called on a registered device.
+filement_daemon()
+	TODO
+filement_register()
+	Sends a request to the distribute server to register the device in the filement infrastructure.
+	TODO
+filement_start()
+	Disables content serving.
+	TODO
+filement_stop()
+	Enables content serving.
+	TODO
+filement_serve()
+	Connects to a device proxy server. Starts the server loop. Can only be called on a registered device.
+
+Upgrade sequence
+* The application asks the distribute server to provide upgrade information. The information includes a list of locations of source files to be downloaded, corresponding checksums and destination paths. The first entry in the list is a failsafe upgrade application. Empty list indicates everything is up to date. Empty destination path indicates the file is to be removed.
+* All files are downloaded in a temporary directory.
+* The failsafe executable is added as a startup item and copied to the appropriate location.
+* Downloaded files are put to their appropriate locations and files listed for removal are removed.
+* The new version of filement is started using exec (it replaces the current version).
+
+The failsafe upgrade application serves to finish an upgrade in case the upgrade process does not terminate properly from the regular sequence (e.g. due to power cut). Its shared library dependencies are reduced to minimize the possibility of startup errors.
+
+Notes
+Each destination path can be either absolute or relative with respect to PREFIX (specified at compile time).
+To avoid complications (like updating startup items and knowing what executable to exec), executable name must be preserved during upgrade.
+A device compiled with custom PREFIX cannot be upgraded automatically.
+Automatic upgrade is supported only for a single variant of the application for each platform (there is no protocol mechanism to distinguish different variants on the same platform). In particular, the gtk+ interface cannot be upgraded.
+
+TODO make sure filement_upgrade is called only for registered devices
+
+## Protocol changes
+
 Devices before 0.14.0 send bytes before they receive request. This is no longer necessary so new devices don't need to do this. But not sending the last 0x00 byte will require changes to the proxy that break compatibility. So new devices will send 0x00 byte for the old protocol values (0x01 and 0x02) but will support new protocol values (0x03 and 0x04). For the new values the devices won't send 0x00 bytes. When the support for versions before 0.14.0 is dropped, proxies can start using the new protocol and new devices won't need to support the old protocol. These new devices will interpret 0x01 as 0x03 and 0x02 as 0x04. This will allow later versions to work with the 0x01 and 0x02 values with the new protocol.
 
 device		<->		proxy

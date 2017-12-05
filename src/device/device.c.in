@@ -99,24 +99,33 @@ bool filement_init(void)
 	struct string key;
 	char *value;
 
-	// TODO if the failsafe is running, wait for it to finish and behave as if FILEMENT_SETUP is set
-
 #if defined(DEVICE) && !defined(OS_WINDOWS)
 	if (!startup_init()) fail(0, "Filement already started");
+#endif
 
-# if !defined(OS_ANDROID) && !defined(OS_QNX)
-	// Cancel process execution if an upgrade procedure is started but not finished.
-	// failsafe existence indicates that an upgrade procedure is started.
-	// The FILEMENT_SETUP environment variable indicates that the upgrade procedure finished.
-	if (!getenv("FILEMENT_SETUP"))
+#if defined(FILEMENT_UPGRADE)
+	struct string *failsafe = upgrade_failsafe();
+	if (!failsafe)
+		fail(21, "Cannot generate failsafe name");
+
+	if (access(failsafe->data, X_OK) == 0) // failsafe exists
 	{
-		struct string *failsafe = upgrade_failsafe();
-		if (!failsafe) fail(21, "Cannot generate failsafe name");
-		bool upgrade = !access(failsafe->data, X_OK);
-		free(failsafe);
-		if (upgrade) fail(0, "There is unfinished upgrade. Terminating.");
+		// Cancel process execution if an upgrade procedure is started but not finished.
+		// The FILEMENT_SETUP environment variable indicates that the upgrade procedure finished.
+		if (getenv("FILEMENT_SETUP"))
+		{
+			// Remove failsafe.
+			startup_remove(failsafe);
+			unlink(failsafe->data);
+		}
+		else
+		{
+			free(failsafe);
+			fail(0, "There is unfinished upgrade. Terminating.");
+		}
 	}
-# endif
+
+	free(failsafe);
 #endif
 
 	server_init();
@@ -124,9 +133,7 @@ bool filement_init(void)
 #if defined(DEVICE)
 	storage = storage_init();
 	if (!storage) fail(21, "Unable to initialize storage");
-#endif
 
-#if defined(DEVICE)
 	// Get device UUID.
 	key = string("UUID");
 	value = storage_local_settings_get_value(storage, &key);
@@ -146,6 +153,8 @@ bool filement_init(void)
 	UUID_WINDOWS = string(value, UUID_LENGTH);
 # endif
 #else
+	// TODO how is storage initialized in public cloud?
+
 	UUID = string(@{UUID});
 #endif
 
@@ -159,39 +168,60 @@ bool filement_init(void)
 	SECRET.data[SECRET.length] = 0;
 	free(value);
 
-	// Some devices' storage can change. Make sure the current storage is visible.
-#if defined(OS_QNX) || defined(OS_ANDROID)
-	int index;
-	struct blocks_array *blocks_array;
-
-	blocks_array = access_granted_get_blocks_array(); 
-	if (!blocks_array || !blocks_array->blocks_size) return false;
-
-	storage_blocks_reinit(storage);
-
-	for(index = 0; index < blocks_array->blocks_size; index++)
-		if (!storage_blocks_add(storage,blocks_array->blocks[index]->block_id, 1, blocks_array->blocks[index]->location, 0))
-		{
-			free_blocks_array(blocks_array);
-			return false;
-		}
-	free_blocks_array(blocks_array);
-#endif
-
 	// Initialize a struct string holding the SECRET.
-	struct string buffer;
+	struct string secret;
 	uint32_t size = SECRET.length;
 	char request[sizeof(uint32_t) + SECRET_SIZE_MAX];
 	endian_big32(request, &size);
 	format_bytes(request + sizeof(uint32_t), SECRET.data, SECRET.length);
-	buffer = string(request, sizeof(uint32_t) + SECRET.length);
+	secret = string(request, sizeof(uint32_t) + SECRET.length);
+
+	bool success = false;
+
+#if defined(DEVICE)
+	// Perform setup when a new version is launched.
+	while (!storage_latest(storage))
+	{
+		// Notify the distribute server about the version change.
+		struct stream *stream = distribute_request_start(0, CMD_UPGRADE_FINISH, &secret);
+		if (!stream)
+		{
+			error(logs("Upgrade setup failed"));
+			break;
+		}
+
+# if !defined(OS_WINDOWS)
+		success = !stream_read(stream, &secret, 1) && secret.data[0];
+		stream_read_flush(stream, 1);
+		distribute_request_finish(success);
+
+		if (!success)
+		{
+			error(logs("Upgrade setup error"));
+			break;
+		}
+
+		storage_setup(storage);
+# else
+		distribute_request_finish(true);
+		//TODO rewrite, error checks
+		char *path=(char *)malloc(sizeof(char)*(app_location.length+sizeof("backup")));
+		sprintf(path,"%s%s",app_location.data,"backup");
+		remove_directory(path);
+		free(path);
+		storage_setup(storage);
+# endif
+
+		debug(logs("New version set up."));
+		break;
+	}
+#endif
 
 	// Retrieve device name from the distribute server.
-	bool success = false;
 	do
 	{
 		struct string response;
-		struct stream *stream = distribute_request_start(0, CMD_NAME, &buffer);
+		struct stream *stream = distribute_request_start(0, CMD_NAME, &secret);
 		if (!stream) break;
 
 		if (stream_read(stream, &response, sizeof(uint32_t))) break;
@@ -216,52 +246,23 @@ bool filement_init(void)
 #endif
 	distribute_request_finish(success);
 
-#if defined(DEVICE)
-	// Perform setup the first time a new version is launched.
-	// If the setup fails, upgrading will be retried on restart.
-	while (!storage_latest(storage))
-	{
-		// Notify the distribute server about the version change.
-		struct stream *stream = distribute_request_start(0, CMD_UPGRADE_FINISH, &buffer);
-		if (!stream)
+	// Some devices' blocks can change. Make sure the current blocks are visible.
+#if defined(OS_QNX) || defined(OS_ANDROID)
+	int index;
+	struct blocks_array *blocks_array;
+
+	blocks_array = access_granted_get_blocks_array(); 
+	if (!blocks_array || !blocks_array->blocks_size) return false;
+
+	storage_blocks_reinit(storage);
+
+	for(index = 0; index < blocks_array->blocks_size; index++)
+		if (!storage_blocks_add(storage,blocks_array->blocks[index]->block_id, 1, blocks_array->blocks[index]->location, 0))
 		{
-			error(logs("Upgrade setup failed"));
-			break;
+			free_blocks_array(blocks_array);
+			return false;
 		}
-
-# if !defined(OS_WINDOWS)
-		success = !stream_read(stream, &buffer, 1) && buffer.data[0];
-		stream_read_flush(stream, 1);
-		distribute_request_finish(success);
-
-		if (!success)
-		{
-			error(logs("Upgrade setup error"));
-			break;
-		}
-
-#  if !defined(OS_ANDROID) && !defined(OS_QNX)
-		// Remove failsafe.
-		struct string *failsafe_dest = upgrade_failsafe();
-		startup_remove(failsafe_dest);
-		unlink(failsafe_dest->data);
-		free(failsafe_dest);
-#  endif
-
-		storage_setup(storage);
-# else
-		distribute_request_finish(true);
-		//TODO rewrite, error checks
-		char *path=(char *)malloc(sizeof(char)*(app_location.length+sizeof("backup")));
-		sprintf(path,"%s%s",app_location.data,"backup");
-		remove_directory(path);
-		free(path);
-		storage_setup(storage);
-# endif
-
-		debug(logs("Upgrade finished"));
-		break;
-	}
+	free_blocks_array(blocks_array);
 #endif
 
 	return true;
@@ -340,7 +341,6 @@ bool filement_register(const struct string *email, const struct string *devname,
 	free_blocks_array(blocks_array);
 # endif
 
-	// TODO UUID may be used by another thread at this moment. mutex?
 # if !defined(OS_WINDOWS)
 	UUID = string(uuid, UUID_LENGTH);
 # else

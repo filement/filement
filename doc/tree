@@ -58,5 +58,8 @@ linux
 mac
 	Mac-specific code.
 
+android
+	Android-specific code.
+
 windows
 	Windows-specific code.

@@ -153,7 +153,7 @@ my $link = '';
 # TODO strip
 # TODO take into account upgrade
 
-# TODO add features: FILEMENT_UPGRADE, FILEMENT_FSEARCH
+# TODO add feature: FILEMENT_FSEARCH
 # TODO target-specific sources (like for android) so that code doesn't mix
 
 my @features = ();
@@ -179,6 +179,7 @@ if ($platform eq 'darwin')
 	$libs = 'libepeg.a libjpeg.a libminiupnpc.a libavformat.a libavcodec.a libavutil.a libgnutls.a libnettle.a libhogweed.a libgmp.a';
 
 	push @features, 'FILEMENT_TLS', 'FILEMENT_THUMBS', 'FILEMENT_UPNP', 'FILEMENT_AV';
+	push @features, 'FILEMENT_UPGRADE' if $flag_upgrade;
 }
 elsif ($platform eq 'linux')
 {
@@ -203,6 +204,7 @@ elsif ($platform eq 'linux')
 	$libs = 'libepeg.a libjpeg.a'.(($target eq 'pubcloud') ? '' : ' libminiupnpc.a');
 
 	push @features, 'FILEMENT_TLS', 'FILEMENT_THUMBS', 'FILEMENT_UPNP', 'FILEMENT_AV';
+	push @features, 'FILEMENT_UPGRADE' if $flag_upgrade;
 }
 elsif ($platform eq 'freebsd')
 {

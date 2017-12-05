@@ -7,18 +7,27 @@
 #import <string.h>
 
 #import "filement.h"
+#import "device/startup.h"
 
 bool registered;
 
 int main(int argc, char *argv[])
 {
+	extern bool startup_mac_add(const struct string *file);
+	extern bool startup_mac_remove(const struct string *file);
+
+	startup_add = &startup_mac_add;
+	startup_remove = &startup_mac_remove;
+
     filement_daemon();
     registered = filement_init();
 
-    // Check for new version of the Filement device software.
-    // TODO do this after the interface is started (so the user has some indication that something is happening)
-    //if (!filement_upgrade("filement-cocoa")) error(logs("Upgrade failed"));
-    //if (registered) filement_upgrade("filement-cocoa");
+#if defined(FILEMENT_UPGRADE)
+	// Check for new version of the Filement device software.
+	// TODO maybe do this after the interface is started
+	if (registered && !filement_upgrade(PREFIX "/Contents/MacOS/Filement"))
+		error(logs("Upgrade failed"));
+#endif
 
     return NSApplicationMain(argc, (const char **)argv);
 }

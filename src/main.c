@@ -83,6 +83,9 @@ int main(int argc, char *argv[])
 {
 	bool registered = filement_init();
 
+	startup_add = &startup_cmd_add;
+	startup_remove = &startup_cmd_remove;
+
 #if defined(DEVICE)
 	switch (argc)
 	{
@@ -140,17 +143,13 @@ int main(int argc, char *argv[])
 	}
 #endif
 
-	filement_daemon();
-
-#if defined(DEVICE)
+#if defined(FILEMENT_UPGRADE) && !defined(OS_MAC) /* upgrade on mac is not supported with this executable */
 	// Check for new version of the Filement device software.
-	/*if (!filement_upgrade("filement"))
-	{
-		#define MESSAGE "Upgrade failed\n"
-		write(2, MESSAGE, sizeof(MESSAGE) - 1);
-		#undef MESSAGE
-	}*/
+	if (!filement_upgrade("filement"))
+		error(logs("Upgrade failed"));
 #endif
+
+	filement_daemon();
 
 	filement_serve();
 

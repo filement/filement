@@ -105,10 +105,10 @@ for (@hosts)
 $ipv4_mapped = quotemeta($ipv4_mapped);
 
 # TODO: these commands work correctly only under linux because of \t and \n (probably only GNU sed supports them)
-qx(sed -e 's/\@\{CLOUD_LIST\}/$cloud_list/g' < ../src/distribute/cloud.c.in > ../src/distribute/cloud.c);
-qx(sed -e 's/\@\{PROXIES_LIST\}/$proxies_list/g' < ../src/distribute/proxies.c.in > ../src/distribute/proxies.c);
-qx(sed -e 's/\@\{FTP_LIST\}/$ftp_list/g' < ../src/distribute/ftp.c.in > ../src/distribute/ftp.c);
-qx(sed -e 's/\@\{AUTHORIZED\}/$authorized/g' -e 's/\@\{PREFIX_IPv4_MAPPED\}/$ipv4_mapped/g' < ../src/distribute/authorize.c.in > ../src/distribute/authorize.c);
+qx(sed -e 's/\@\{CLOUD_LIST\}/$cloud_list/g' < distribute/cloud.c.in > distribute/cloud.c);
+qx(sed -e 's/\@\{PROXIES_LIST\}/$proxies_list/g' < distribute/proxies.c.in > distribute/proxies.c);
+qx(sed -e 's/\@\{FTP_LIST\}/$ftp_list/g' < distribute/ftp.c.in > distribute/ftp.c);
+qx(sed -e 's/\@\{AUTHORIZED\}/$authorized/g' -e 's/\@\{PREFIX_IPv4_MAPPED\}/$ipv4_mapped/g' < distribute/authorize.c.in > distribute/authorize.c);
 
 #qx(sed -e s/\@IP/$ip/g < share/iptables.in > share/iptables);
 #print "$host...\n";

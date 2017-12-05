@@ -451,6 +451,7 @@ for(;i<host->length;i++)
 return true;
 }
 
+#if defined(DEVICE) || defined(PUBCLOUD) || defined(FTP)
 struct blocks_array *access_get_blocks_array(struct resources *restrict resources)//TODO users
 {
 int i=0,u=0;
@@ -471,7 +472,7 @@ if(resources->auth && resources->auth->blocks_array && resources->auth->blocks_a
 	blocks_array->blocks_size=u;
 	}
 }
-#ifdef FTP
+# ifdef FTP
 else
 { 
 	blocks_array=(struct blocks_array *)malloc(sizeof(struct blocks_array) + sizeof(struct blocks *));
@@ -483,7 +484,7 @@ else
 	blocks_array->blocks[0]->size = 0;
 	blocks_array->blocks[0]->name = string_alloc("",0);
 }
-#else
+# else
 else if(resources->session_access && json_type(resources->session.ro) == OBJECT)
 {
 	key = string("user_id");
@@ -492,9 +493,10 @@ else if(resources->session_access && json_type(resources->session.ro) == OBJECT)
 	if(json_type(item)!=INTEGER)return 0;
 	blocks_array=storage_blocks_get_blocks(resources->storage,item->integer);
 }
-#endif
+# endif
 return blocks_array;
 }
+#endif
 
 void free_blocks_array(struct blocks_array *blocks_array)
 {
@@ -885,6 +887,7 @@ if(resources->auth && resources->auth->blocks_array && resources->auth->blocks_a
 return 0;
 }
 
+#if defined(DEVICE) || defined(PUBCLOUD) || defined(FTP)
 struct blocks *access_get_blocks(struct resources *restrict resources, int block_id)//TODO users
 {
 //TODO memory leak during free, must invoke free function for *blocks because of location
@@ -901,9 +904,9 @@ struct blocks *access_get_blocks(struct resources *restrict resources, int block
 		{
 			if(resources->auth->blocks_array->blocks[i] && (resources->auth->blocks_array->blocks[i]->location_id == block_id))
 			{
-			#ifdef FTP
+# ifdef FTP
 			return resources->auth->blocks_array->blocks[i];
-			#else
+# else
 			block=storage_blocks_get_by_block_id(resources->storage,resources->auth->blocks_array->blocks[i]->block_id,resources->auth->blocks_array->blocks[i]->user_id);
 			if(!block)return 0;
 			
@@ -911,11 +914,11 @@ struct blocks *access_get_blocks(struct resources *restrict resources, int block
 			free(block->location);
 			block->location=path;
 			return block;
-			#endif
+# endif
 			}
 		}
 	}
-#ifdef FTP
+# ifdef FTP
 	else
 	{
 		block=(struct blocks *)malloc(sizeof(struct blocks));
@@ -927,7 +930,7 @@ struct blocks *access_get_blocks(struct resources *restrict resources, int block
 		block->name = string_alloc("",0);
 		return block;
 	}
-#else
+# else
 else if(resources->session_access && json_type(resources->session.ro) == OBJECT)
 {
 	key = string("user_id");
@@ -936,19 +939,20 @@ else if(resources->session_access && json_type(resources->session.ro) == OBJECT)
 	if(json_type(item)!=INTEGER)return 0;
 
 	block = storage_blocks_get_by_block_id(resources->storage, block_id, item->integer);
-# if defined(PUBCLOUD)
+#  if defined(PUBCLOUD)
 	if (block)
 	{
 		setfsuid(block->uid);
 		setfsgid(block->gid);
 	}
-# endif
+#  endif
 	return block;
 }
-#endif
+# endif
 
 return 0;
 }
+#endif
 
 bool access_auth_check_location(struct resources *restrict resources,struct string *request_location,int block_id)
 //compare whether the request path contains the auth location

@@ -376,8 +376,7 @@ int upgrade_list(struct stream *restrict stream, const struct header *restrict h
 #if defined(UPGRADE_TEST)
 	// Permit upgrades only for the devices with the specified UUIDs.
 	char permitted[][32] = {
-		"e7e2096aa8484544c49f9da94d9b3cd2", // martomac
-//		"308865bcdabfb1716e75b2eff50ffa4e", // martopc
+		"73d040bba726f4b17ac3a886f7897783", // martomac
 //		"d949488b0b9c9a2de1b798cd94c48fb4", // nikov
 //		"afc46f322d859909d60e5061fe9ec66f", // plamen
 	};

@@ -222,7 +222,8 @@ elsif ($platform eq 'linux')
 	$storage = 'storage_sqlite';
 	$libs = 'libepeg.a libjpeg.a'.(($target eq 'pubcloud') ? '' : ' libminiupnpc.a');
 
-	push @features, 'FILEMENT_TLS', 'FILEMENT_THUMBS', 'FILEMENT_UPNP', 'FILEMENT_AV';
+	push @features, 'FILEMENT_TLS';
+	push @features, 'FILEMENT_THUMBS', 'FILEMENT_UPNP', 'FILEMENT_AV' if (($target eq 'device') || ($target eq 'pubcloud'));
 	push @features, 'FILEMENT_UPGRADE' if $flag_upgrade;
 }
 elsif ($platform eq 'freebsd')

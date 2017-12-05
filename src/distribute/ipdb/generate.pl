@@ -97,6 +97,5 @@ close DB;
 close BLOCKS;
 
 system qw|gcc -c -O2 -std=c99 -I../../../include/ -I../../lib/ ipdb.c|;
-system qw|mv ipdb.o ../|;
 
 print " done.\n";

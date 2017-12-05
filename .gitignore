@@ -26,12 +26,14 @@ include/libavformat
 include/libavutil
 config.log
 
-bin/filement
-bin/filement-gtk
+src/distribute/ipdb/blocks.csv
+src/distribute/ipdb/ipdb.c
+src/distribute/ipdb/location.csv
+
+bin/*
 filement.dmg
 filement.apk
-lib/libfilement.so
-lib/libfilement.dylib
+lib/*
 share/filement/background.png
 share/filement/logo.png
 gui/applications

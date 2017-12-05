@@ -86,6 +86,16 @@ main-gtk.o: main-gtk.c
 filement-gtk: libfilement.so main-gtk.o
 	$(CC) main-gtk.o $(LDFLAGS) `pkg-config --libs gtk+-2.0` -lfilement -Wl,-rpath,/usr/local/lib -o ../bin/$@
 
+#storage_mysql.h: storage_mysql.h.in
+#	./proxies_production.pl
+
+distribute1: distribute/ipdb/ipdb.o distribute/*.c actions_distribute/*.c evfs.o io.o security.o http.o http_parse.o http_response.o status.o actions.o access.o server.o download.o upload.o zip.o tar.o earchive.o cache.o operations.o magic.o $(SRC_LIB)
+	./proxies_production.pl
+	$(CC) $(CFLAGS) -DDIST1 $^ $(LDFLAGS) -lmysqlclient -lmemcached -o ../bin/$@
+
+distribute2: distribute/ipdb/ipdb.o distribute/*.c actions_distribute/*.c evfs.o io.o security.o http.o http_parse.o http_response.o status.o actions.o access.o server.o download.o upload.o zip.o tar.o earchive.o cache.o operations.o magic.o $(SRC_LIB)
+	$(CC) $(CFLAGS) -DDIST2 $^ $(LDFLAGS) -lmysqlclient -lmemcached -o ../bin/$@
+
 pubcloud: pubc device/device.o device/distribute.o main.o
 	$(CC) $(SRC_BASE) storage.a device/device.o device/distribute.o main.o actions_pubcloud/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS} $(LDFLAGS) -lmysqlclient -o ../bin/pubcloud
 

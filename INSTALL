@@ -112,6 +112,21 @@ To uninstall Filement from your PC, execute make in the directory where you comp
 
 	make uninstall
 
+# Compiling other targets
+
+For distribute you'll also need:
+	sudo apt-get install default-libmysqlclient-dev libmemcached-dev
+	sudo span install String::Util Text::CSV_XS
+
+Generating src/distribute/ipdb/ipdb.o
+
+	cd src/distribute/ipdb/
+	wget 'http://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.zip' -O ipdb.zip
+	unzip ipdb.zip
+
+	# rename the extracted files to blocks.csv and locations.csv
+
+	./generate.pl
 
 ##
 

@@ -1,7 +1,4 @@
 #define _BSD_SOURCE
-#define OS_BSD
-#define OS_MAC
-#define DEVICE
 
 #include <stdlib.h>
 #include <unistd.h>

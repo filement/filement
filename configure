@@ -75,7 +75,7 @@ my $version = <VERSION>;
 chop $version;
 close VERSION;
 
-my ($flag_dev, $flag_debug, $flag_upgrade, $flag_upgrade_test, $uuid, $prefix, $android_ndk) = (0, 0, 0, 0, '', '/usr/local', '/usr/lib/android-ndk');
+my ($flag_dev, $flag_debug, $flag_upgrade, $flag_upgrade_test, $uuid, $prefix, $android_ndk, $release) = (0, 0, 0, 0, '', '', '/usr/lib/android-ndk', 0);
 
 # Parse command line options.
 for (@ARGV)
@@ -94,7 +94,6 @@ for (@ARGV)
 	}
 	elsif (/^--upgrade-test$/)
 	{
-		$flag_upgrade = 1;
 		$flag_upgrade_test = 1;
 	}
 	elsif (/^--prefix=(.*)$/)
@@ -118,16 +117,21 @@ for (@ARGV)
 		$platform = 'android';
 		$android_ndk = $1;
 	}
+	elsif (/^--release$/)
+	{
+		$release = 1;
+	}
 	else
 	{
 		print "Usage: $0 [OPTION ...]
 \t--dev            \tconfigure for flmntdev.com instead of filement.com
 \t--debug          \tconfigure with debug capabilities
+\t--release        \tcompile for a public release (use only if you know what you're doing)
 \t--prefix=PREFIX  \tconfigure for installation in the directory PREFIX
 \t--host=PLATFORM  \tconfigure for PLATFORM
 \t--target=TARGET  \tconfigure for TARGET (default: device)
-\t--upgrade        \tEnable automatic upgrade
-\t--upgrade-test   \tUse a different command for upgrade list (used for testing)
+\t--upgrade        \tenable automatic upgrade
+\t--upgrade-test   \tmake the distribute server only give upgrades to a list of devices designated for development
 \t--uuid=UUID      \tconfigure public cloud with the given UUID
 \t--android-ndk=NDK\tspecify path to Native Development Kit for Android
 ";
@@ -147,11 +151,12 @@ my $definitions = ($flag_dev ? '-DTEST=-10' : '').($flag_debug ? ' -DRUN_MODE=1 
 my $options = ($flag_debug ? ' -g -fstack-protector-all' : ' -fomit-frame-pointer');
 my $link = '';
 
+$definitions .= ' -DRELEASE' if ($release);
+
 # TODO some targets are supported onlyon some platforms; pubcloud and distribute are supported only on linux
 
 # TODO link time optimization when creating the shared library and the executable (-flto)
 # TODO strip
-# TODO take into account upgrade
 
 # TODO add feature: FILEMENT_FSEARCH
 # TODO target-specific sources (like for android) so that code doesn't mix
@@ -160,6 +165,13 @@ my @features = ();
 
 if ($platform eq 'darwin')
 {
+	$prefix ||= '/Applications/Filement.app';
+	if ($release)
+	{
+		$prefix = '/Applications/Filement.app';
+		$flag_upgrade = 1;
+	}
+
 	$cc = 'clang';
 	$shared = '-dynamiclib';
 	$suffix = '.dylib';
@@ -170,7 +182,7 @@ if ($platform eq 'darwin')
 
 	$flags .= ' -O2' if !$flag_debug;
 	# -D_GNU_SOURCE -D_BSD_SOURCE -D_DEFAULT_SOURCE 
-	$definitions .= ' -DPLATFORM_ID=2 -DOS_MAC -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/Applications/Filement.app/\\\"';
+	$definitions .= ' -DPLATFORM_ID=2 -DOS_MAC -DPREFIX=\\\"'.$prefix.'\\\"';
 	$options .= ' -pthread -Wno-unused-value -Wno-empty-body';
 	$link .= ' -lz -lresolv -framework CoreFoundation -framework CoreServices -framework VideoDecodeAcceleration -framework QuartzCore -framework Security';
 
@@ -183,6 +195,13 @@ if ($platform eq 'darwin')
 }
 elsif ($platform eq 'linux')
 {
+	$prefix ||= '/usr/local';
+	if ($release)
+	{
+		$prefix = '/usr';
+		$flag_upgrade = 0;
+	}
+
 	# gcc -dumpmachine | awk -F '[-]' '{print $1;}'
 
 	$cc = 'gcc';
@@ -195,7 +214,7 @@ elsif ($platform eq 'linux')
 
 	$flags .= ' -pthread';
 	$flags .= ' -O2' if !$flag_debug;
-	$definitions .= ' -DPLATFORM_ID=4 -DOS_LINUX -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/\\\" -D_GNU_SOURCE -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700';
+	$definitions .= ' -DPLATFORM_ID=4 -DOS_LINUX -DPREFIX=\\\"'.$prefix.'\\\" -D_GNU_SOURCE -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700';
 	$options .= ' `pkg-config --cflags libavformat libavutil` -Wno-unused-value'; # replace with -Wno-unused-result
 	$link .= ' -lz -lgnutls `pkg-config --libs libavformat libavutil` -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
 
@@ -208,6 +227,13 @@ elsif ($platform eq 'linux')
 }
 elsif ($platform eq 'freebsd')
 {
+	$prefix ||= '/usr/local';
+	if ($release)
+	{
+		$prefix = '/usr';
+		$flag_upgrade = 0;
+	}
+
 	$cc = 'gcc';
 	$shared = '-shared';
 	$suffix = '.so';
@@ -218,7 +244,7 @@ elsif ($platform eq 'freebsd')
 
 	$flags .= ' -pthread';
 	$flags .= ' -O2' if !$flag_debug;
-	$definitions .= ' -DPLATFORM_ID=6 -DOS_FREEBSD -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/\\\"';
+	$definitions .= ' -DPLATFORM_ID=6 -DOS_FREEBSD -DPREFIX=\\\"'.$prefix.'\\\"';
 	$options .= ' `pkg-config --cflags libavformat libavutil` -Wno-unused-value'; # replace with -Wno-unused-result
 	$link .= ' -lz -lgnutls `pkg-config --libs libavformat libavutil` -lm -lexecinfo';
 
@@ -230,6 +256,8 @@ elsif ($platform eq 'freebsd')
 }
 elsif ($platform eq 'android')
 {
+	$prefix ||= '/usr/local';
+
 	$cc = 'arm-linux-androideabi-gcc';
 	$shared = '-shared';
 	$suffix = '.so';
@@ -264,7 +292,7 @@ elsif ($platform eq 'ios')
 	#$options .= ' -arch armv7 -gdwarf-2 -isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk';
 	$options .= ' -pthread -arch armv7 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk';
 	$options .= ' -O2' if !$flag_debug;
-	$definitions .= ' -DPLATFORM_ID=8 -DOS_MAC -DOS_IOS -DPREFIX=\\\"'.$prefix.'\\\" -DUPGRADE_PREFIX=\\\"/Applications/Filement.app/\\\"';
+	$definitions .= ' -DPLATFORM_ID=8 -DOS_MAC -DOS_IOS -DPREFIX=\\\"'.$prefix.'\\\"';
 	#$link = ' -lz -lavformat -lavutil -lresolv';
 	$link = ' -framework Foundation -framework AssetsLibrary -lz -lobjc -lresolv';
 	$flags = '-Wno-unused-value -Wno-empty-body';
@@ -458,6 +486,12 @@ system 'sed', '-e', "s/\@{VERSION}/$version/", '-e', "s/\@{VERSION_LENGTH}/$leng
 chmod 0444, 'src/failsafe.c';
 
 # Makefile
+unlink 'Makefile';
+open STDOUT, '>', 'Makefile';
+system 'sed', @replace, 'Makefile.in';
+chmod 0444, 'Makefile';
+
+# src/Makefile
 unlink 'src/Makefile';
 open STDOUT, '>', 'src/Makefile';
 system 'sed', @replace, 'src/Makefile.in';

@@ -457,8 +457,8 @@ int main(int argc, char *argv[])
 #if defined(FILEMENT_UPGRADE)
 	// Check for new version of the Filement device software.
 	// WARNING: This will not upgrade the gtk+ specific code.
-	if (!filement_upgrade("filement"))
-		error(logs("Upgrade failed"));
+	/*if (!filement_upgrade("filement"))
+		error(logs("Upgrade failed"));*/
 #endif
 
 	gdk_threads_init();

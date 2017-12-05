@@ -42,9 +42,7 @@ Notes
 Each destination path can be either absolute or relative with respect to PREFIX (specified at compile time).
 To avoid complications (like updating startup items and knowing what executable to exec), executable name must be preserved during upgrade.
 A device compiled with custom PREFIX cannot be upgraded automatically.
-Automatic upgrade is supported only for a single variant of the application for each platform (there is no protocol mechanism to distinguish different variants on the same platform). In particular, the gtk+ interface cannot be upgraded.
-
-TODO make sure filement_upgrade is called only for registered devices
+Automatic upgrade is currently supported on Mac and Windows. Other platforms depend on system libraries that change between versions and distributions and also have multiple interfaces. Such platforms are currently not supported by the upgrade functionality.
 
 ## Protocol changes
 

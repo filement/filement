@@ -15,8 +15,12 @@ Request header: 24B
 Before registration there is no UUID. The registration commands use a special value instead of UUID:
 | 0| 1| 2| 3| 4| 5| 6| 7| 8| 9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|
 |-----------------------------------+-----+-----+-----+-----+-----+-----+
-|***********************************|platf|*****|major|minor| rev | cmd |
+|***********************************|platf|flags|major|minor| rev | cmd |
 |-----------------------------------+-----+-----+-----+-----+-----+-----+
+
+"platf" is a number corresponding to the platform_id in the table platforms
+"flags" contains the following flags:
+	whether the device was compiled as a release
 
 Each command specifies request parameters and response. Request parameters are sent right after the request header.
 Variable-length sequence of items is preceded by 32-bit value representing the count of the items. For example character sequences are preceded by the number of characters in the sequence.

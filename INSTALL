@@ -123,8 +123,7 @@ TODO
 		version information
 		more robust code (create directories in the path, make sure there are no memory leaks and concurrency problems, etc.)
 	version and platform information on customly compiled devices
-	fix upgrade
-		how do I know the executable so that I can restart it?
 	debian and fedora package
 	fix android problems
 		possible issues: src/server.c has lots of changes and is very hard to check
+	automate version deployment; make sure upgrade works

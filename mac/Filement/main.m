@@ -1,13 +1,9 @@
 #define _BSD_SOURCE
-#define OS_BSD
-#define OS_MAC
-#define DEVICE
 
 #import <Cocoa/Cocoa.h>
 #import <string.h>
 
 #import "filement.h"
-#import "device/startup.h"
 
 bool registered;
 
@@ -15,6 +11,9 @@ int main(int argc, char *argv[])
 {
 	extern bool startup_mac_add(const struct string *file);
 	extern bool startup_mac_remove(const struct string *file);
+
+	extern bool (*startup_add)(const struct string *);
+	extern bool (*startup_remove)(const struct string *);
 
 	startup_add = &startup_mac_add;
 	startup_remove = &startup_mac_remove;

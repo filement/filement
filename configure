@@ -172,6 +172,9 @@ if ($platform eq 'darwin')
 		$flag_upgrade = 1;
 	}
 
+	# clang -### 2>&1 | grep Target | awk -F '[ -]' '{print $2;}'
+	# TODO make sure ffmpeg is added
+
 	$cc = 'clang';
 	$shared = '-dynamiclib';
 	$suffix = '.dylib';
@@ -371,16 +374,17 @@ $definitions = '-D'.uc($target)." $definitions ".join(' ', map {"-D$_"} @feature
 # TODO do make mrpropper (but manually since Makefile may not exist) // wtf? if it does not exist, there is no need to call mrpropper
 
 # Preprocess actions.
-open STDIN, '<', 'src/actions.in';
-system qq(cpp -E -x c $definitions -o src/actions.out -);
+system qq(gcc -E -x c $definitions -o src/actions.out src/actions.in);
 
 $options = "$definitions $options";
+$definitions =~ s/-D//g;
 
 $storage_flags //= '';
 $setup //= '';
 
 $flags =~ s/\//\\\//g;
 $options =~ s/\//\\\//g;
+$definitions =~ s/\//\\\//g;
 $root =~ s/\//\\\//g;
 $libs =~ s/\//\\\//g;
 $storage_flags =~ s/\//\\\//g;
@@ -393,6 +397,7 @@ print "uuid=$uuid\n";
 print "\n";
 print "CC=$cc\n";
 print "CFLAGS=$options\n";
+print "DEFINITIONS=$definitions\n";
 print "FLAGS=$flags\n";
 print "LINK=$link\n";
 print "SHARED=$shared\n";
@@ -409,6 +414,7 @@ print "features: @features\n";
 
 my @replace = (
 	'-e', "s/\@{CC}/$cc/g",
+	'-e', "s/\@{DEFINITIONS}/$definitions/g",
 	'-e', "s/\@{CFLAGS}/$options/g",
 	'-e', "s/\@{FLAGS}/$flags/g",
 	'-e', "s/\@{LINK}/$link/g",

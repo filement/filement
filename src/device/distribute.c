@@ -261,15 +261,22 @@ char *distribute_register(uint16_t cmd, const struct string *restrict id, const 
 # endif
 
 	uint16_t platform_id = PLATFORM_ID;
+# if defined(RELEASE)
+	uint16_t flags = CMD_FLAG_RELEASE;
+# else
+	uint16_t flags = 0;
+# endif
 	uint32_t size;
 
 	// Generate anonymous UUID for registration.
-	// ************xx**
+	// ************xxyy
 	// * - gap
 	// xx			16b platform_id
+	// yy			16b	flags
 	// Fill the gaps with 0 to avoid sending random stack data (which can contain sensitive information).
-	format_byte(anonymous_uuid, 0, 16);
+	format_byte(anonymous_uuid, 0, 12);
 	endian_big16(anonymous_uuid + sizeof(uint8_t) * 12, &platform_id);
+	endian_big16(anonymous_uuid + sizeof(uint8_t) * 14, &flags);
 
 	// Add id to request body.
 	// ID is either email or auth.

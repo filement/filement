@@ -20,6 +20,7 @@ create table devices(
 	name varchar(64) not null,
 	registered timestamp not null default current_timestamp,
 	secret varbinary(16) not null, -- TODO: is this MySQL-specific?
+	released boolean not null default 1,
 	primary key(uuid)
 );
 create view dev as select uuid,client_id,platform_id,concat(version_major,'.',version_minor,'.',revision) as version,name,registered from devices order by registered;

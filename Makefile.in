@@ -48,15 +48,15 @@ filement.apk:
 	# keytool -genkey -v -keystore filecert.keystore -alias filecert -keyalg RSA -validity 1
 	# jarsigner -verify "$@"
 
+failsafe:
+	$(MAKE) -C src failsafe
+
 distribute:
-	make -C src distribute1
-	make -C src distribute2
+	$(MAKE) -C src distribute1
+	$(MAKE) -C src distribute2
 
 check:
 	$(MAKE) -C tests check
-
-failsafe:
-	$(MAKE) -C src failsafe
 
 register:
 	$(MAKE) -C src register

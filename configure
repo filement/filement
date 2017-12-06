@@ -369,21 +369,26 @@ else
 	exit;
 }
 
-$definitions = '-D'.uc($target)." $definitions ".join(' ', map {"-D$_"} @features);
+$options .= ' -D'.uc($target);
+my $features = join(' ', map {"-D$_"} @features);
 
 # TODO do make mrpropper (but manually since Makefile may not exist) // wtf? if it does not exist, there is no need to call mrpropper
 
 # Preprocess actions.
 system qq(gcc -E -x c $definitions -o src/actions.out src/actions.in);
 
-$options = "$definitions $options";
+my $def = $definitions;
+
+#$options = "$definitions $options";
 $definitions =~ s/-D//g;
 
 $storage_flags //= '';
 $setup //= '';
 
+$prefix =~ s/\//\\\//g;
 $flags =~ s/\//\\\//g;
 $options =~ s/\//\\\//g;
+$def =~ s/\//\\\//g;
 $definitions =~ s/\//\\\//g;
 $root =~ s/\//\\\//g;
 $libs =~ s/\//\\\//g;
@@ -394,9 +399,12 @@ $strip =~ s/\//\\\//g;
 open STDOUT, '>', 'config.log';
 print "version=$version\n";
 print "uuid=$uuid\n";
+print "prefix=$prefix\n";
 print "\n";
 print "CC=$cc\n";
 print "CFLAGS=$options\n";
+print "FEATURES=$features\n";
+print "DEF=$def\n";
 print "DEFINITIONS=$definitions\n";
 print "FLAGS=$flags\n";
 print "LINK=$link\n";
@@ -413,9 +421,12 @@ print "\n";
 print "features: @features\n";
 
 my @replace = (
+	'-e', "s/\@{PREFIX}/$prefix/g",
 	'-e', "s/\@{CC}/$cc/g",
+	'-e', "s/\@{DEF}/$def/g",
 	'-e', "s/\@{DEFINITIONS}/$definitions/g",
 	'-e', "s/\@{CFLAGS}/$options/g",
+	'-e', "s/\@{FEATURES}/$features/g",
 	'-e', "s/\@{FLAGS}/$flags/g",
 	'-e', "s/\@{LINK}/$link/g",
 	'-e', "s/\@{SHARED}/$shared/g",

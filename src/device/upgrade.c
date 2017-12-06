@@ -74,7 +74,7 @@ extern struct string app_location_name;
 
 #define TEMP_DIR "/tmp/filement/"
 
-#define FAILSAFE "/bin/filement_failsafe"
+#define FAILSAFE_PATH PREFIX "/bin/filement_failsafe"
 
 #define RECORD_LENGTH_MAX 1024
 
@@ -586,7 +586,7 @@ bool filement_upgrade(const char *exec)
 #if defined(DEVICE)
 	// Create failsafe in case the upgrade is terminated prematurely.
 
-	struct string *failsafe_src = ((struct entry *)vector_get(&remove, 0))->line, failsafe_dest = string(PREFIX FAILSAFE);
+	struct string *failsafe_src = ((struct entry *)vector_get(&remove, 0))->line, failsafe_dest = string(FAILSAFE_PATH);
 
 	bool success = (*startup_add)(&failsafe_dest);
 	if (!success)

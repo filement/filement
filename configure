@@ -146,9 +146,9 @@ $platform = $Config{'osname'} if !defined($platform);
 $target = 'pubcloud' if (defined($clouds{$uuid}));
 
 my ($cc, $shared, $suffix, $storage, $storage_flags, $root, $libs, $libs_, $strip, $soname, $gmp, $setup);
-my $flags = '';
+my $flags = ($flag_debug ? ' -g -fstack-protector-all' : ' -fomit-frame-pointer');
 my $definitions = ($flag_dev ? '-DTEST=-10' : '').($flag_debug ? ' -DRUN_MODE=1 -DDEBUG' : ' -DRUN_MODE=2').($flag_upgrade ? ' -DUPGRADE' : '').($flag_upgrade_test ? ' -DUPGRADE_TEST' : '');
-my $options = ($flag_debug ? ' -g -fstack-protector-all' : ' -fomit-frame-pointer');
+my $cflags = '';
 my $link = '';
 
 $definitions .= ' -DRELEASE' if ($release);
@@ -183,10 +183,10 @@ if ($platform eq 'darwin')
 	$strip = 'strip -x -S ../bin/device -o ../bin/device_stripped'; # TODO fix this
 	$strip = ''; # TODO remove this
 
-	$flags .= ' -O2' if !$flag_debug;
+	$flags .= ' -O2 -fstrict-aliasing' if !$flag_debug;
 	# -D_GNU_SOURCE -D_BSD_SOURCE -D_DEFAULT_SOURCE 
 	$definitions .= ' -DPLATFORM_ID=2 -DOS_MAC -DPREFIX=\\\"'.$prefix.'\\\"';
-	$options .= ' -pthread -Wno-unused-value -Wno-empty-body';
+	$cflags .= ' -pthread -Wno-unused-value -Wno-empty-body';
 	$link .= ' -lz -lresolv -framework CoreFoundation -framework CoreServices -framework VideoDecodeAcceleration -framework QuartzCore -framework Security';
 
 	$root = '';
@@ -216,9 +216,9 @@ elsif ($platform eq 'linux')
 	$strip = ''; # TODO remove this
 
 	$flags .= ' -pthread';
-	$flags .= ' -O2' if !$flag_debug;
+	$flags .= ' -O2 -fstrict-aliasing' if !$flag_debug;
 	$definitions .= ' -DPLATFORM_ID=4 -DOS_LINUX -DPREFIX=\\\"'.$prefix.'\\\" -D_GNU_SOURCE -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700';
-	$options .= ' `pkg-config --cflags libavformat libavutil` -Wno-unused-value'; # replace with -Wno-unused-result
+	$cflags .= ' `pkg-config --cflags libavformat libavutil` -Wno-unused-value'; # replace with -Wno-unused-result
 	$link .= ' -lz -lgnutls `pkg-config --libs libavformat libavutil` -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
 
 	$root = '';
@@ -247,9 +247,9 @@ elsif ($platform eq 'freebsd')
 	$strip = ''; # TODO remove this
 
 	$flags .= ' -pthread';
-	$flags .= ' -O2' if !$flag_debug;
+	$flags .= ' -O2 -fstrict-aliasing' if !$flag_debug;
 	$definitions .= ' -DPLATFORM_ID=6 -DOS_FREEBSD -DPREFIX=\\\"'.$prefix.'\\\"';
-	$options .= ' `pkg-config --cflags libavformat libavutil` -Wno-unused-value'; # replace with -Wno-unused-result
+	$cflags .= ' `pkg-config --cflags libavformat libavutil` -Wno-unused-value'; # replace with -Wno-unused-result
 	$link .= ' -lz -lgnutls `pkg-config --libs libavformat libavutil` -lm -lexecinfo';
 
 	$root = '';
@@ -271,9 +271,9 @@ elsif ($platform eq 'android')
 	$strip = ''; # TODO remove this
 
 	$flags .= " --sysroot=$android_ndk/platforms/android-21/arch-arm -pthread -marm -Wno-unused-result"; # http://www.apps4android.org/?p=4926
-	$flags .= ' -O2' if !$flag_debug;
+	$flags .= ' -O2 -fstrict-aliasing' if !$flag_debug;
 	$definitions .= ' -DPLATFORM_ID=10 -DOS_ANDROID -D_GNU_SOURCE -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700'; # TODO set prefix
-	$options .= ' -I../android -Wno-unused-value'; # replace with -Wno-unused-result
+	$cflags .= ' -I../android -Wno-unused-value'; # replace with -Wno-unused-result
 	$link .= ' -lz -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
 
 	$root = "$android_ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64";
@@ -293,9 +293,9 @@ elsif ($platform eq 'ios')
 {
 	#$cc = '/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/clang';
 	$cc = '/Applications/Xcode.app/Contents/Developer/Toolchains/XCodeDefault.xctoolchain/usr/bin/clang';
-	#$options .= ' -arch armv7 -gdwarf-2 -isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk';
-	$options .= ' -pthread -arch armv7 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk';
-	$options .= ' -O2' if !$flag_debug;
+	#$cflags .= ' -arch armv7 -gdwarf-2 -isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.0.sdk';
+	$cflags .= ' -pthread -arch armv7 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk';
+	$cflags .= ' -O2 -fstrict-aliasing' if !$flag_debug;
 	$definitions .= ' -DPLATFORM_ID=8 -DOS_MAC -DOS_IOS -DPREFIX=\\\"'.$prefix.'\\\"';
 	#$link = ' -lz -lavformat -lavutil -lresolv';
 	$link = ' -framework Foundation -framework AssetsLibrary -lz -lobjc -lresolv';
@@ -312,7 +312,7 @@ elsif ($platform eq 'ios')
 elsif ($platform eq 'emulator')
 {
 	$cc = 'gcc';
-	$options .= ' -Os' if !$flag_debug;
+	$cflags .= ' -Os' if !$flag_debug;
 	$definitions .= ' -DPLATFORM_ID=14 -DOS_LINUX -DEMULATOR -DPREFIX=\\\"'.$prefix.'\\\"';
 	$link = ' -lz -lm -ldl';
 	$flags = '-pthread';
@@ -329,7 +329,7 @@ elsif ($platform eq 'emulator')
 elsif ($platform eq 'belkin')
 {
 	$cc = 'mipsel-linux-uclibc-gcc';
-	$options .= ' -Os' if !$flag_debug;
+	$cflags .= ' -Os' if !$flag_debug;
 	$definitions .= ' -DPLATFORM_ID=14 -DOS_LINUX -DBELKIN -DPREFIX=\\\"'.$prefix.'\\\"';
 	$link = ' -lz -lm -ldl';
 	$flags = '-pthread';
@@ -346,7 +346,7 @@ elsif ($platform eq 'belkin')
 elsif ($platform eq 'tplink')
 {
 	$cc = 'mips-linux-gcc';
-	$options .= ' -Os' if !$flag_debug;
+	$cflags .= ' -Os' if !$flag_debug;
 	$definitions .= ' -DPLATFORM_ID=14 -DOS_LINUX -DTPLINK -DPREFIX=\\\"'.$prefix.'\\\"';
 	$link = ' -lm -ldl -lrt';
 	$flags = '-pthread';
@@ -369,27 +369,25 @@ else
 	exit;
 }
 
-$options .= ' -D'.uc($target);
 my $features = join(' ', map {"-D$_"} @features);
+$cflags .= ' -D'.uc($target);
 
 # TODO do make mrpropper (but manually since Makefile may not exist) // wtf? if it does not exist, there is no need to call mrpropper
 
 # Preprocess actions.
 system qq(gcc -E -x c $definitions -o src/actions.out src/actions.in);
 
-my $def = $definitions;
-
-#$options = "$definitions $options";
-$definitions =~ s/-D//g;
+my $mac = $definitions;
+$mac =~ s/-D//g;
 
 $storage_flags //= '';
 $setup //= '';
 
 $prefix =~ s/\//\\\//g;
 $flags =~ s/\//\\\//g;
-$options =~ s/\//\\\//g;
-$def =~ s/\//\\\//g;
+$cflags =~ s/\//\\\//g;
 $definitions =~ s/\//\\\//g;
+$mac =~ s/\//\\\//g;
 $root =~ s/\//\\\//g;
 $libs =~ s/\//\\\//g;
 $storage_flags =~ s/\//\\\//g;
@@ -402,10 +400,10 @@ print "uuid=$uuid\n";
 print "prefix=$prefix\n";
 print "\n";
 print "CC=$cc\n";
-print "CFLAGS=$options\n";
+print "CFLAGS=$cflags\n";
 print "FEATURES=$features\n";
-print "DEF=$def\n";
-print "DEFINITIONS=$definitions\n";
+print "DEF=$definitions\n";
+print "MAC=$mac\n";
 print "FLAGS=$flags\n";
 print "LINK=$link\n";
 print "SHARED=$shared\n";
@@ -423,9 +421,9 @@ print "features: @features\n";
 my @replace = (
 	'-e', "s/\@{PREFIX}/$prefix/g",
 	'-e', "s/\@{CC}/$cc/g",
-	'-e', "s/\@{DEF}/$def/g",
-	'-e', "s/\@{DEFINITIONS}/$definitions/g",
-	'-e', "s/\@{CFLAGS}/$options/g",
+	'-e', "s/\@{DEF}/$definitions/g",
+	'-e', "s/\@{MAC}/$mac/g",
+	'-e', "s/\@{CFLAGS}/$cflags/g",
 	'-e', "s/\@{FEATURES}/$features/g",
 	'-e', "s/\@{FLAGS}/$flags/g",
 	'-e', "s/\@{LINK}/$link/g",

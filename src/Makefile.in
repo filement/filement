@@ -1,33 +1,30 @@
-# Filement
+DEFINE:=-DOS_BSD -D_FILE_OFFSET_BITS=64
+INCLUDE:=-I`pwd` -I`pwd`/lib -I`pwd`/../include
+WARNING:=-Werror -Wchar-subscripts -Wimplicit -Wsequence-point -Wcast-align -Wstrict-prototypes -Wno-parentheses -Wno-comment -Wno-pointer-sign -Wno-return-type -Wno-cast-align -Wno-switch-enum -Wno-switch
 
-# http://gl.developpez.com/tutoriel/outil/makefile/
+# TODO remove -Wno-cast-align
+# TODO add -Wstrict-aliasing
 
-DEF:=-DOS_BSD -D_FILE_OFFSET_BITS=64 @{DEF}
-INC:=-I`pwd` -I`pwd`/lib -I`pwd`/../include
-# TODO is it okay to add -Wno-cast-align
-# TODO ?-Wstrict-aliasing
-WARNINGS:=-Werror -Wchar-subscripts -Wimplicit -Wsequence-point -Wcast-align -Wstrict-prototypes -Wno-parentheses -Wno-comment -Wno-pointer-sign -Wno-return-type -Wno-cast-align -Wno-switch-enum -Wno-switch
+FLAGS:=-std=c99 -fPIC @{FLAGS} @{DEF} $(DEFINE) $(INCLUDE) $(WARNING) # TODO is fPIC necessary?
 
-SRC_BASE:=upload.o evfs.o io.o security.o http.o http_parse.o http_response.o status.o remote.o actions.o access.o server.o download.o zip.o tar.o earchive.o cache.o operations.o magic.o
+CC:=@{CC}
+CFLAGS:=$(FLAGS) @{CFLAGS} @{FEATURES}
+LDFLAGS:=-std=c99 -L`pwd`/../lib @{FLAGS} @{LINK}
+PATH:=@{ROOT}/bin:$(PATH)
+@{SETUP}
+
+SRC_BASE:=upload.o evfs.o io.o security.o http.o http_parse.o http_response.o status.o actions.o access.o server.o download.o zip.o tar.o earchive.o cache.o operations.o magic.o
 SRC_LIB:=lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o
 SRC_DEVICE:=device/device.o device/distribute.o device/proxy.o device/startup.o device/upgrade.o
 SRC_ACTIONS_DEVICE:=actions_device/cache.o actions_device/ffs.o actions_device/media.o actions_device/process.o actions_device/search.o actions_device/url.o actions_device/config.o actions_device/fs.o actions_device/private.o actions_device/proxy.o actions_device/session.o
 SRC_ACTIONS_PUBCLOUD:=actions_pubcloud/cache.o actions_pubcloud/config.o actions_pubcloud/ffs.o actions_pubcloud/fs.o actions_pubcloud/private.o actions_pubcloud/process.o actions_pubcloud/search.o actions_pubcloud/session.o actions_pubcloud/url.o
 SRC_DLNA:=dlna/dlnahttp.o dlna/minixml.o dlna/soapactions.o dlna/ssdp.o dlna/upnpdescgen.o dlna/upnpreplyparse.o
 
-CC:=@{CC}
-CFLAGS:=-std=c99 -fPIC @{FLAGS} @{CFLAGS} -fstrict-aliasing $(DEF) @{FEATURES} $(INC) $(WARNINGS)
-LDFLAGS:=-L`pwd`/../lib @{FLAGS} @{LINK}
-PATH:=@{ROOT}/bin:$(PATH)
-@{SETUP}
-
-# TODO propagate variables to other make calls
-
 force:
 	@true
 
 sqlite.o: sqlite.c
-	$(CC) -std=c99 -pthread @{STORAGE_FLAGS} -O2 -fomit-frame-pointer -fPIC -c sqlite.c -o $@
+	$(CC) -std=c99 -pthread -O2 -fomit-frame-pointer -fPIC @{STORAGE_FLAGS} -c sqlite.c -o $@
 
 storage_sqlite: sqlite.o storage_sqlite.o
 	ar rcs storage.a sqlite.o storage_sqlite.o
@@ -38,9 +35,9 @@ storage_remote: storage_remote.o
 storage_mysql: storage_mysql.o
 	ar rcs storage.a storage_mysql.o
 
-device: $(SRC_BASE) @{STORAGE} $(SRC_LIB) $(SRC_DEVICE) $(SRC_ACTIONS_DEVICE) $(SRC_DLNA)
+device: $(SRC_BASE) remote.o @{STORAGE} $(SRC_LIB) $(SRC_DEVICE) $(SRC_ACTIONS_DEVICE) $(SRC_DLNA)
 
-pubc: $(SRC_BASE) storage_mysql
+pubc: $(SRC_BASE) remote.o storage_mysql
 	$(MAKE) -C lib string.o vector.o dictionary.o queue.o buffer.o format.o stream.o log.o json.o sha2.o aes.o
 	$(MAKE) -C actions_pubcloud
 
@@ -74,34 +71,33 @@ libavcodec.a: libavformat.a
 libavutil.a: libavformat.a
 
 libfilement.so: @{STORAGE} device @{LIBS}
-	$(CC) @{FLAGS} $(DEF) $(SRC_BASE) storage.a @{SHARED} device/*.o dlna/*.o actions_device/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS} $(LDFLAGS) -Wl,@{SONAME},libfilement@{SUFFIX} -o "../lib/libfilement@{SUFFIX}"
+	$(CC) $(SRC_BASE) remote.o storage.a @{SHARED} device/*.o dlna/*.o actions_device/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS} $(LDFLAGS) -Wl,@{SONAME},libfilement@{SUFFIX} -o "../lib/libfilement@{SUFFIX}"
 
 filement: libfilement.so main.o
-	$(CC) main.o $(LDFLAGS) -lfilement -Wl,-rpath,@{PREFIX}/lib -o ../bin/$@
+	$(CC) main.o $(LDFLAGS) -lfilement -Wl,-rpath,@{PREFIX}/lib -o "../bin/$@"
 	#@{STRIP}
 
 main-gtk.o: main-gtk.c
 	$(CC) $(CFLAGS) `pkg-config --cflags gtk+-2.0` -Wno-strict-prototypes -c main-gtk.c -o $@
 
 filement-gtk: libfilement.so main-gtk.o
-	$(CC) main-gtk.o $(LDFLAGS) `pkg-config --libs gtk+-2.0` -lfilement -Wl,-rpath,@{PREFIX}/lib -o ../bin/$@
+	$(CC) main-gtk.o $(LDFLAGS) `pkg-config --libs gtk+-2.0` -lfilement -Wl,-rpath,@{PREFIX}/lib -o "../bin/$@"
 
 failsafe:
-	# TODO remove -DDEVICE
-	$(CC) -std=c99 -fPIC @{FLAGS} -fstrict-aliasing -DFAILSAFE $(DEF) $(INC) $(WARNINGS) storage_sqlite.c sqlite.c lib/string.c lib/vector.c lib/dictionary.c lib/format.c lib/stream.c lib/log.c lib/json.c lib/sha2.c device/distribute.c device/upgrade.c device/startup.c io.c status.c http.c http_parse.c upload.c failsafe.c -o ../bin/$@
+	$(CC) $(FLAGS) -DFAILSAFE storage_sqlite.c sqlite.c lib/string.c lib/vector.c lib/dictionary.c lib/format.c lib/stream.c lib/log.c lib/json.c lib/sha2.c device/distribute.c device/upgrade.c device/startup.c io.c status.c http.c http_parse.c upload.c failsafe.c -o "../bin/$@"
+
+distribute1: distribute/ipdb/ipdb.o distribute/*.c actions_distribute/*.c $(SRC_BASE) $(SRC_LIB)
+	./proxies_production.pl
+	$(CC) $(CFLAGS) -DDIST1 $^ $(LDFLAGS) -lmysqlclient -lmemcached -o ../bin/$@
+
+distribute2: distribute/ipdb/ipdb.o distribute/*.c actions_distribute/*.c $(SRC_BASE) $(SRC_LIB)
+	$(CC) $(CFLAGS) -DDIST2 $^ $(LDFLAGS) -lmysqlclient -lmemcached -o ../bin/$@
 
 #storage_mysql.h: storage_mysql.h.in
 #	./proxies_production.pl
 
-distribute1: distribute/ipdb/ipdb.o distribute/*.c actions_distribute/*.c evfs.o io.o security.o http.o http_parse.o http_response.o status.o actions.o access.o server.o download.o upload.o zip.o tar.o earchive.o cache.o operations.o magic.o $(SRC_LIB)
-	./proxies_production.pl
-	$(CC) $(CFLAGS) -DDIST1 $^ $(LDFLAGS) -lmysqlclient -lmemcached -o ../bin/$@
-
-distribute2: distribute/ipdb/ipdb.o distribute/*.c actions_distribute/*.c evfs.o io.o security.o http.o http_parse.o http_response.o status.o actions.o access.o server.o download.o upload.o zip.o tar.o earchive.o cache.o operations.o magic.o $(SRC_LIB)
-	$(CC) $(CFLAGS) -DDIST2 $^ $(LDFLAGS) -lmysqlclient -lmemcached -o ../bin/$@
-
 pubcloud: pubc device/device.o device/distribute.o main.o
-	$(CC) $(SRC_BASE) storage.a device/device.o device/distribute.o main.o actions_pubcloud/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS} $(LDFLAGS) -lmysqlclient -o ../bin/pubcloud
+	$(CC) $(SRC_BASE) remote.o storage.a device/device.o device/distribute.o main.o actions_pubcloud/*.o lib/string.o lib/vector.o lib/dictionary.o lib/queue.o lib/buffer.o lib/format.o lib/stream.o lib/log.o lib/json.o lib/sha2.o lib/aes.o @{LIBS} $(LDFLAGS) -lmysqlclient -o ../bin/pubcloud
 
 clean:
 	rm -f *.o
@@ -111,9 +107,8 @@ clean:
 	rm -f actions_device/*.o
 	rm -f dlna/*.o
 	rm -f actions_pubcloud/*.o
-	rm -f ../bin/pubcloud
-	rm -f ../bin/filement ../bin/filement-gtk
-	rm -f ../lib/libfilement.so
+	rm -f ../bin/*
+	rm -f ../lib/*
 
 mrproper: clean
 	rm -f device/device.c

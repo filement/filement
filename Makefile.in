@@ -21,7 +21,7 @@ mac/build/Release/Filement.app/Contents/MacOS/Filement:
 	ln -f resources/background.png share/filement
 	ln -f resources/logo.png share/filement
 	install_name_tool -id "/Applications/Filement.app/Contents/Frameworks/libfilement.dylib" "lib/libfilement.dylib" # TODO ideally I should keep the original lib
-	cd mac && xcodebuild -project Filement.xcodeproj -configuration Release GCC_PREPROCESSOR_DEFINITIONS='@{DEFINITIONS}'
+	cd mac && xcodebuild -project Filement.xcodeproj -configuration Release GCC_PREPROCESSOR_DEFINITIONS='@{MAC}'
 
 filement.dmg: mac/build/Release/Filement.app/Contents/MacOS/Filement
 	find $(mac_target) -name '.DS_Store' -delete

@@ -52,8 +52,7 @@ failsafe:
 	$(MAKE) -C src failsafe
 
 distribute:
-	$(MAKE) -C src distribute1
-	$(MAKE) -C src distribute2
+	$(MAKE) -C src distribute1 distribute2
 
 check:
 	$(MAKE) -C tests check

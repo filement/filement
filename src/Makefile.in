@@ -86,11 +86,13 @@ filement-gtk: libfilement.so main-gtk.o
 failsafe:
 	$(CC) $(FLAGS) -DFAILSAFE storage_sqlite.c sqlite.c lib/string.c lib/vector.c lib/dictionary.c lib/format.c lib/stream.c lib/log.c lib/json.c lib/sha2.c device/distribute.c device/upgrade.c device/startup.c io.c status.c http.c http_parse.c upload.c failsafe.c -o "../bin/$@"
 
-distribute1: distribute/ipdb/ipdb.o distribute/*.c actions_distribute/*.c $(SRC_BASE) $(SRC_LIB)
+distribute/authorize.c:
 	./proxies_production.pl
+
+distribute1: distribute/ipdb/ipdb.o distribute/authorize.c distribute/*.c actions_distribute/*.c $(SRC_BASE) $(SRC_LIB)
 	$(CC) $(CFLAGS) -DDIST1 $^ $(LDFLAGS) -lmysqlclient -lmemcached -o ../bin/$@
 
-distribute2: distribute/ipdb/ipdb.o distribute/*.c actions_distribute/*.c $(SRC_BASE) $(SRC_LIB)
+distribute2: distribute/ipdb/ipdb.o distribute/authorize.c distribute/*.c actions_distribute/*.c $(SRC_BASE) $(SRC_LIB)
 	$(CC) $(CFLAGS) -DDIST2 $^ $(LDFLAGS) -lmysqlclient -lmemcached -o ../bin/$@
 
 #storage_mysql.h: storage_mysql.h.in

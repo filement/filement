@@ -128,6 +128,14 @@ Generating src/distribute/ipdb/ipdb.o
 
 	./generate.pl
 
+On the target machine, you'll need several libraries:
+
+	libgnutls.so
+	libnettle.so
+	libhogweed.so
+	libmariadbclient.so
+	libmemcached.so
+
 ##
 
 TODO

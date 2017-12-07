@@ -219,7 +219,8 @@ elsif ($platform eq 'linux')
 	$flags .= ' -O2 -fstrict-aliasing' if !$flag_debug;
 	$definitions .= ' -DPLATFORM_ID=4 -DOS_LINUX -DPREFIX=\\\"'.$prefix.'\\\" -D_GNU_SOURCE -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700';
 	$cflags .= ' `pkg-config --cflags libavformat libavutil` -Wno-unused-value'; # replace with -Wno-unused-result
-	$link .= ' -lz -lgnutls `pkg-config --libs libavformat libavutil` -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
+	$link .= ' `pkg-config --libs libavformat libavutil`' if (($target eq 'device') || ($target eq 'pubcloud'));
+	$link .= ' -lz -lgnutls -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
 
 	$root = '';
 	$storage = 'storage_sqlite';
@@ -375,7 +376,7 @@ $cflags .= ' -D'.uc($target);
 # TODO do make mrpropper (but manually since Makefile may not exist) // wtf? if it does not exist, there is no need to call mrpropper
 
 # Preprocess actions.
-system qq(gcc -E -x c $definitions -o src/actions.out src/actions.in);
+system qq(gcc -E -x c $cflags -o src/actions.out src/actions.in);
 
 my $mac = $definitions;
 $mac =~ s/-D//g;

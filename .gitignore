@@ -10,6 +10,7 @@ src/actions_sorted.h
 src/actions.out
 mac/build
 android/Filement.androidstudio/build
+linux/control
 Makefile
 src/external/gnutls.compile
 src/Makefile
@@ -33,6 +34,7 @@ src/distribute/ipdb/location.csv
 bin/*
 filement.dmg
 filement.apk
+filement*.deb
 lib/*
 share/filement/background.png
 share/filement/logo.png

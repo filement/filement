@@ -1,3 +1,4 @@
 On device registration, the device creates a database in the home directory of the user running the application.
 ~/.filement.db
+While the application is running, a file-based lock is used to ensure no second instance of the application can start. This is facilitated by the file ~/.filement.run
 Also, a startup entry is added for the filement server that ensures it will start on login. This entry is platform-specific (in ~/.profile and ~/.login for filement; in ~/.config/autostart for filement-gtk; using the mac API for cocoa).

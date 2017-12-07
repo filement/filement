@@ -16,6 +16,16 @@ filement-gtk:
 	ln -f resources/logo.png share/filement
 	ln -fs ../resources/applications ../resources/icons gui
 
+filement.deb: filement filement-gtk
+	mkdir -p '/tmp/filement@{PREFIX}' '/tmp/filement/usr/share'
+	cp -rL `pwd`/bin `pwd`/lib `pwd`/share '/tmp/filement@{PREFIX}'
+	cp -rL `pwd`/gui/* '/tmp/filement/usr/share'
+	find /tmp/filement -name .gitkeep -delete
+	tar -chzf /tmp/data.tar.gz --numeric-owner --owner 0 --group 0 -C '/tmp/filement' .
+	tar -czf /tmp/control.tar.gz --numeric-owner --owner 0 --group 0 -C 'linux' control
+	cd linux && ar -cr "../filement_@{VERSION}-0_@{ARCHITECTURE}.deb" debian-binary /tmp/data.tar.gz /tmp/control.tar.gz
+	rm -rf '/tmp/filement' '/tmp/data.tar.gz' '/tmp/control.tar.gz'
+
 mac/build/Release/Filement.app/Contents/MacOS/Filement:
 	$(MAKE) -C src libfilement.so
 	ln -f resources/background.png share/filement
@@ -61,16 +71,17 @@ register:
 	$(MAKE) -C src register
 
 install:
-	install -d /usr/local/bin /usr/local/lib /usr/local/share/filement
-	install bin/* /usr/local/bin
-	install lib/* /usr/local/lib
-	cp -r share/* /usr/local/share
+	install -d @{PREFIX}/bin @{PREFIX}/lib @{PREFIX}/share/filement
+	install bin/* @{PREFIX}/bin
+	install lib/* @{PREFIX}/lib
+	cp -r share/* @{PREFIX}/share
 	cp -rL gui/* /usr/share 2> /dev/null || :
+	# TODO copy ffmpeg on mac
 
 uninstall:
-	rm -f /usr/local/bin/filement /usr/local/bin/filement-gtk
-	rm -f /usr/local/lib/libfilement.so
-	rm -rf /usr/local/share/filement/
+	rm -f @{PREFIX}/bin/filement @{PREFIX}/bin/filement-gtk
+	rm -f @{PREFIX}/lib/libfilement.so
+	rm -rf @{PREFIX}/share/filement/
 	rm -f /usr/share/icons/hicolor/{48x48,256x256}/apps/filement.png /usr/share/applications/filement.desktop
 
 clean:

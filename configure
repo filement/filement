@@ -151,6 +151,8 @@ my $definitions = ($flag_dev ? '-DTEST=-10' : '').($flag_debug ? ' -DRUN_MODE=1 
 my $cflags = '';
 my $link = '';
 
+my $arch;
+
 $definitions .= ' -DRELEASE' if ($release);
 
 # TODO some targets are supported onlyon some platforms; pubcloud and distribute are supported only on linux
@@ -172,9 +174,6 @@ if ($platform eq 'darwin')
 		$flag_upgrade = 1;
 	}
 
-	# clang -### 2>&1 | grep Target | awk -F '[ -]' '{print $2;}'
-	# TODO make sure ffmpeg is added
-
 	$cc = 'clang';
 	$shared = '-dynamiclib';
 	$suffix = '.dylib';
@@ -193,6 +192,8 @@ if ($platform eq 'darwin')
 	$storage = 'storage_sqlite';
 	$libs = 'libepeg.a libjpeg.a libminiupnpc.a libavformat.a libavcodec.a libavutil.a libgnutls.a libnettle.a libhogweed.a libgmp.a';
 
+	$arch = `$cc -### 2>&1 | grep Target | awk -F '[ -]' '{printf \$2;}'`;
+
 	push @features, 'FILEMENT_TLS', 'FILEMENT_THUMBS', 'FILEMENT_UPNP', 'FILEMENT_AV';
 	push @features, 'FILEMENT_UPGRADE' if $flag_upgrade;
 }
@@ -204,8 +205,6 @@ elsif ($platform eq 'linux')
 		$prefix = '/usr';
 		$flag_upgrade = 0;
 	}
-
-	# gcc -dumpmachine | awk -F '[-]' '{print $1;}'
 
 	$cc = 'gcc';
 	$shared = '-shared';
@@ -225,6 +224,8 @@ elsif ($platform eq 'linux')
 	$root = '';
 	$storage = 'storage_sqlite';
 	$libs = 'libepeg.a libjpeg.a'.(($target eq 'pubcloud') ? '' : ' libminiupnpc.a');
+
+	$arch = `$cc -dumpmachine | awk -F '[-]' '{printf \$1;}'`;
 
 	push @features, 'FILEMENT_TLS';
 	push @features, 'FILEMENT_THUMBS', 'FILEMENT_UPNP', 'FILEMENT_AV' if (($target eq 'device') || ($target eq 'pubcloud'));
@@ -257,6 +258,8 @@ elsif ($platform eq 'freebsd')
 	$storage = 'storage_sqlite';
 	$libs = 'libepeg.a libjpeg.a'; # TODO fix miniupnpc; its makefile is not compatible with freebsd
 
+	$arch = `$cc -dumpmachine | awk -F '[-]' '{printf \$1;}'`;
+
 	push @features, 'FILEMENT_TLS', 'FILEMENT_THUMBS', 'FILEMENT_AV';
 }
 elsif ($platform eq 'android')
@@ -282,6 +285,8 @@ elsif ($platform eq 'android')
 	$storage_flags = "--sysroot=$android_ndk/platforms/android-21/arch-arm";
 	$libs = '../android/ifaddrs.o ../android/ifc_utils.o ../android/java.o';
 	$setup = 'export OSTYPE="android"';
+
+	$arch = `$root/bin/$cc -dumpmachine | awk -F '[-]' '{printf \$1;}'`;
 
 	# TODO from the old make:
 	# 	-DEXECUTABLE="/data/data/com.filement.app/filement"
@@ -397,6 +402,7 @@ $strip =~ s/\//\\\//g;
 # Dump all configuration options for debug purposes.
 open STDOUT, '>', 'config.log';
 print "version=$version\n";
+print "arch=$arch\n";
 print "uuid=$uuid\n";
 print "prefix=$prefix\n";
 print "\n";
@@ -437,6 +443,8 @@ my @replace = (
 	'-e', "s/\@{STRIP}/$strip/g",
 	'-e', "s/\@{SONAME}/$soname/g",
 	'-e', "s/\@{SETUP}/$setup/g",
+	'-e', "s/\@{VERSION}/$version/g",
+	'-e', "s/\@{ARCHITECTURE}/$arch/g",
 );
 
 my $length;
@@ -513,6 +521,14 @@ unlink 'src/Makefile';
 open STDOUT, '>', 'src/Makefile';
 system 'sed', @replace, 'src/Makefile.in';
 chmod 0444, 'src/Makefile';
+
+# linux/control
+if ($platform eq 'linux')
+{
+	unlink 'linux/control';
+	open STDOUT, '>', 'linux/control';
+	system 'sed', '-e', "s/\@{VERSION}/$version-0/", '-e', "s/\@{ARCH}/$arch/", 'linux/control.in';
+}
 
 # Configure public cloud if UUID is specified.
 if (defined($clouds{$uuid}))

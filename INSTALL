@@ -116,7 +116,7 @@ To uninstall Filement from your PC, execute make in the directory where you comp
 
 For distribute you'll also need:
 	sudo apt-get install default-libmysqlclient-dev libmemcached-dev
-	sudo span install String::Util Text::CSV_XS
+	sudo cpan install String::Util Text::CSV_XS
 
 Generating src/distribute/ipdb/ipdb.o
 

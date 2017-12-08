@@ -1,0 +1,38 @@
+Name: filement
+Version: @{VERSION}
+Release: 1
+Summary: Access your data from the web.
+URL: http://filement.com
+Vendor: Filement
+Source: %{name}-%{version}.@{ARCH}.tar.gz
+License: GPLv3+
+Group: Applications/Internet
+Requires: libc6 >= 2.5, libgnutls30 libavformat57 libavutil55
+Packager: Martin Kunev <martinkunev@gmail.com>
+BuildRoot: %{_tmppath}/%{name}-%{version}.@{ARCH}
+
+%description
+Server that lets you access your data from the Filement web interface. See filement.com for details.
+
+%prep
+
+%setup -q
+
+%build
+
+%install
+rm -rf %{buildroot}
+mkdir -p  %{buildroot}
+cp -a * %{buildroot}
+
+%post
+echo
+echo "Start filement-gtk or use `filement <email> <device_name>` from the command line to register the device"
+
+%clean
+rm -rf %{buildroot}
+
+%files
+%{_bindir}/*
+%{_libdir}/*
+%{_datadir}/*

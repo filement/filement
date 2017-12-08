@@ -11,6 +11,7 @@ src/actions.out
 mac/build
 android/Filement.androidstudio/build
 linux/control
+linux/filement.spec
 Makefile
 src/external/gnutls.compile
 src/Makefile
@@ -35,6 +36,7 @@ bin/*
 filement.dmg
 filement.apk
 filement*.deb
+filement*.rpm
 lib/*
 share/filement/background.png
 share/filement/logo.png

@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Config;
+use File::Find;
 
 my %clouds = (
 	# development cloud
@@ -528,6 +529,18 @@ if ($platform eq 'linux')
 	unlink 'linux/control';
 	open STDOUT, '>', 'linux/control';
 	system 'sed', '-e', "s/\@{VERSION}/$version-0/", '-e', "s/\@{ARCH}/$arch/", 'linux/control.in';
+	chmod 0444, 'linux/control';
+
+	unlink 'linux/filement.spec';
+	open STDOUT, '>', 'linux/filement.spec';
+	system 'sed', '-e', "s/\@{VERSION}/$version/", '-e', "s/\@{ARCH}/$arch/", 'linux/filement.spec.in';
+	chmod 0444, 'linux/filement.spec';
+
+	# TODO unused
+	#unlink 'linux/';
+	#open STDOUT, '>', 'linux/filement.spec';
+	#system 'sed', '-e', "s/\@{PREFIX}/$prefix/", '-e', "s/\@{VERSION}/$version/", '-e', "s/\@{ARCH}/$arch/", 'linux/filement.spec.in';
+	#chmod 0544, 'linux/rpm.pl';
 }
 
 # Configure public cloud if UUID is specified.

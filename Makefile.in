@@ -17,14 +17,29 @@ filement-gtk:
 	ln -fs ../resources/applications ../resources/icons gui
 
 filement.deb: filement filement-gtk
-	mkdir -p '/tmp/filement@{PREFIX}' '/tmp/filement/usr/share'
-	cp -rL `pwd`/bin `pwd`/lib `pwd`/share '/tmp/filement@{PREFIX}'
-	cp -rL `pwd`/gui/* '/tmp/filement/usr/share'
-	find /tmp/filement -name .gitkeep -delete
-	tar -chzf /tmp/data.tar.gz --numeric-owner --owner 0 --group 0 -C '/tmp/filement' .
+	mkdir -p '/tmp/filement-@{VERSION}@{PREFIX}' '/tmp/filement-@{VERSION}/usr/share'
+	cp -rL `pwd`/bin `pwd`/lib `pwd`/share '/tmp/filement-@{VERSION}@{PREFIX}'
+	cp -rL `pwd`/gui/* '/tmp/filement-@{VERSION}/usr/share'
+	find /tmp/filement-@{VERSION} -name .gitkeep -delete
+	tar -czf /tmp/data.tar.gz --numeric-owner --owner 0 --group 0 -C '/tmp/filement-@{VERSION}' .
 	tar -czf /tmp/control.tar.gz --numeric-owner --owner 0 --group 0 -C 'linux' control
-	cd linux && ar -cr "../filement_@{VERSION}-0_@{ARCHITECTURE}.deb" debian-binary /tmp/data.tar.gz /tmp/control.tar.gz
-	rm -rf '/tmp/filement' '/tmp/data.tar.gz' '/tmp/control.tar.gz'
+	cd linux && ar -cr "../filement_@{VERSION}-1_@{ARCHITECTURE}.deb" debian-binary /tmp/data.tar.gz /tmp/control.tar.gz
+	rm -rf '/tmp/filement-@{VERSION}' '/tmp/data.tar.gz' '/tmp/control.tar.gz'
+
+filement.rpm: filement filement-gtk
+	mkdir -p /tmp/rpmbuild/RPMS /tmp/rpmbuild/SRPMS /tmp/rpmbuild/BUILD /tmp/rpmbuild/SOURCES /tmp/rpmbuild/SPECS /tmp/rpmbuild/tmp
+	mkdir -p '/tmp/filement-@{VERSION}@{PREFIX}' '/tmp/filement-@{VERSION}/usr/share'
+	cp -rL `pwd`/bin `pwd`/share '/tmp/filement-@{VERSION}@{PREFIX}'
+	cp -rL `pwd`/lib '/tmp/filement-@{VERSION}@{PREFIX}/lib64'
+	cp -rL `pwd`/gui/* '/tmp/filement-@{VERSION}/usr/share'
+	find /tmp/filement-@{VERSION} -name .gitkeep -delete
+	tar -czf /tmp/rpmbuild/SOURCES/filement-@{VERSION}.@{ARCHITECTURE}.tar.gz --numeric-owner --owner 0 --group 0 -C '/tmp' filement-@{VERSION}
+	cp -f linux/filement.spec /tmp/rpmbuild/SPECS
+	cp -f linux/.rpmmacros ~/
+	cd /tmp/rpmbuild && rpmbuild -ba SPECS/filement.spec
+	mv /tmp/rpmbuild/RPMS/@{ARCHITECTURE}/filement-@{VERSION}-1.@{ARCHITECTURE}.rpm .
+	rm -f ~/.rpmmacros
+	rm -rf '/tmp/filement-@{VERSION}' '/tmp/rpmbuild'
 
 mac/build/Release/Filement.app/Contents/MacOS/Filement:
 	$(MAKE) -C src libfilement.so

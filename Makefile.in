@@ -14,12 +14,13 @@ filement-gtk:
 	$(MAKE) -C src filement-gtk
 	ln -f resources/background.png share/filement
 	ln -f resources/logo.png share/filement
-	ln -fs ../resources/applications ../resources/icons gui
+	ln -fs ../resources/applications ../resources/icons data
 
 filement.deb: filement filement-gtk
-	mkdir -p '/tmp/filement-@{VERSION}@{PREFIX}' '/tmp/filement-@{VERSION}/usr/share'
-	cp -rL `pwd`/bin `pwd`/lib `pwd`/share '/tmp/filement-@{VERSION}@{PREFIX}'
-	cp -rL `pwd`/gui/* '/tmp/filement-@{VERSION}/usr/share'
+	mkdir -p '/tmp/filement-@{VERSION}@{PREFIX}/lib' '/tmp/filement-@{VERSION}/usr/share'
+	cp -rL `pwd`/bin `pwd`/share '/tmp/filement-@{VERSION}@{PREFIX}'
+	cp -rL `pwd`/lib '/tmp/filement-@{VERSION}@{PREFIX}/lib/@{ARCHITECTURE}-linux-gnu'
+	cp -rL `pwd`/data/* '/tmp/filement-@{VERSION}/usr/share'
 	find /tmp/filement-@{VERSION} -name .gitkeep -delete
 	tar -czf /tmp/data.tar.gz --numeric-owner --owner 0 --group 0 -C '/tmp/filement-@{VERSION}' .
 	tar -czf /tmp/control.tar.gz --numeric-owner --owner 0 --group 0 -C 'linux' control
@@ -31,7 +32,7 @@ filement.rpm: filement filement-gtk
 	mkdir -p '/tmp/filement-@{VERSION}@{PREFIX}' '/tmp/filement-@{VERSION}/usr/share'
 	cp -rL `pwd`/bin `pwd`/share '/tmp/filement-@{VERSION}@{PREFIX}'
 	cp -rL `pwd`/lib '/tmp/filement-@{VERSION}@{PREFIX}/lib64'
-	cp -rL `pwd`/gui/* '/tmp/filement-@{VERSION}/usr/share'
+	cp -rL `pwd`/data/* '/tmp/filement-@{VERSION}/usr/share'
 	find /tmp/filement-@{VERSION} -name .gitkeep -delete
 	tar -czf /tmp/rpmbuild/SOURCES/filement-@{VERSION}.@{ARCHITECTURE}.tar.gz --numeric-owner --owner 0 --group 0 -C '/tmp' filement-@{VERSION}
 	cp -f linux/filement.spec /tmp/rpmbuild/SPECS
@@ -90,7 +91,7 @@ install:
 	install bin/* @{PREFIX}/bin
 	install lib/* @{PREFIX}/lib
 	cp -r share/* @{PREFIX}/share
-	cp -rL gui/* /usr/share 2> /dev/null || :
+	cp -rL data/* /usr/share 2> /dev/null || :
 	# TODO copy ffmpeg on mac
 
 uninstall:
@@ -98,12 +99,13 @@ uninstall:
 	rm -f @{PREFIX}/lib/libfilement.so
 	rm -rf @{PREFIX}/share/filement/
 	rm -f /usr/share/icons/hicolor/{48x48,256x256}/apps/filement.png /usr/share/applications/filement.desktop
+	rm -rf /usr/share/doc/filement
 
 clean:
 	$(MAKE) -C src clean
 	$(MAKE) -C tests clean
 	rm -f share/filement/background.png share/filement/logo.png
-	rm -f gui/applications gui/icons
+	rm -f data/applications data/icons
 	rm -f mac/build/Release/Filement.app/Contents/MacOS/Filement
 	rm -f filement.dmg
 

@@ -40,5 +40,5 @@ filement*.rpm
 lib/*
 share/filement/background.png
 share/filement/logo.png
-gui/applications
-gui/icons
+data/applications
+data/icons

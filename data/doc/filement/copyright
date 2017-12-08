@@ -1,0 +1,8 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+
+Files: *
+Copyright: 2017 Martin Kunev <martinkunev@filement.net>
+	2017 Nikola Nikov <nikolanikov@filement.net>
+	2017 Anton Chapov <antonchapov@filement.net>
+	2017 Plamen Alexandrov <plamenalexandrov@filement.net>
+License: GPL-3+

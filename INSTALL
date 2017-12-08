@@ -112,6 +112,21 @@ To uninstall Filement from your PC, execute make in the directory where you comp
 
 	make uninstall
 
+# Creating Mac archive
+
+	./configure
+	make filement.dmg
+
+# Creating Deb package
+
+	./configure --release
+	make filement.deb
+
+# Creating RPM archive
+
+	./configure --release
+	make filement.rpm
+
 # Compiling other targets
 
 For distribute you'll also need:

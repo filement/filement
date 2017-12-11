@@ -223,7 +223,7 @@ void *main_proxy(void *storage)
 				warning_("Unable to discover proxies.");
 				goto error;
 			}
-			debug(logs("Discovered "), count, logs(" proxies"));
+			debug(logs("Discovered "), logi(count), logs(" proxies"));
 			proxy_index = 0;
 		}
 
@@ -246,6 +246,8 @@ void *main_proxy(void *storage)
 					break;
 				}
 			}
+
+			debug(logs("Connected"));
 
 			wait = PROXY_WAIT_MIN;
 

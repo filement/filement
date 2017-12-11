@@ -23,7 +23,6 @@ public class FilementService extends Service {
 	public static long last_connectivity=0;
 	public static long last_nonconnectivity=0;
 	static boolean is_service=false;
-	static String magic_path;
 	static String db_path;
     //private FilementThread FilementThreadHandle;
 
@@ -39,9 +38,8 @@ public class FilementService extends Service {
             super.run(); 
             try{
             	 String abspath=getBaseContext().getFilesDir().getAbsolutePath();
-                final String magic_path=abspath+"/filement.mgc";
                 final String db_path = abspath+"/filement.db";
-            	if(!startserver(db_path,magic_path))
+            	if(!startserver(db_path,null))
     			{
             		Toast.makeText(getBaseContext(), R.string.filement_server_problem, Toast.LENGTH_SHORT).show();
             		
@@ -87,10 +85,10 @@ public class FilementService extends Service {
 	 
 	 static private boolean FilementStartServer() {
 		 
-		 if(db_path==null || magic_path==null)return false;
+		 if(db_path==null)return false;
 		 
 	      if(startserverpid>0)killpid(startserverpid);
-	      startserverpid=startserver(db_path,magic_path);
+	      startserverpid=startserver(db_path,null);
 	      if(startserverpid<0)
 				{
 	    	  return false;
@@ -124,16 +122,13 @@ public class FilementService extends Service {
             	long CurrentTS = System.currentTimeMillis()/1000;
             	long conndiff = CurrentTS - last_nonconnectivity;
             	if(conndiff<2)return ;
-            	
 
             	Log.i("FilementService", "Connectivity change not connected");
-            	
+
             	last_nonconnectivity=CurrentTS;
-            	
-            	
+
             	if(is_service)FilementStopServer();
-            	//if(startserverpid!=0)killpid(startserverpid);
-            	//startserverpid=0;
+
             	//if(FilementThreadHandle!=null && FilementThreadHandle.isAlive())
             	//{
             	//	FilementThreadHandle.interrupt();
@@ -149,9 +144,8 @@ public class FilementService extends Service {
             	Log.i("FilementService", "Connectivity change new internet");
             	
             	last_connectivity=CurrentTS;
-            	
+
             	if(is_service)FilementStartServer();
-            	
 
             	//if(FilementThreadHandle!=null && !FilementThreadHandle.isAlive())
             	// { 
@@ -180,7 +174,6 @@ public class FilementService extends Service {
     	is_service=true;
     //	FilementThreadHandle=new FilementThread();
     	String abspath=getBaseContext().getFilesDir().getAbsolutePath();
-	    magic_path = abspath+"/filement.mgc";
 	    db_path = abspath+"/filement.db";
     
 	    if(isNetworkAvailable())
@@ -244,20 +237,17 @@ public class FilementService extends Service {
      */
     
     public void showNotification(boolean is_update) {
-        // In this sample, we'll use the same text for the ticker and the expanded notification
-    	CharSequence text;
-    	if(startserverpid>0)
-    	{
-    		text = getText(R.string.filement_service_started);
-    	}
-    	else
-    	{
-    		text = getText(R.string.filement_service_no_conn);
-    	}
-    	
-        // Set the icon, scrolling text and timestamp
-        Notification notification = new Notification(R.drawable.ic_launcher, text,
-                System.currentTimeMillis());
+		// In this sample, we'll use the same text for the ticker and the expanded notification
+		CharSequence text;
+		if (startserverpid > 0) {
+			text = getText(R.string.filement_service_started);
+		} else {
+			text = getText(R.string.filement_service_no_conn);
+		}
+
+		// Set the icon, scrolling text and timestamp
+		Notification notification = new Notification(R.drawable.ic_launcher, text,
+				System.currentTimeMillis());
         /*
         Notification noti = new Notification.Builder(mContext)
         .setContentTitle("New mail from " + sender.toString())
@@ -266,33 +256,25 @@ public class FilementService extends Service {
         .setLargeIcon(aBitmap)
         .build();
         */
-        notification.flags |= Notification.FLAG_NO_CLEAR;
-        notification.flags |= Notification.FLAG_FOREGROUND_SERVICE;
-        // The PendingIntent to launch our activity if the user selects this notification
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, Filement.class), 0);
+		notification.flags |= Notification.FLAG_NO_CLEAR;
+		notification.flags |= Notification.FLAG_FOREGROUND_SERVICE;
+		// The PendingIntent to launch our activity if the user selects this notification
+		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+				new Intent(this, Filement.class), 0);
 
-        
-        
-        // Set the info for the views that show in the notification panel.
-        notification.setLatestEventInfo(this, getText(R.string.filement_service_label),
-                       text, contentIntent);
-        final int myID = 23122;
-        // Send the notification.
-        if(is_update)
-        {
-        	mNM.notify(NOTIFICATION, notification);
-        }
-        else
-        {
-        	startForeground(myID, notification);
-        }
-    }
-    
 
-    
-    
-	
+		// Set the info for the views that show in the notification panel.
+		notification.setLatestEventInfo(this, getText(R.string.filement_service_label),
+				text, contentIntent);
+		final int myID = 23122;
+		// Send the notification.
+		if (is_update) {
+			mNM.notify(NOTIFICATION, notification);
+		} else {
+			startForeground(myID, notification);
+		}
+	}
+
     public static native int startserver(String dbpath,String mpath);
     public static native int killpid(int pid);
     

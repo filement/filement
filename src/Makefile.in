@@ -109,6 +109,7 @@ clean:
 	rm -f actions_device/*.o
 	rm -f dlna/*.o
 	rm -f actions_pubcloud/*.o
+	rm -f android/*.o
 	rm -f ../bin/*
 	rm -f ../lib/*
 

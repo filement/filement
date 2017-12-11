@@ -214,48 +214,19 @@ public class Filement extends Activity {
 		
 	//	TextView  tv = new TextView(this);
 		   */
-		
-		
-		
-		
-		
-		
-        String abspath=getBaseContext().getFilesDir().getAbsolutePath();
-        String magic_path=abspath+"/filement.mgc";
-        String db_path = abspath+"/filement.db";
-        if (!new File(magic_path).exists()){
-            try
-            {
-              InputStream localInputStream = getAssets().open("filement.mgc");
-              FileOutputStream localFileOutputStream = getBaseContext().openFileOutput("filement.mgc", MODE_PRIVATE);
 
-              byte[] arrayOfByte = new byte[1024];
-              int offset;
-              while ((offset = localInputStream.read(arrayOfByte))>0)
-              {
-                localFileOutputStream.write(arrayOfByte, 0, offset);
-              }
-              localFileOutputStream.close();
-              localInputStream.close();
-              
-            }
-            catch (IOException localIOException)
-            {
-                localIOException.printStackTrace();
-                return;
-            }
-        }
-        
-        
+        String abspath=getBaseContext().getFilesDir().getAbsolutePath();
+        String db_path = abspath+"/filement.db";
+
          registered_layout=false;
        // tv = (TextView) findViewById(R.id.textView1);
         
-        if(checkdevice(db_path,magic_path))
+        if(checkdevice(db_path,null))
         {
         	
         	registered_layout=true;
         	/*
-        	if(!startserver(db_path,magic_path))
+        	if(!startserver(db_path,null))
 			{
 				tv.setText( "Can't start the server!" );
 			}
@@ -266,10 +237,10 @@ public class Filement extends Activity {
         	registered_layout=false;
         	
         	/*
-        	if(registerdevice(db_path,magic_path,"nikolanikov@mail.bg","4760","ncn6129","androidniki"))
+        	if(registerdevice(db_path,null,"nikolanikov@mail.bg","4760","ncn6129","androidniki"))
         		{
         		tv.setText( "Successfuly registered, started!" );
-        			if(!startserver(db_path,magic_path))
+        			if(!startserver(db_path,null))
         			{
         				tv.setText( "Can't start the server!" );
         			}
@@ -281,10 +252,7 @@ public class Filement extends Activity {
         	*/
         	
         }
-       
-        
-        
-        
+
         if(registered_layout)
         {
         	setContentView(R.layout.activity_filement_paired);
@@ -339,14 +307,11 @@ public class Filement extends Activity {
     			}
     		});
         }
-        
-		
 	}
-	
 
-		public static native int killpid(int pid);
-	 public native boolean  checkdevice(String dbpath,String mpath);
-	
+	public static native int killpid(int pid);
+	public native boolean checkdevice(String dbpath,String mpath);
+
 	 @Override
 	    public boolean onPrepareOptionsMenu(Menu menu)
 	    {

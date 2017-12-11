@@ -428,6 +428,8 @@ void filement_stop(void)
 #if defined(DEVICE)
 	DLNADisable(storage); // TODO something may be using DLNA at the moment
 #endif
+
+	// TODO stop server_listen() as well
 }
 
 #endif /* DEVICE */

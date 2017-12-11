@@ -34,7 +34,6 @@ public class PairActivity extends Activity {
 	    setContentView(R.layout.activity_pair);
 	    
 	    String abspath=getBaseContext().getFilesDir().getAbsolutePath();
-        final String magic_path=abspath+"/filement.mgc";
         final String db_path = abspath+"/filement.db";
        
         final View SignInButtonView = findViewById(R.id.PairButton2);
@@ -71,7 +70,7 @@ public class PairActivity extends Activity {
 				 PairingProgress.setVisibility(1); 
 				 
 
-	        	if(registerdevice(db_path,magic_path,Email.getText().toString().toString(),Password.getText().toString(),DevName.getText().toString()))
+	        	if(registerdevice(db_path,null,Email.getText().toString().toString(),Password.getText().toString(),DevName.getText().toString()))
 				 {
 					 
 					 status.setText( "The device has registered successfully." );
@@ -82,7 +81,7 @@ public class PairActivity extends Activity {
 					PairActivity.this.overridePendingTransition(R.anim.push_left_in,R.anim.push_up_out); 
 					 /*
 	        		tv.setText( "Successfuly registered, started!" );
-	        			if(!startserver(db_path,magic_path))
+	        			if(!startserver(db_path,null))
 	        			{
 	        				tv.setText( "Can't start the server!" );
 	        			}

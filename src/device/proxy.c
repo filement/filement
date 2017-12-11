@@ -205,6 +205,8 @@ void *main_proxy(void *storage)
 	struct connection_proxy connection;
 	struct sockaddr_in *address;
 
+	debug(logs("Entering main_proxy()"));
+
 	// TODO design thread cancellation better
 
 	// Connect to a discovered proxy server. Wait for a client.
@@ -221,11 +223,14 @@ void *main_proxy(void *storage)
 				warning_("Unable to discover proxies.");
 				goto error;
 			}
+			debug(logs("Discovered "), count, logs(" proxies"));
 			proxy_index = 0;
 		}
 
 		while (1)
 		{
+			debug(logs("Connecting to "), logs(proxies[proxy_index].name, strlen(proxies[proxy_index].name)), logs(":"), logi(proxies[proxy_index].port));
+
 			// Connect the device to a proxy.
 			fd = proxy_connect(proxies + proxy_index);
 			if (fd < 0)
@@ -242,7 +247,6 @@ void *main_proxy(void *storage)
 				}
 			}
 
-			debug(logs("Connected to "), logs(proxies[proxy_index].name, strlen(proxies[proxy_index].name)), logs(":"), logi(proxies[proxy_index].port));
 			wait = PROXY_WAIT_MIN;
 
 			proxy_index = 0;

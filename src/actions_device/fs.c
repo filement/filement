@@ -397,7 +397,7 @@ buffer=string_alloc(0, len);
 if(!buffer)return 0;
 
 	//TODO: to stop using fucken sprintf
-	if( (attribute.st_mode & S_IFDIR) && (!S_ISLNK(attribute.st_mode)) )
+	if (S_ISDIR(attribute.st_mode))
 	{
 		#ifdef OS_WINDOWS
 		// :@ :@ :@ :@ :@ :@ :@ :@ :@ :@ :@ :@ :@ :@
@@ -412,7 +412,7 @@ if(!buffer)return 0;
 		if(type)*type=1;									
 		#endif
 	}
-	else if( attribute.st_mode & S_IFREG )
+	else if (S_ISREG(attribute.st_mode))
 	{
 		#ifdef OS_WINDOWS
 		char *tmpsizebuf=(char *)malloc(sizeof(char)*(bufsize+1));
@@ -525,7 +525,6 @@ static int fs_read_dir(struct string *restrict path,struct blocks *restrict bloc
 	int bufsize;
 	int len=0;
 
-	
 if(!level)
 		{
 
@@ -568,14 +567,14 @@ if(!level)
 			success = !statvfs(path->data, &info);
 			if(success)
 			{
-				len+=integer_digits((off_t)info.f_frsize * (off_t)info.f_blocks, 10);
-				len+=integer_digits((off_t)info.f_frsize * (off_t)info.f_bfree, 10);
+				len+=integer_digits((intmax_t)info.f_frsize * info.f_blocks, 10);
+				len+=integer_digits((intmax_t)info.f_frsize * info.f_bfree, 10);
 				len+=11;//v1,spaces,\t
 
 				stat=string_alloc(0, len);
 				if(!stat)return 0;
-				sprintf(stat->data,"v1 %jd %jd \\u0000",(intmax_t)info.f_frsize * (intmax_t)info.f_blocks,(intmax_t)info.f_frsize * (intmax_t)info.f_bfree);
-				
+				sprintf(stat->data,"v1 %jd %jd \\u0000",(intmax_t)info.f_frsize * info.f_blocks,(intmax_t)info.f_frsize * info.f_bfree);
+
 				if (!response_content_send(&resources->stream, response, stat->data, stat->length)) goto error;
 				free(stat);stat=0;
 			}
@@ -592,10 +591,7 @@ if(!level)
 
 	if( ( dir = opendir( path->data ) ) != NULL ) {  
 
-		
-	
 	while( ( entry = readdir( dir ) ) != NULL ) {
-	
 			if( strcmp( (char*)entry->d_name, "." ) == 0 )continue;
 			if( strcmp( (char*)entry->d_name, ".." ) == 0 )continue;
 			d_name_len=strlen((char*)entry->d_name);
@@ -638,7 +634,7 @@ if(!level)
 	else { // TODO errors
 		if(level==1)
 			{
-				fprintf(stderr,"ERROR fs.list strange error in level 1.\n");
+				fprintf(stderr,"ERROR fs.list strange error in level 1. errno=%d\n", (int)errno);
 				goto error;									
 			}
 		else
@@ -1568,9 +1564,10 @@ if(!max_level)goto error;
 remote_json_chunked_init(request, response, resources);
 fs_read_dir(path,block,0,max_level,resources, response);//TODO error handling
 remote_json_chunked_close(response, resources);
-if(block){
-if(block->location)free(block->location);
-free(block);
+if(block)
+{
+	free(block->location);
+	free(block);
 }
 free(path);
 return 0;

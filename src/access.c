@@ -770,9 +770,18 @@ struct blocks_array *access_granted_get_blocks_array(void)//TODO users
 								}
 							else if(entry->d_type==DT_LNK)
 							{
-								linklen=readlink(dirname, linkname, 4090);
-								if(linklen<0)continue;
-								linkname[linklen]=0;
+								struct stat info;
+								char *target = dirname;
+
+								do
+								{
+									linklen = readlink(target, linkname, 4090);
+									if (linklen < 0) continue;
+									linkname[linklen] = 0;
+									target = linkname;
+									if (lstat(target, &info) < 0) continue;
+								} while (S_ISLNK(info.st_mode));
+
 								if(linkname[0]=='/')
 								{
 									if( ( dirtest = opendir( linkname ) ) != NULL ) {

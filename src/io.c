@@ -205,10 +205,13 @@ int socket_connect(const char *hostname, unsigned port)
 	hints.ai_protocol = IPPROTO_TCP;
 
 	*format_uint(buffer, port) = 0;
+	//debug(logs("getaddrinfo() "), logs(hostname, strlen(hostname)), logs(":"), logs(buffer, strlen(buffer)));
 	getaddrinfo(hostname, buffer, &hints, &result);
 	// Cycle through the results until the socket is connected successfully.
 	for(item = result; item; item = item->ai_next)
 	{
+		//char *ip = inet_ntoa(((struct sockaddr_in *)result->ai_addr)->sin_addr);
+		//debug(logs("resolved to "), logs(ip, strlen(ip)), logs(" | last = "), logi(item->ai_next == 0));
 		fd = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
 		if (fd < 0)
 		{

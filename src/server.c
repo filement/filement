@@ -505,6 +505,8 @@ void server_listen(void *storage)
 	socklen_t address_len;
 	pthread_t thread_id;
 
+	debug(logs("Entering server_listen()"));
+
 	// Allocate memory for connection data.
 	connections_size = 8; // TODO change this
 	wait = malloc(connections_size * sizeof(*wait));
@@ -581,6 +583,8 @@ void server_listen(void *storage)
 #endif
 
 #if defined(FILEMENT_UPNP)
+	debug(logs("Setting up UPNP forwarding"));
+
 	// Start a thread to notify routers for port forwarding.
 	// TODO is this okay?
 	int listening_port[PORT_DIFF];

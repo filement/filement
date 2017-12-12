@@ -2,6 +2,8 @@
 
 # Deploys a new version of Filement.
 
+# extract dmg on linux: 7z x
+
 use strict;
 use warnings;
 

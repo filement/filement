@@ -29,7 +29,7 @@ INC='-I../include/ -I./ -Ilib/'
 case "$OSTYPE" in
 	linux*)
 		OS='Linux'
-		DEF="-D_BSD_SOURCE -D_GNU_SOURCE -D_POSIX_SOURCE -D_FILE_OFFSET_BITS=64 -DPLATFORM_ID=4 -DOS_BSD -DOS_LINUX -DPREFIX=\"/\" -DEXECUTABLE=\"/usr/local/bin/filement\" -fPIC"
+		DEF=" -D_GNU_SOURCE -D_POSIX_SOURCE -D_FILE_OFFSET_BITS=64 -DPLATFORM_ID=4 -DOS_BSD -DOS_LINUX -DPREFIX=\"/\" -DEXECUTABLE=\"/usr/local/bin/filement\" -fPIC"
 		LIB="-lm -lz -ldl"
 		SHARED='-shared'
 		SUFFIX='.so'

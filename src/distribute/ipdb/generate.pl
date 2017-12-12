@@ -86,7 +86,7 @@ while (<BLOCKS>)
 	@block = map {unquote $_} split(/,/);
 	$location = $locations[$block[BLOCK_INDEX]];
 
-	print DB qq|{.ip={$block[0],$block[1]},.coords={$location->[0],$location->[1]},.country=$countries{$location->[2]}},\n|;
+	print DB qq|{$block[0],$block[1],$location->[0],$location->[1],$countries{$location->[2]}},\n|;
 }
 print DB "};\n\nconst size_t locations_count = (sizeof(locations) / sizeof(*locations));\n";
 

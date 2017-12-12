@@ -35,7 +35,7 @@
 #include <sys/resource.h>
 
 const struct string app_name = {.data = "FilementDistribute", .length = sizeof("FilementDistribute") - 1};
-const struct string app_version = {.data = "0.14.0", .length = 6};
+const struct string app_version = {.data = "0.15.0", .length = 6};
 
 /* Filement master server
 This server coordinates the work of the whole filement infrastructure

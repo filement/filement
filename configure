@@ -76,7 +76,7 @@ my $version = <VERSION>;
 chop $version;
 close VERSION;
 
-my ($flag_dev, $flag_debug, $flag_upgrade, $flag_upgrade_test, $uuid, $prefix, $android_ndk, $release) = (0, 0, 0, 0, '', '', '/usr/lib/android-ndk', 0);
+my ($flag_dev, $flag_debug, $flag_upgrade, $flag_upgrade_test, $uuid, $prefix, $android_ndk, $android_key, $release) = (0, 0, 0, 0, '', '', '/usr/lib/android-ndk', '', 0);
 
 # Parse command line options.
 for (@ARGV)
@@ -118,6 +118,10 @@ for (@ARGV)
 		$platform = 'android';
 		$android_ndk = $1;
 	}
+	elsif (/^--android-key=(.*)$/)
+	{
+		$android_key = $1;
+	}
 	elsif (/^--release$/)
 	{
 		$release = 1;
@@ -135,6 +139,7 @@ for (@ARGV)
 \t--upgrade-test   \tmake the distribute server only give upgrades to a list of devices designated for development
 \t--uuid=UUID      \tconfigure public cloud with the given UUID
 \t--android-ndk=NDK\tspecify path to Native Development Kit for Android
+\t--android-key=KEY\tspecify signing key for the apk package for Android
 ";
 		exit;
 	}
@@ -265,7 +270,12 @@ elsif ($platform eq 'freebsd')
 }
 elsif ($platform eq 'android')
 {
-	$prefix ||= '/usr/local';
+	if ($release)
+	{
+		$prefix = '';
+		$flag_upgrade = 0;
+		$android_key = '';
+	}
 
 	$cc = 'arm-linux-androideabi-gcc';
 	$shared = '-shared';
@@ -293,8 +303,6 @@ elsif ($platform eq 'android')
 	# 	-DEXECUTABLE="/data/data/com.filement.app/filement"
 	# TODO fix the uuid* functions in device/uuid.c
 	# TODO md5.o and device/uuid.c only for android
-
-	#push @features, '';
 }
 elsif ($platform eq 'ios')
 {
@@ -424,6 +432,12 @@ print "STRIP=$strip\n";
 print "SONAME=$soname\n";
 print "SETUP=$setup\n";
 print "\n";
+if ($platform eq 'android')
+{
+	print "android_ndk=$android_ndk\n";
+	print "android_key=$android_key\n";
+	print "\n";
+}
 print "features: @features\n";
 
 my @replace = (
@@ -446,6 +460,7 @@ my @replace = (
 	'-e', "s/\@{SETUP}/$setup/g",
 	'-e', "s/\@{VERSION}/$version/g",
 	'-e', "s/\@{ARCHITECTURE}/$arch/g",
+	'-e', "s/\@{SIGNKEY}/$android_key/g",
 );
 
 my $length;

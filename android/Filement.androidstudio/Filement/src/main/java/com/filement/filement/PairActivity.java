@@ -30,12 +30,12 @@ public class PairActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
-	
+
 	    setContentView(R.layout.activity_pair);
-	    
+
 	    String abspath=getBaseContext().getFilesDir().getAbsolutePath();
         final String db_path = abspath+"/filement.db";
-       
+
         final View SignInButtonView = findViewById(R.id.PairButton2);
         PairingProgress = (ProgressBar)findViewById(R.id.PairingProgress);
         PairDecriptionLayout = (LinearLayout)findViewById(R.id.pair_descr_layout);

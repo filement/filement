@@ -16,15 +16,13 @@ import android.net.Uri;
 
 public class WebViewLogin extends Activity {
 
-	
 	 public ValueCallback<Uri> mUploadMessage;
 	 public final static int FILECHOOSER_RESULTCODE = 1;
      final public static int PICK_IMAGE = 2;
-	 String url = "http://www.flmntdev.com/index-android.php";
+	 String url = "http://www.filement.com/index-android.php";
      //String url = "http://s.flmntdev.com/upload.php";
 	 HTML5WebView mWebView;
 
-	
 	@Override
 	 protected void onActivityResult(int requestCode, int resultCode,
 	         Intent intent) {
@@ -38,16 +36,11 @@ public class WebViewLogin extends Activity {
 
 	        }
 	 }
-	
-	
-	
-	
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-       
-        
-        
+
         mWebView = new HTML5WebView(this);
       //remove cache for debug
         /*
@@ -67,15 +60,12 @@ public class WebViewLogin extends Activity {
             }     
         });
         */
-       
-        
+
         if (savedInstanceState != null) {
             mWebView.restoreState(savedInstanceState);
         } else {    
             mWebView.loadUrl(url);
         }
-        
-   
 
         setContentView(mWebView.getLayout());
     }
@@ -106,10 +96,9 @@ public class WebViewLogin extends Activity {
         }
         return super.onKeyDown(keyCode, event);
     }
-	
+
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 	     super.onConfigurationChanged(newConfig);
 	}
-
 }

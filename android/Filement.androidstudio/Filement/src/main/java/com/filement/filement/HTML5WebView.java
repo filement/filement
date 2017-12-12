@@ -37,13 +37,13 @@ public class HTML5WebView extends WebView {
         private FrameLayout                                                     mContentView;
         private FrameLayout                                                     mBrowserFrameLayout;
         private FrameLayout                                                     mLayout;
-        
+
     static final String LOGTAG = "webview";
             
         private void init(Context context) {
-                mContext = context;             
+                mContext = context;
                 Activity a = (Activity) mContext;
-               
+
                 mLayout = new FrameLayout(context);
                 
                 mBrowserFrameLayout = (FrameLayout) LayoutInflater.from(a).inflate(R.layout.custom_screen, null);
@@ -151,7 +151,6 @@ public class HTML5WebView extends WebView {
     	            openFileChooser(uploadMsg);
     	        }
 
-
     	        //Android 3.0
     	        public void openFileChooser(ValueCallback<Uri> uploadMsg) {
     	        	WebViewLogin a = (WebViewLogin) mContext;
@@ -163,7 +162,7 @@ public class HTML5WebView extends WebView {
     	                    Intent.createChooser(i, "Image Browser"),
     	                    a.FILECHOOSER_RESULTCODE);
     	        }
-                
+
                 @Override
                 public Bitmap getDefaultVideoPoster() {
                         //Log.i(LOGTAG, "here in on getDefaultVideoPoster");    
@@ -196,9 +195,7 @@ public class HTML5WebView extends WebView {
          public void onProgressChanged(WebView view, int newProgress) {
                  ((Activity) mContext).getWindow().setFeatureInt(Window.FEATURE_PROGRESS, newProgress*100);
          }
-         
-         
-         
+
          /*
          @Override
          public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
@@ -215,20 +212,19 @@ public class HTML5WebView extends WebView {
                 // view.loadUrl(url);
                 return false;
             }
-            
-            
-            
+
             @Override
             public void onReceivedError (WebView view, int errorCode, 
                 String description, String failingUrl) {
                 if (errorCode == ERROR_TIMEOUT || errorCode == ERROR_CONNECT || errorCode == ERROR_HOST_LOOKUP || errorCode == ERROR_FAILED_SSL_HANDSHAKE) {
+                    String msg = "error code = " + errorCode;
                     view.stopLoading();  // may not be needed
-                    view.loadData("<!DOCTYPE html><html><head><title>Error</title><meta charset=\"UTF-8\" /><meta http-equiv=\"cache-control\" content=\"no-cache\" /><meta name=\"keywords\" content=\"\" /><style>body {color: #ffffff;font-family: arial, sans-serif;background-color: #0281b9;}h3 {font-weight: normal;font-size: 260%;position: fixed;top: 50%;left: 32px;right: 32px;margin: -30px auto auto auto;text-align: center;height: 60px;}</style></head> <body><h3>Filement can't be loaded.<br />Check your internet connecton.</h3></body></html>", "text/html", "utf-8");
+                    view.loadData("<!DOCTYPE html><html><head><title>Error</title><meta charset=\"UTF-8\" /><meta http-equiv=\"cache-control\" content=\"no-cache\" /><meta name=\"keywords\" content=\"\" /><style>body {color: #ffffff;font-family: arial, sans-serif;background-color: #0281b9;}h3 {font-weight: normal;font-size: 260%;position: fixed;top: 50%;left: 32px;right: 32px;margin: -30px auto auto auto;text-align: center;height: 60px;}</style></head> <body><h3>Filement can't be loaded.<br />Check your internet connecton (" + msg + ").</h3></body></html>", "text/html", "utf-8");
                 }
                 
             }
         }
-        
+
         static final FrameLayout.LayoutParams COVER_SCREEN_PARAMS =
         new FrameLayout.LayoutParams( ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
 }

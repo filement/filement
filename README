@@ -76,7 +76,7 @@ The repository contains:
 * the source of the device proxy
 
 After the release of the project under GPL, an ongoing effort to improve the project has started. This includes fixing compilation problems, simplifying the compilation process, updating documentation and fixing some known issues.
-So far the device application has been updated for MacOS X and Linux and has been ported to FreeBSD. The gtk+ interface for Linux and FreeBSD has been improved.
+So far the device application has been updated for MacOS X, Linux and Android and has been ported to FreeBSD. The gtk+ interface for Linux and FreeBSD has been improved. Some bugs have also been fixed
 
 The source of the device application for routers will be included at some point. There is a disabled automatic upgrade functionality which requires some maintenance and will eventually be re-enabled.
 

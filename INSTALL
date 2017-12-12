@@ -1,6 +1,6 @@
 # Installation from source
 
-## Preparation on Debian 9
+## Debian 9
 
 Install dependencies.
 
@@ -10,7 +10,30 @@ If you want to use the graphical interface (using GTK+), some additional package
 
 	sudo apt-get install libgtk2.0-dev
 
-## Preparation on Fedora 26
+Download the source.
+
+	git clone https://github.com/filement/filement.git
+	cd filement
+
+Prepare the source for compilation.
+
+	./configure
+
+Compile the source with one of the following commands:
+
+	make filement		# compiles only the command line frontend
+	make filement-gtk	# compiles only the graphical frontend
+	make all			# compiles both frontends
+
+Install filement.
+
+	sudo make install
+
+If you install the graphical interface, you may want to update the index of available icons.
+
+	sudo gtk-update-icon-cache /usr/share/icons/hicolor
+
+## Fedora 26
 
 Setup RPM fusion to get access to all dependencies.
 
@@ -24,16 +47,30 @@ If you want to use the graphical interface (using GTK+), some additional package
 
 	sudo dnf install gtk2-devel
 
-## Preparation on MacOS X 10.8
+Download the source.
 
-Download Xcode from https://developer.apple.com/xcode/ and install it.
-Download Macports from https://www.macports.org/ and install it.
+	git clone https://github.com/filement/filement.git
+	cd filement
 
-Install git.
+Prepare the source for compilation.
 
-	port install git
+	./configure
 
-## Preparation on FreeBSD 11.1
+Compile the source with one of the following commands:
+
+	make filement		# compiles only the command line frontend
+	make filement-gtk	# compiles only the graphical frontend
+	make all			# compiles both frontends
+
+Install filement.
+
+	sudo make install
+
+If you install the graphical interface, you may want to update the index of available icons.
+
+	sudo gtk-update-icon-cache /usr/share/icons/hicolor
+
+## FreeBSD 11.1
 
 Install dependencies (as root).
 
@@ -47,7 +84,56 @@ If you want to use the graphical interface (using GTK+), some additional package
 
 	cd /usr/ports/multimedia/x11-toolkits/gtk20 && make install clean
 
-## Installation on Android
+Download the source.
+
+	git clone https://github.com/filement/filement.git
+	cd filement
+
+Prepare the source for compilation.
+
+	./configure
+
+Compile the source with one of the following commands:
+
+	make filement		# compiles only the command line frontend
+	make filement-gtk	# compiles only the graphical frontend
+	make all			# compiles both frontends
+
+Install filement.
+
+	sudo make install
+
+If you install the graphical interface, you may want to update the index of available icons.
+
+	sudo gtk-update-icon-cache /usr/share/icons/hicolor
+
+## MacOS X 10.8
+
+Download Xcode from https://developer.apple.com/xcode/ and install it.
+Download Macports from https://www.macports.org/ and install it.
+
+Install git.
+
+	port install git
+
+Download the source.
+
+	git clone https://github.com/filement/filement.git
+	cd filement
+
+Prepare the source for compilation.
+
+	./configure
+
+Create a dmg archive.
+
+	make filement.dmg
+
+The archive will be in the current directory. You can then install it like other Mac applications (mounting it and dragging Filement.app to the Applications folder).
+
+## Android 6
+
+The following instructions describe using Debian to compile for Android. Some of the steps will differ when using other host platforms.
 
 Install required packages.
 
@@ -60,37 +146,19 @@ If you need to debug the application, some additional packages are needed.
 
 	sudo apt-get install android-tools-adb
 
-TODO install java sdk
+TODO install java sdk?
 
-Configure and compile for Android. This will require specifying the path to your NDK directory. This will typically be /usr/lib/android-ndk/ (you can check with `dpkg -L google-android-ndk-installer`).
+Generate a sign key (required by Android to install the apk package). Replace <mycert> with a name of your choice for the key.
 
-	./configure --android-ndk=<path_to_ndk>
+	keytool -genkey -v -keystore <mycert>.keystore -alias <mycert> -keyalg RSA -validity 365
+
+Configure and compile for Android. This will require specifying the path to your NDK directory. This will typically be /usr/lib/android-ndk/ (you can check with `dpkg -L google-android-ndk-installer`). You also need to provide the name of of the sign key.
+
+	./configure --android-ndk=<path_to_ndk> --android-key=<mycert>
+
+Create the apk package.
+
 	make android.apk
-
-## Installation for desktop platforms
-
-Download the source.
-
-	git clone https://github.com/filement/filement.git
-	cd filement
-
-Prepare the source for compilation.
-
-	./configure
-
-Compile the source with one of the following commands:
-
-	make filement-gtk	# compiles only the graphical frontend
-	make filement		# compiles only the command line frontend
-	make all			# compiles both frontends
-
-Install filement.
-
-	sudo make install
-
-If you install the graphical interface, you may want to update the index of available icons.
-
-	sudo gtk-update-icon-cache /usr/share/icons/hicolor
 
 # Running Filement
 
@@ -108,24 +176,15 @@ executable name: filement-gtk
 
 # Uninstalling Filement
 
-To uninstall Filement from your PC, execute make in the directory where you compiled Filement:
+Below is described how to uninstall Filement when installed from source.
+
+To uninstall Filement from your Mac, use Finder to go to /Applications and drag Filement.app to the trash.
+
+To uninstall Filement from your Android, go to the list of applications and drag Filement to the uninstall action.
+
+To uninstall Filement on other platforms, use make in the directory where you compiled Filement:
 
 	make uninstall
-
-# Creating Mac archive
-
-	./configure
-	make filement.dmg
-
-# Creating Deb package
-
-	./configure --release
-	make filement.deb
-
-# Creating RPM archive
-
-	./configure --release
-	make filement.rpm
 
 # Compiling other targets
 
@@ -151,6 +210,10 @@ On the target machine, you'll need several libraries:
 	libmariadbclient.so
 	libmemcached.so
 
+# Notes
+
+Some platforms and targets haven't been adapted since the project was released as open source. These include the Windows and various router versions of the device application and the targets pubcloud, ftp proxy and cloud proxy.
+
 ##
 
 TODO
@@ -161,4 +224,10 @@ TODO
 		version information
 		more robust code (create directories in the path, make sure there are no memory leaks and concurrency problems, etc.)
 	modify filement_stop() to cancel server_listen()
-	automate version deployment; make sure upgrade works
+	automate version deployment
+
+	0 make sure rpm and deb can be generated on the existing vms (or update instructions)
+	1 compilation instructions for android
+	2 update distribute server
+	3 test rpm and deb on clean systems (0)
+	4 test mac upgrade (2)

@@ -63,13 +63,15 @@ filement.dmg: mac/build/Release/Filement.app/Contents/MacOS/Filement
 	hdiutil convert /tmp/temp.dmg -ov -format UDZO -imagekey zlib-level=9 -o filement.dmg
 	rm /tmp/temp.dmg
 
-filement.apk:
+lib/libfilement.so:
 	$(MAKE) -C src libfilement.so
+
+filement.apk: lib/libfilement.so
 	rm -f android/Filement.androidstudio/Filement/src/main/jniLibs/armeabi/libfilement.so 
 	ln -f lib/libfilement.so android/Filement.androidstudio/Filement/src/main/jniLibs/armeabi/libfilement.so
 	cd android/Filement.androidstudio && ./gradlew assemble
 	mv android/Filement.androidstudio/Filement/build/outputs/apk/release/Filement-release-unsigned.apk "$@"
-	jarsigner -verbose -keystore filecert.keystore "$@" filecert
+	test -z "@{SIGNKEY}" || jarsigner -verbose -keystore "@{SIGNKEY}.keystore" "$@" "@{SIGNKEY}"
 
 	# keytool -genkey -v -keystore filecert.keystore -alias filecert -keyalg RSA -validity 1
 	# jarsigner -verify "$@"

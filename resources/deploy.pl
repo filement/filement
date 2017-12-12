@@ -2,7 +2,8 @@
 
 # Deploys a new version of Filement.
 
-# extract dmg on linux: 7z x
+# location must contain failsafe and a directory named files
+# cp filement.dmg /tmp && cd /tmp && 7z x filement.dmg && 7z x 4.hfsx && cd - && cp /tmp/Filement/Filement.app files
 
 use strict;
 use warnings;
@@ -17,7 +18,7 @@ use constant SQL_SERVER => 'DBI:mysql:filement;host=127.0.0.1';
 use constant SQL_USERNAME => 'filement';
 use constant SQL_PASSWORD => 'parola';
 
-use constant USAGE => "./deploy.sh [id <major|minor|revision|<version>> [location]]\n\tlocation\t\tDirectory that contains the deployment files.\n";
+use constant USAGE => "./deploy.sh [platform_id <major|minor|revision|<version>> [location]]\n\tlocation\t\tDirectory that contains the deployment files.\n";
 
 my $db = DBI->connect(SQL_SERVER, SQL_USERNAME, SQL_PASSWORD);
 die "Unable to connect to database\n" if !$db;

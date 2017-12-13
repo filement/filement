@@ -379,6 +379,8 @@ int upgrade_list(struct stream *restrict stream, const struct header *restrict h
 	// Devices before 0.17 do not support upgrading.
 	if (!version_support(header, 0, 17)) return ERROR_UNSUPPORTED;
 
+	debug(logs("Looking for upgrade for "), logs(b, UUID_SIZE * 2), logs(" version "), logi(header->version_major), logs("."), logi(header->version_minor), logs("."), logi(header->revision));
+
 #if defined(UPGRADE_TEST)
 	// Permit upgrades only for the devices with the specified UUIDs.
 	char permitted[][32] = {
@@ -398,8 +400,6 @@ int upgrade_list(struct stream *restrict stream, const struct header *restrict h
 	return ERROR_CANCEL;
 test: ;
 #endif
-
-	debug(logs("Looking for upgrade for "), logs(b, UUID_SIZE * 2), logs(" version "), logi(header->version_major), logs("."), logi(header->version_minor), logs("."), logi(header->revision));
 
 	char buffer[BUFFER_SIZE], *start = format_bytes(buffer, REPOSITORY, sizeof(REPOSITORY) - 1);
 	struct string platform;

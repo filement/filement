@@ -152,7 +152,7 @@ $platform = $Config{'osname'} if !defined($platform);
 $target = 'pubcloud' if (defined($clouds{$uuid}));
 
 my ($cc, $shared, $suffix, $storage, $storage_flags, $root, $libs, $libs_, $strip, $soname, $gmp, $setup);
-my $flags = ($flag_debug ? ' -g -fstack-protector-all' : ' -fomit-frame-pointer');
+my $flags = ($flag_debug ? ' -O0 -g -fstack-protector-all' : ' -fomit-frame-pointer');
 my $definitions = ($flag_dev ? '-DTEST=-10' : '').($flag_debug ? ' -DRUN_MODE=1 -DDEBUG' : ' -DRUN_MODE=2').($flag_upgrade ? ' -DUPGRADE' : '').($flag_upgrade_test ? ' -DUPGRADE_TEST' : '');
 my $cflags = '';
 my $link = '';

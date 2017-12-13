@@ -850,6 +850,12 @@ static void device_handle(const struct connection *restrict info, struct stream 
 		response = string(&answer, 1);
 		if (stream_write(stream, &response)) return;
 
+#if RUN_MODE <= 1
+		char b[UUID_SIZE * 2];
+		format_hex(b, header.uuid, UUID_SIZE);
+		debug(logs("Command "), logi(header.cmd), logs(" from "), logs(b, sizeof(b)));
+#endif
+
 		switch (header.cmd)
 		{
 			int32_t client_id;

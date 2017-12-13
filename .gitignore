@@ -8,8 +8,15 @@ src/distribute/cloud.c
 src/distribute/ftp.c
 src/actions_sorted.h
 src/actions.out
+
 mac/build
+
 android/Filement.androidstudio/build
+android/Filement.androidstudio/local.properties
+*.keystore
+*.iml
+.idea
+
 linux/control
 linux/filement.spec
 Makefile

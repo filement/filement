@@ -194,7 +194,7 @@ if ($platform eq 'darwin')
 	$cflags .= ' -pthread -Wno-unused-value -Wno-empty-body';
 	$link .= ' -lz -lresolv -framework CoreFoundation -framework CoreServices -framework VideoDecodeAcceleration -framework QuartzCore -framework Security';
 
-	$root = '';
+	$root = '/usr';
 	$storage = 'storage_sqlite';
 	$libs = 'libepeg.a libjpeg.a libminiupnpc.a libavformat.a libavcodec.a libavutil.a libgnutls.a libnettle.a libhogweed.a libgmp.a';
 
@@ -227,7 +227,7 @@ elsif ($platform eq 'linux')
 	$link .= ' `pkg-config --libs libavformat libavutil`' if (($target eq 'device') || ($target eq 'pubcloud'));
 	$link .= ' -lz -lgnutls -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
 
-	$root = '';
+	$root = '/usr';
 	$storage = 'storage_sqlite';
 	$libs = 'libepeg.a libjpeg.a'.(($target eq 'pubcloud') ? '' : ' libminiupnpc.a');
 
@@ -260,7 +260,7 @@ elsif ($platform eq 'freebsd')
 	$cflags .= ' `pkg-config --cflags libavformat libavutil` -Wno-unused-value'; # replace with -Wno-unused-result
 	$link .= ' -lz -lgnutls `pkg-config --libs libavformat libavutil` -lm -lexecinfo';
 
-	$root = '';
+	$root = '/usr';
 	$storage = 'storage_sqlite';
 	$libs = 'libepeg.a libjpeg.a'; # TODO fix miniupnpc; its makefile is not compatible with freebsd
 
@@ -285,7 +285,7 @@ elsif ($platform eq 'android')
 	$strip = "cp ../bin/device ../bin/device_stripped\\n\\tstrip -R .comment -R .note ../bin/device_stripped";
 	$strip = ''; # TODO remove this
 
-	$flags .= " --sysroot=$android_ndk/platforms/android-21/arch-arm -pthread -marm -Wno-unused-result"; # http://www.apps4android.org/?p=4926
+	$flags .= " --sysroot=$android_ndk/platforms/android-21/arch-arm -pthread -marm -Wno-unused-result"; # https://developer.android.com/about/dashboards/index.html
 	$flags .= ' -O2 -fstrict-aliasing' if !$flag_debug;
 	$definitions .= ' -DPLATFORM_ID=10 -DOS_ANDROID -D_GNU_SOURCE -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700'; # TODO set prefix
 	$cflags .= ' -I../android -Wno-unused-value'; # replace with -Wno-unused-result
@@ -390,7 +390,7 @@ $cflags .= ' -D'.uc($target);
 # TODO do make mrpropper (but manually since Makefile may not exist) // wtf? if it does not exist, there is no need to call mrpropper
 
 # Preprocess actions.
-system qq(gcc -E -x c $cflags -o src/actions.out src/actions.in);
+system qq("$root/bin/$cc" -E -x c $cflags -o src/actions.out src/actions.in);
 
 my $mac = $definitions;
 $mac =~ s/-D//g;

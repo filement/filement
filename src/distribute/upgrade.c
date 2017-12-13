@@ -9,6 +9,7 @@
 #include <mysql/mysql.h>				// libmysql
 
 #include "types.h"
+#include "log.h"
 #include "buffer.h"
 #include "format.h"
 #include "stream.h"
@@ -370,6 +371,11 @@ int upgrade_list(struct stream *restrict stream, const struct header *restrict h
 	return ERROR_CANCEL;
 #endif
 
+#if RUN_MODE <= 1
+	char b[UUID_SIZE * 2];
+	bin2hex(b, header->uuid, UUID_SIZE);
+#endif
+
 	// Devices before 0.17 do not support upgrading.
 	if (!version_support(header, 0, 17)) return ERROR_UNSUPPORTED;
 
@@ -388,9 +394,12 @@ int upgrade_list(struct stream *restrict stream, const struct header *restrict h
 		if (!memcmp(header->uuid, bin, UUID_SIZE))
 			goto test;
 	}
+	debug(logs("Upgrade skipped for "), logs(b, UUID_SIZE * 2), logs(" version "), logi(header->version_major), logs("."), logi(header->version_minor), logs("."), logi(header->revision));
 	return ERROR_CANCEL;
 test: ;
 #endif
+
+	debug(logs("Looking for upgrade for "), logs(b, UUID_SIZE * 2), logs(" version "), logi(header->version_major), logs("."), logi(header->version_minor), logs("."), logi(header->revision));
 
 	char buffer[BUFFER_SIZE], *start = format_bytes(buffer, REPOSITORY, sizeof(REPOSITORY) - 1);
 	struct string platform;
@@ -451,6 +460,8 @@ test: ;
 	upgrade_diff(&changes, current_checksum, latest_checksum);
 	close(latest_checksum);
 	close(current_checksum);
+
+	debug(logs("There are "), logi(changes.length - 1), logs(" changes for "), logs(b, UUID_SIZE * 2), logs(" version "), logi(header->version_major), logs("."), logi(header->version_minor), logs("."), logi(header->revision));
 
 	if (changes.length > 1) // failsafe is always added to changes
 	{

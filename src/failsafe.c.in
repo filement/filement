@@ -86,11 +86,11 @@ int main(void)
 	bool success;
 #if !defined(OS_WINDOWS)
 # if defined(OS_MAC)
-	struct string command = string(PREFIX "/Contents/MacOS/Filement");
+	const char *command = PREFIX "/Contents/MacOS/Filement";
 # else /* defined(OS_LINUX) || defined(OS_FREEBSD) */
-	struct string command = string("filement")
+	const char *command = "filement"
 # endif
-	success = filement_upgrade(&command);
+	success = filement_upgrade(command);
 	return success;
 #else /* defined(OS_WINDOWS) */
 	if (!do_upgrade) windows_upgrade();

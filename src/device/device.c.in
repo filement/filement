@@ -104,28 +104,22 @@ bool filement_init(void)
 #endif
 
 #if defined(FILEMENT_UPGRADE)
-	struct string *failsafe = upgrade_failsafe();
-	if (!failsafe)
-		fail(21, "Cannot generate failsafe name");
-
-	if (access(failsafe->data, X_OK) == 0) // failsafe exists
+	struct string failsafe = string(FAILSAFE_PATH);
+	if (access(failsafe.data, X_OK) == 0) // failsafe exists
 	{
 		// Cancel process execution if an upgrade procedure is started but not finished.
 		// The FILEMENT_SETUP environment variable indicates that the upgrade procedure finished.
 		if (getenv("FILEMENT_SETUP"))
 		{
 			// Remove failsafe.
-			startup_remove(failsafe);
-			unlink(failsafe->data);
+			startup_remove(&failsafe);
+			unlink(failsafe.data);
 		}
 		else
 		{
-			free(failsafe);
 			fail(0, "There is unfinished upgrade. Terminating.");
 		}
 	}
-
-	free(failsafe);
 #endif
 
 	server_init();

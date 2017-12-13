@@ -43,6 +43,7 @@
 
 #include "sha2.h"
 #include "distribute.h"
+#include "upgrade.h"
 #include "filement.h"
 
 #ifdef OS_BSD
@@ -73,8 +74,6 @@ extern struct string app_location_name;
 #endif
 
 #define TEMP_DIR "/tmp/filement/"
-
-#define FAILSAFE_PATH PREFIX "/bin/filement_failsafe"
 
 #define RECORD_LENGTH_MAX 1024
 

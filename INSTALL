@@ -110,11 +110,7 @@ If you install the graphical interface, you may want to update the index of avai
 ## MacOS X 10.8
 
 Download Xcode from https://developer.apple.com/xcode/ and install it.
-Download Macports from https://www.macports.org/ and install it.
-
-Install git.
-
-	port install git
+Download git from https://git-scm.com/download/mac and install it.
 
 Download the source.
 
@@ -133,20 +129,18 @@ The archive will be in the current directory. You can then install it like other
 
 ## Android 6
 
-The following instructions describe using Debian to compile for Android. Some of the steps will differ when using other host platforms.
+The following instructions describe using Debian to compile for Android. Some of the steps will differ when using other host platforms. The whole process may require around 10GiB of disk space.
 
-Install required packages.
+Install required packages. You'll need to make sure apt is configured to use contrib packages (in /etc/apt/sources.list).
 
-	sudo apt-get install google-android-ndk-installer
+	sudo apt-get install git binutils google-android-ndk-installer android-sdk gradle
 
-Download Android studio from https://developer.android.com/studio/index.html and install it.
-Installation of additional packages like a specific SDK version may be required.
+	google-android-m2repository-installer
 
-If you need to debug the application, some additional packages are needed.
+Download the source.
 
-	sudo apt-get install android-tools-adb
-
-TODO install java sdk?
+	git clone https://github.com/filement/filement.git
+	cd filement
 
 Generate a sign key (required by Android to install the apk package). Replace <mycert> with a name of your choice for the key.
 
@@ -154,11 +148,22 @@ Generate a sign key (required by Android to install the apk package). Replace <m
 
 Configure and compile for Android. This will require specifying the path to your NDK directory. This will typically be /usr/lib/android-ndk/ (you can check with `dpkg -L google-android-ndk-installer`). You also need to provide the name of of the sign key.
 
-	./configure --android-ndk=<path_to_ndk> --android-key=<mycert>
+	./configure --android-ndk=/usr/lib/android-ndk --android-key=<mycert>
+
+Due to a bug in gradle, write permission is required in the android-sdk directory. As a workaround, you can create a copy of android-sdk that is writable for the user executing make. The environment variable ANDROID_HOME is used by gradle to locate the sdk. It is also required by gradle that the license of android-sdk is accepted.
+
+	export ANDROID_HOME=/tmp/filement_android-sdk
+	cp -r /usr/lib/android-sdk "$ANDROID_HOME"
+	mkdir -p "$ANDROID_HOME/licenses"
+	echo -e "\nd56f5187479451eabf01fb78af6dfcb131a6481e" > "$ANDROID_HOME/licenses/android-sdk-license"
 
 Create the apk package.
 
-	make android.apk
+	make filement.apk
+
+Finally, you can remove the copy of the sdk.
+
+	rm -r /tmp/filement_android-sdk
 
 # Running Filement
 
@@ -166,7 +171,7 @@ In order to start using Filement, you need to create an account in filement.com 
 Visit http://www.filement.com/register to create an account.
 
 Registration is done by running any of the filement executables and specifying the email of your account and a name and password for the device. The password is used to protect the access to the device from within your account.
-Two executables are available. Both can be used to start the filement device server. On the first start, the device must be registered in the Filement infrastructure. After the registration, the device will start automatically on login.
+Two executables are available. Both can be used to start the filement device server. On the first start, you have to register the device in the Filement infrastructure. After the registration, the device will start automatically on login.
 
 executable name: filement
 	Intended to be used from the command line.
@@ -226,8 +231,6 @@ TODO
 	modify filement_stop() to cancel server_listen()
 	automate version deployment
 
-	0 make sure rpm and deb can be generated on the existing vms (or update instructions)
-	1 compilation instructions for android
-	2 update distribute server
+	4 test mac upgrade
+	0 make sure rpm and deb can be generated on the existing vms (or update instructions) (4)
 	3 test rpm and deb on clean systems (0)
-	4 test mac upgrade (2)

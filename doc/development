@@ -34,3 +34,21 @@ For Android, you'll also need to add the android-ndk option.
 To debug filement, you need to add the option --debug so that debug logging is enabled, debug symbols are added to the executable, etc.
 
 	./configure --debug
+
+In order to use the debug library, include its path to the list of directories with libraries.
+
+	export LD_LIBRARY_PATH=`pwd`/lib
+
+The executable will be in the bin directory.
+
+	gdb bin/filement
+
+## Debugging on Mac
+
+# Development for Android
+
+For Android development, you'll need Android Studio. You can download Android studio from https://developer.android.com/studio/index.html and then install it. Installation of additional packages like a specific SDK version may be required.
+
+If you need to debug the application, some additional packages are needed.
+
+	sudo apt-get install android-tools-adb

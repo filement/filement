@@ -30,9 +30,12 @@
 # include "../io.h"
 #endif
 
-#define terminated(stream) (!(stream)->_input)
+// TODO future improvements
+//  buffering more data can speed things up (e.g. larger TLS_RECORD)
+//  check how different sizes were chosen (e.g. WRITE_MAX)
+//  more friendly API handling for when reading huge amounts of data is requested
 
-// TODO: read about TLS packet size (negotiated maximum record size)
+// TODO: read about TLS packet size (negotiated maximum record size) // TODO I no longer seem to find the document describing such size limit is a performance optimization
 #define TLS_RECORD		1024
 
 #define WRITE_MAX 8192 /* rename this */
@@ -46,21 +49,16 @@
 
 // TODO consider using readv and circular read buffer http://stackoverflow.com/questions/3575424/buffering-data-from-sockets
 
-// TODO: don't allow operations on a terminated stream
-
-// http://docs.fedoraproject.org/en-US/Fedora_Security_Team//html/Defensive_Coding/sect-Defensive_Coding-TLS-Client-GNUTLS.html
+// TODO ? don't allow operations on a terminated stream
 
 // GNU TLS pitfalls
 //  http://lists.gnu.org/archive/html/help-gnutls/2009-12/msg00011.html
-//  http://lists.gnutls.org/pipermail/gnutls-help/2002-August.txt
 //  http://lists.gnutls.org/pipermail/gnutls-help/2009-December/001901.html
-//  http://docs.fedoraproject.org/en-US/Fedora_Security_Team//html/Defensive_Coding/chap-Defensive_Coding-TLS.html#sect-Defensive_Coding-TLS-Pitfalls-GNUTLS
-//  http://docs.fedoraproject.org/en-US/Fedora_Security_Team//html/Defensive_Coding/chap-Defensive_Coding-TLS.html#ex-Defensive_Coding-TLS-Nagle
 
 #if defined(FILEMENT_TLS)
 // TLS implementation based on X.509
 
-# include "gnutls/gnutls.h"					// libgnutls
+# include <gnutls/gnutls.h>
 
 // certificate authorities
 #if defined(OS_MAC)
@@ -296,7 +294,7 @@ int stream_init(struct stream *restrict stream, int fd)
 
 int stream_term(struct stream *restrict stream)
 {
-	if (terminated(stream)) return true;
+	if (!stream->_input) return true;
 
 	free(stream->_input);
 	stream->_input = 0;
@@ -326,7 +324,7 @@ size_t stream_cached(const struct stream *stream)
 #endif
 }
 
-static int timeout(int fd, short event)
+static int timeout(int fd, short event, unsigned long traffic)
 {
 	struct pollfd wait = {
 		.fd = fd,
@@ -335,9 +333,17 @@ static int timeout(int fd, short event)
 	};
 	int status;
 
+	int time;
+	if (traffic < 64 * 1024)
+		time = 1250; // 1.25s
+	else if (traffic < 1024 * 1024)
+		time = 5000; // 5s
+	else
+		time = 20000; // 20s
+
 	while (1)
 	{
-		status = poll(&wait, 1, TIMEOUT);
+		status = poll(&wait, 1, time);
 		if (status > 0)
 		{
 			if (wait.revents & event) return 0;
@@ -432,6 +438,7 @@ read:
 			{
 				stream->_input_length += size;
 				available += size;
+				stream->traffic_ += size;
 				if (available < length) continue;
 				else break;
 			}
@@ -448,7 +455,7 @@ read:
 					int status;
 				case GNUTLS_E_AGAIN: // TODO ?call timeout(, POLLOUT)
 					// Check if there is more data waiting to be read.
-					if (status = timeout(stream->fd, POLLIN)) return status;
+					if (status = timeout(stream->fd, POLLIN, stream->traffic_)) return status;
 				case GNUTLS_E_INTERRUPTED:
 					continue;
 
@@ -468,7 +475,7 @@ read:
 			if ((errno == EAGAIN) || (errno == EWOULDBLOCK))
 			{
 				// Check if there is more data waiting to be read.
-				int status = timeout(stream->fd, POLLIN);
+				int status = timeout(stream->fd, POLLIN, stream->traffic_);
 				if (status) return status;
 			}
 			else if (errno != EINTR) return errno_error(errno);
@@ -510,6 +517,7 @@ static ssize_t stream_write_internal(struct stream *restrict stream, const char 
 		if (status > 0)
 		{
 			stream->_tls_retry = 0;
+			stream->traffic_ += status;
 			return status;
 		}
 		// TODO handle all possible errors and handle them properly
@@ -535,6 +543,7 @@ static ssize_t stream_write_internal(struct stream *restrict stream, const char 
 		status = errno_error(errno);
 		if (status == ERROR_AGAIN) return 0;
 	}
+	stream->traffic_ += status;
 	return status;
 }
 
@@ -598,7 +607,7 @@ int stream_write(struct stream *restrict stream, const struct string *buffer)
 		if (available > BUFFER_SIZE_MAX)
 		{
 			// The remaining data is too much to buffer it. Wait until more data can be written.
-			if (size = timeout(stream->fd, POLLOUT)) return size;
+			if (size = timeout(stream->fd, POLLOUT, stream->traffic_)) return size;
 		}
 		else
 		{
@@ -653,7 +662,7 @@ int stream_write(struct stream *restrict stream, const struct string *buffer)
 		if (available > BUFFER_SIZE_MAX)
 		{
 			// The remaining data is too much to buffer it. Wait until more data can be written.
-			if (size = timeout(stream->fd, POLLOUT)) return size;
+			if (size = timeout(stream->fd, POLLOUT, stream->traffic_)) return size;
 		}
 		else
 		{
@@ -689,16 +698,12 @@ int stream_write_flush(struct stream *restrict stream)
 		}
 		else if (size)
 		{
-			warning(logs("stream_write_flush() internal returns negative (fd="), logi(stream->fd), logs(")"));
 			return size;
 		}
 
 		// Wait until more data can be written.
-		if (size = timeout(stream->fd, POLLOUT))
-		{
-			if (!size) warning(logs("stream_write_flush() timeout returns 0 (fd="), logi(stream->fd), logs(")"));
+		if (size = timeout(stream->fd, POLLOUT, stream->traffic_))
 			return size;
-		}
 	}
 
 	// Set output buffer as empty. Shrink it if necessary.

@@ -16,6 +16,8 @@ struct stream
 	void *_tls;
 	size_t _tls_retry; // amount of data that could not be written without blocking on the last request
 #endif
+
+	unsigned long traffic_; // total amount of data that was read and written through the stream
 };
 
 #if defined(FILEMENT_TLS)

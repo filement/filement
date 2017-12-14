@@ -763,5 +763,6 @@ int response_entity_send(struct stream *restrict stream, struct http_response *r
 
 		status = stream_write(stream, &content);
 	}
+if (status) debug(logs("entity status="), logi(status));
 	return (status ? status : stream_write_flush(stream));
 }

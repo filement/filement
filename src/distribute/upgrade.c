@@ -373,7 +373,7 @@ int upgrade_list(struct stream *restrict stream, const struct header *restrict h
 
 #if RUN_MODE <= 1
 	char b[UUID_SIZE * 2];
-	bin2hex(b, header->uuid, UUID_SIZE);
+	format_hex(b, header->uuid, UUID_SIZE);
 #endif
 
 	// Devices before 0.17 do not support upgrading.
@@ -465,19 +465,28 @@ test: ;
 
 	if (changes.length > 1) // failsafe is always added to changes
 	{
+		debug(logi(0));
 		struct string version = string(current, current_length);
 		struct string *response = upgrade_response(&changes, header, platform_id, &platform, &version);
+		debug(logi(1));
 		if (response)
 		{
+		debug(logi(2));
 			if (stream_write(stream, response) || stream_write_flush(stream))
 			{
+		debug(logi(3));
 				for(index = 0; index < changes.length; ++index) free(vector_get(&changes, index));
+		debug(logi(4));
 				vector_term(&changes);
+		debug(logi(5));
 				return -1; // TODO error
 			}
+		debug(logi(6));
 			free(response);
+		debug(logi(7));
 		}
 		else ERROR_MEMORY; // TODO this can be ERROR_UNSUPPORTED
+		debug(logi(8));
 	}
 
 	for(index = 0; index < changes.length; ++index) free(vector_get(&changes, index));

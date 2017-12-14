@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <limits.h>
@@ -436,7 +437,7 @@ read:
 			}
 			else if (!size) return ERROR_NETWORK;
 
-			// assert(size < 0);
+			assert(size < 0);
 			// TODO handle all possible errors and handle them properly
 
 #if defined(FILEMENT_TLS)
@@ -550,7 +551,7 @@ int stream_write(struct stream *restrict stream, const struct string *buffer)
 	while (available = stream->_output_length - stream->_output_index)
 	{
 #if defined(FILEMENT_TLS)
-		// Send as much data as possible in a single request for TLS unless we must retry the last write attempt.
+		// Prepare as much data as possible in a single TLS write, unless we must retry the last write attempt.
 		// Add more data to the output buffer if the available data is less than the optimal amount.
 		if (stream->_tls && !stream->_tls_retry && (available < TLS_RECORD))
 		{
@@ -564,11 +565,11 @@ int stream_write(struct stream *restrict stream, const struct string *buffer)
 				stream->_output_index = 0;
 			}
 
-			// If the data is less than the expected packet size, buffer it without sending anything.
-			if (rest > buffer->length)
+			// If the data to write is less than the expected packet size, buffer it without sending anything.
+			if (rest > (buffer->length - index))
 			{
-				memcpy(stream->_output + stream->_output_length, buffer->data + index, buffer->length);
-				stream->_output_length += buffer->length;
+				memcpy(stream->_output + stream->_output_length, buffer->data + index, buffer->length - index);
+				stream->_output_length += buffer->length - index;
 				return 0;
 			}
 

@@ -395,6 +395,8 @@ system qq("$root/bin/$cc" -E -x c $cflags -o src/actions.out src/actions.in);
 my $mac = "$definitions $features";
 $mac =~ s/-D//g;
 
+my $arch_deb = (($arch eq 'x86_64') ? 'amd64' : $arch);
+
 $storage_flags //= '';
 $setup //= '';
 
@@ -412,6 +414,7 @@ $strip =~ s/\//\\\//g;
 open STDOUT, '>', 'config.log';
 print "version=$version\n";
 print "arch=$arch\n";
+print "arch_deb=$arch_deb\n";
 print "uuid=$uuid\n";
 print "prefix=$prefix\n";
 print "public_release=$public\n";
@@ -461,6 +464,7 @@ my @replace = (
 	'-e', "s/\@{SETUP}/$setup/g",
 	'-e', "s/\@{VERSION}/$version/g",
 	'-e', "s/\@{ARCHITECTURE}/$arch/g",
+	'-e', "s/\@{ARCHITECTURE_DEB}/$arch_deb/g",
 	'-e', "s/\@{SIGNKEY}/$android_key/g",
 );
 
@@ -553,7 +557,7 @@ if ($platform eq 'linux')
 {
 	unlink 'linux/control';
 	open STDOUT, '>', 'linux/control';
-	system 'sed', '-e', "s/\@{VERSION}/$version-0/", '-e', "s/\@{ARCH}/$arch/", 'linux/control.in';
+	system 'sed', '-e', "s/\@{VERSION}/$version-0/", '-e', "s/\@{ARCH}/$arch_deb/", 'linux/control.in';
 	chmod 0444, 'linux/control';
 
 	unlink 'linux/filement.spec';

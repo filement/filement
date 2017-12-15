@@ -5,5 +5,5 @@ Installed-Size: 32768
 Maintainer: Martin Kunev <martinkunev@gmail.com>
 Architecture: @{ARCH}
 Version: @{VERSION}
-Depends: libc6 (>= 2.5), libgnutls30 libavformat57 libavutil55
+Depends: libc6 (>= 2.5), libgnutls30, libavformat57, libavutil55
 Description: Server that lets you access your data from the Filement web interface. See filement.com for details.

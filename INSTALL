@@ -133,9 +133,7 @@ The following instructions describe using Debian to compile for Android. Some of
 
 Install required packages. You'll need to make sure apt is configured to use contrib packages (in /etc/apt/sources.list).
 
-	sudo apt-get install git binutils google-android-ndk-installer android-sdk gradle
-
-	google-android-m2repository-installer
+	sudo apt-get install git binutils google-android-ndk-installer android-sdk google-android-m2repository-installer gradle
 
 Download the source.
 
@@ -228,9 +226,10 @@ TODO
 	gui app
 		version information
 		more robust code (create directories in the path, make sure there are no memory leaks and concurrency problems, etc.)
-	modify filement_stop() to cancel server_listen()
-	automate version deployment
+	? modify filement_stop() to cancel server_listen()
 
-	4 test mac upgrade
-	0 make sure rpm and deb can be generated on the existing vms (or update instructions) (4)
-	3 test rpm and deb on clean systems (0)
+	1 make sure rpm and deb can be generated on the existing vms (or update instructions)
+	3 test rpm and deb on clean systems (1)
+
+	add suggestion to deb package for filement-index
+	https://www.debian.org/doc/manuals/distribute-deb/distribute-deb.html

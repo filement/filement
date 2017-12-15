@@ -68,7 +68,6 @@ lib/libfilement.so:
 
 filement.apk: lib/libfilement.so
 	rm -f android/Filement.androidstudio/Filement/src/main/jniLibs/armeabi/libfilement.so 
-	ln -f lib/libfilement.so android/Filement.androidstudio/Filement/src/main/jniLibs/armeabi/libfilement.so
 	cd android/Filement.androidstudio && ./gradlew assemble
 	mv android/Filement.androidstudio/Filement/build/outputs/apk/release/Filement-release-unsigned.apk "$@"
 	test -z "@{SIGNKEY}" || jarsigner -verbose -keystore "@{SIGNKEY}.keystore" "$@" "@{SIGNKEY}"

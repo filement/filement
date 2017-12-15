@@ -18,14 +18,13 @@
 #endif
 
 #include "types.h"
+#include "log.h"
 #include "format.h"
 #include "magic.h"
 #include "actions.h"
 #include "download.h"
 #include "evfs.h"
 #include "earchive.h"
-
-#include "log.h"
 
 // TODO: fix this
 #if !defined(O_NOFOLLOW)
@@ -69,16 +68,12 @@ int http_download(const struct string *path, const struct http_request *request,
 
 	struct string key, value;
 
-	debug(logi(0));
-
 #if !defined(OS_WINDOWS)
 	file = open(path->data, O_RDONLY | O_NOFOLLOW);
 #else
 	file = open(path->data, O_RDONLY | O_BINARY);
 #endif
 	if (file < 0) return http_errno_status(errno);
-
-	debug(logi(1));
 
 	// Use fstat on the descriptor to ensure that the stated file is the opened one.
 	// This prevents some possible TOCTOU attacks.
@@ -92,15 +87,11 @@ int http_download(const struct string *path, const struct http_request *request,
 		return http_errno_status(errno);
 	}
 
-	debug(logi(2));
-
 	if (!S_ISREG(info.st_mode))
 	{
 		close(file);
 		return NotFound;
 	}
-
-	debug(logi(3));
 
 	// Content-Type - Detected by magic bytes
 	key = string("Content-Type");
@@ -115,8 +106,6 @@ int http_download(const struct string *path, const struct http_request *request,
 		return -1; // memory error
 	}
 
-	debug(logi(4));
-
 	response->code = OK;
 	if (!response_headers_send(stream, request, response, info.st_size))
 	{
@@ -124,24 +113,20 @@ int http_download(const struct string *path, const struct http_request *request,
 		return -1;
 	}
 
-	debug(logi(5));
-
 	if (response->content_encoding) // if response body is required
 	{
 #if !defined(OS_WINDOWS)
 # if defined(E64)
 		char *buffer = mmap(0, info.st_size, PROT_READ, MAP_PRIVATE, file, 0);
 		close(file);
-		if (buffer == MAP_FAILED) {debug(logs("download mmap | errno="), logi(errno)); return http_errno_status(errno);} // TODO what if after the headers are sent, mmap fails and no headers can be sent to indicate the error?
+		if (buffer == MAP_FAILED) return http_errno_status(errno); // TODO what if after the headers are sent, mmap fails and no headers can be sent to indicate the error?
 
 		status = response_content_send(stream, response, buffer, info.st_size);
 		munmap(buffer, info.st_size);
-		if (!status) {debug(logs("content send error")); return -1;}
+		if (!status) return -1;
 # else
 		#define MMAP_PART_BUFFER 67108864 /* 64MiB */
 		// assert(!(MMAP_PART_BUFFER % sysconf(_SC_PAGE_SIZE)));
-
-	debug(logi(6));
 
 		char *buffer;
 		off_t offset = 0, size;
@@ -161,10 +146,8 @@ int http_download(const struct string *path, const struct http_request *request,
 
 			status = response_entity_send(stream, response, buffer, size);
 			munmap(buffer, size);
-			if (status) {debug(logs("entity send failed with status "), logi(status)); return -1;} // TODO
+			if (status) return -1; // TODO
 		}
-
-	debug(logi(7));
 
 		#undef MMAP_PART_BUFFER
 # endif
@@ -200,8 +183,6 @@ int http_download(const struct string *path, const struct http_request *request,
 		}
 #endif
 	}
-
-	debug(logi(8));
 
 	return 0;
 }

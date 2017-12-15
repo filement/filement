@@ -143,10 +143,10 @@ int main(int argc, char *argv[])
 	}
 #endif
 
-#if defined(FILEMENT_UPGRADE) && !defined(OS_MAC) /* upgrade on mac is not supported with this executable */
+#if defined(FILEMENT_UPGRADE)
 	// Check for new version of the Filement device software.
-	/*if (!filement_upgrade("filement"))
-		error(logs("Upgrade failed"));*/
+	if (!filement_upgrade("filement"))
+		error(logs("Upgrade failed"));
 #endif
 
 	filement_daemon();

@@ -355,7 +355,6 @@ static int checksum_match(const struct string *restrict filename, uint8_t origin
 static bool download_temp(struct stream *restrict stream, const struct vector *files)
 {
 	struct string host = string(HOST_DISTRIBUTE_HTTP);
-	struct paste copy;
 
 	// Create temporary directory for downloaded files. If such directory already exists, use it.
 	if (mkdir(TEMP_DIR, 0700) < 0)
@@ -380,6 +379,8 @@ static bool download_temp(struct stream *restrict stream, const struct vector *f
 	int status;
 	for(index = 0; index < files->length; ++index)
 	{
+		struct paste copy;
+
 		file = vector_get(files, index);
 		filename = file->line;
 		temp = temp_filename(filename + 1);
@@ -398,9 +399,10 @@ static bool download_temp(struct stream *restrict stream, const struct vector *f
 		free(temp);
 		if (status)
 		{
-			error_("Transfer error");
+			error(logs("Transfer error "), logi(status));
 			goto error;
 		}
+		else debug(logs("Transferred "), logs(filename->data, filename->length));
 	}
 
 	return true;
@@ -535,9 +537,7 @@ bool filement_upgrade(const char *exec)
 	}
 
 	// TODO is this necessary?
-/*
-	umask(0);
-*/
+	//umask(0);
 
 	struct vector download, remove;
 
@@ -563,6 +563,7 @@ bool filement_upgrade(const char *exec)
 	struct stream stream;
 	struct string host = string(HOST_DISTRIBUTE_HTTP);
 	struct paste copy;
+	bool downloaded = false;
 
 	// Install the new version
 
@@ -576,7 +577,8 @@ bool filement_upgrade(const char *exec)
 	if (stream_init(&stream, fd)) fail(1, "Memory error");
 
 	// Download all the necessary files in a temporary directory
-	if (!download_temp(&stream, &download)) // TODO maybe it's better to make sure this is in the same filesystem
+	downloaded = download_temp(&stream, &download); // TODO maybe it's better to make sure this is in the same filesystem
+	if (!downloaded)
 	{
 		error_("Unable to download upgrade");
 		goto error;
@@ -587,13 +589,6 @@ bool filement_upgrade(const char *exec)
 
 	struct string *failsafe_src = ((struct entry *)vector_get(&remove, 0))->line, failsafe_dest = string(FAILSAFE_PATH);
 
-	bool success = (*startup_add)(&failsafe_dest);
-	if (!success)
-	{
-		error_("Cannot add startup item");
-		goto error;
-	}
-
 	copy.source = failsafe_src;
 	copy.destination = &failsafe_dest;
 	format_byte(copy.progress, 0, CACHE_KEY_SIZE);
@@ -601,17 +596,26 @@ bool filement_upgrade(const char *exec)
 
 	if (http_transfer(&stream, &host, failsafe_src, &copy)) // TODO last argument shouldn't be obligatory
 	{
-		// TODO remove failsafe from startup
 		error_("Transfer error while downloading failsafe");
 		goto error;
 	}
 	if (chmod(failsafe_dest.data, 0100) < 0) // Make the failsafe executable
 	{
-		// TODO remove failsafe from startup
+		unlink(failsafe_dest.data);
 		error_("Cannot set failsafe permissions");
 		goto error;
 	}
+
+	bool success = (*startup_add)(&failsafe_dest);
+	if (!success)
+	{
+		unlink(failsafe_dest.data);
+		error_("Cannot add startup item");
+		goto error;
+	}
 #endif
+
+	//_exit(1); // used for testing failsafe
 
 	stream_term(&stream);
 	close(fd);
@@ -643,6 +647,9 @@ bool filement_upgrade(const char *exec)
 	return false;
 
 error:
+	if (downloaded)
+		if (remove_directory(TEMP_DIR) < 0)
+			warning_("Unable to delete directory " TEMP_DIR);
 	upgrade_term(&download);
 	upgrade_term(&remove);
 	return false;

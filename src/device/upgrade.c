@@ -523,10 +523,6 @@ static bool clean(const struct vector *remove)
 // WARNING: Only registered devices can be upgraded.
 bool filement_upgrade(const char *exec)
 {
-# if !defined(FILEMENT_UPGRADE)
-	return true;
-# endif
-
 	// Connect to the distribute server and check for a new version.
 
 	// Perform a quick check that will likely show whether the application has the permissions necessary for upgrade.

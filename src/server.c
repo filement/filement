@@ -505,6 +505,10 @@ void server_listen(void *storage)
 	socklen_t address_len;
 	pthread_t thread_id;
 
+#if defined(FILEMENT_UPNP)
+	int listening_port[PORT_DIFF] = {0};
+#endif
+
 	debug(logs("Entering server_listen()"));
 
 	// Allocate memory for connection data.
@@ -562,6 +566,10 @@ void server_listen(void *storage)
 
 		connections[i]->type = Listen;
 		// TODO set other fields
+
+#if defined(FILEMENT_UPNP)
+		listening_port[i] = PORT_HTTP_MIN + i;
+#endif
 	}
 
 #if defined(DEVICE)
@@ -586,11 +594,13 @@ void server_listen(void *storage)
 	debug(logs("Setting up UPNP forwarding"));
 
 	// Start a thread to notify routers for port forwarding.
-	// TODO is this okay?
-	int listening_port[PORT_DIFF];
-	for(i = 0; i < PORT_DIFF; ++i) listening_port[i] = PORT_HTTP_MIN + i;
-	pthread_create(&thread_id, 0, pthread_upnp_forward_port, &listening_port[i]);
-	pthread_detach(thread_id);
+	for(i = 0; i < PORT_DIFF; ++i)
+		if (listening_port[i])
+		{
+			pthread_create(&thread_id, 0, pthread_upnp_forward_port, &listening_port[i]);
+			pthread_detach(thread_id);
+			break;
+		}
 #endif
 
 	int client;

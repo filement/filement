@@ -619,7 +619,7 @@ static bool device_register(const struct header *restrict header, struct stream 
 	{
 		char hex[SECRET_SIZE * 2 + 1];
 		*format_hex(hex, secret, SECRET_SIZE) = 0;
-		query = db_sql_alloc("insert into devices(uuid,client_id,platform_id,version_major,version_minor,revision,secret,name,released) values('%s',%u,%u,%u,%u,%u,0x%s,?,%u)", uuid_hex, client_id, platform_id, header->version_major, header->version_minor, header->revision, hex, flags & CMD_FLAG_RELEASE);
+		query = db_sql_alloc("insert into devices(uuid,client_id,platform_id,version_major,version_minor,revision,secret,name,public) values('%s',%u,%u,%u,%u,%u,0x%s,?,%u)", uuid_hex, client_id, platform_id, header->version_major, header->version_minor, header->revision, hex, flags & CMD_FLAG_PUBLIC);
 		if (!query)
 		{
 			status = ERROR_MEMORY;

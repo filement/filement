@@ -20,7 +20,7 @@ Before registration there is no UUID. The registration commands use a special va
 
 "platf" is a number corresponding to the platform_id in the table platforms
 "flags" contains the following flags:
-	whether the device was compiled as a release
+	whether the device was compiled as a public release
 
 Each command specifies request parameters and response. Request parameters are sent right after the request header.
 Variable-length sequence of items is preceded by 32-bit value representing the count of the items. For example character sequences are preceded by the number of characters in the sequence.

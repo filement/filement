@@ -7,9 +7,9 @@ Also, a startup entry is added for the filement server that ensures it will star
 
 # Creating installation packages
 
-If you need to create an installation package, the option --release is normally specified on configuration. It makes sure the created files will correspond to the criteria appropriate for a release (setting path prefix, enabling upgrade when appropriate, etc.)
+If you need to create an installation package, the option --public is normally specified on configuration. It makes sure the created files will correspond to the criteria appropriate for a public release (setting path prefix, enabling upgrade when appropriate, etc.)
 
-	./configure --release
+	./configure --public
 
 For Android, you'll also need to add the android-ndk option.
 

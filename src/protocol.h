@@ -30,7 +30,7 @@
 #define CMD_TOKEN_AUTH_OLD			32765
 //#define CMD_PROXY_LIST_OLD			32766
 
-#define CMD_FLAG_RELEASE			0x1
+#define CMD_FLAG_PUBLIC				0x1
 
 #if !defined(TEST)
 # define HOST_DISTRIBUTE			"distribute.filement.com"

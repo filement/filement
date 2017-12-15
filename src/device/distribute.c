@@ -261,8 +261,8 @@ char *distribute_register(uint16_t cmd, const struct string *restrict id, const 
 # endif
 
 	uint16_t platform_id = PLATFORM_ID;
-# if defined(RELEASE)
-	uint16_t flags = CMD_FLAG_RELEASE;
+# if defined(PUBLIC)
+	uint16_t flags = CMD_FLAG_PUBLIC;
 # else
 	uint16_t flags = 0;
 # endif

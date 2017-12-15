@@ -76,7 +76,7 @@ my $version = <VERSION>;
 chop $version;
 close VERSION;
 
-my ($flag_dev, $flag_debug, $flag_upgrade, $flag_upgrade_test, $uuid, $prefix, $android_ndk, $android_key, $release) = (0, 0, 0, 0, '', '', '/usr/lib/android-ndk', '', 0);
+my ($flag_dev, $flag_debug, $flag_upgrade, $flag_upgrade_test, $uuid, $prefix, $android_ndk, $android_key, $public) = (0, 0, 0, 0, '', '', '/usr/lib/android-ndk', '', 0);
 
 # Parse command line options.
 for (@ARGV)
@@ -122,16 +122,16 @@ for (@ARGV)
 	{
 		$android_key = $1;
 	}
-	elsif (/^--release$/)
+	elsif (/^--public$/)
 	{
-		$release = 1;
+		$public = 1;
 	}
 	else
 	{
 		print "Usage: $0 [OPTION ...]
 \t--dev            \tconfigure for flmntdev.com instead of filement.com
 \t--debug          \tconfigure with debug capabilities
-\t--release        \tcompile for a public release (use only if you know what you're doing)
+\t--public         \tcompile for a public release (use only if you know what you're doing)
 \t--prefix=PREFIX  \tconfigure for installation in the directory PREFIX
 \t--host=PLATFORM  \tconfigure for PLATFORM
 \t--target=TARGET  \tconfigure for TARGET (default: device)
@@ -159,7 +159,7 @@ my $link = '';
 
 my $arch;
 
-$definitions .= ' -DRELEASE' if ($release);
+$definitions .= ' -DPUBLIC' if ($public);
 
 # TODO some targets are supported onlyon some platforms; pubcloud and distribute are supported only on linux
 
@@ -174,7 +174,7 @@ my @features = ();
 if ($platform eq 'darwin')
 {
 	$prefix ||= '/Applications/Filement.app';
-	if ($release)
+	if ($public)
 	{
 		$prefix = '/Applications/Filement.app';
 		$flag_upgrade = 1;
@@ -206,7 +206,7 @@ if ($platform eq 'darwin')
 elsif ($platform eq 'linux')
 {
 	$prefix ||= '/usr/local';
-	if ($release)
+	if ($public)
 	{
 		$prefix = '/usr';
 		$flag_upgrade = 0;
@@ -240,7 +240,7 @@ elsif ($platform eq 'linux')
 elsif ($platform eq 'freebsd')
 {
 	$prefix ||= '/usr/local';
-	if ($release)
+	if ($public)
 	{
 		$prefix = '/usr';
 		$flag_upgrade = 0;
@@ -270,7 +270,7 @@ elsif ($platform eq 'freebsd')
 }
 elsif ($platform eq 'android')
 {
-	if ($release)
+	if ($public)
 	{
 		$prefix = '';
 		$flag_upgrade = 0;
@@ -414,6 +414,7 @@ print "version=$version\n";
 print "arch=$arch\n";
 print "uuid=$uuid\n";
 print "prefix=$prefix\n";
+print "public_release=$public\n"
 print "\n";
 print "CC=$cc\n";
 print "CFLAGS=$cflags\n";

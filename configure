@@ -414,7 +414,7 @@ print "version=$version\n";
 print "arch=$arch\n";
 print "uuid=$uuid\n";
 print "prefix=$prefix\n";
-print "public_release=$public\n"
+print "public_release=$public\n";
 print "\n";
 print "CC=$cc\n";
 print "CFLAGS=$cflags\n";

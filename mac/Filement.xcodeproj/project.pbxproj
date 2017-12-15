@@ -68,6 +68,9 @@
 		5B32EB321FC9ADF6001BE82D /* ca.crt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = ca.crt; path = ../../share/filement/ca.crt; sourceTree = "<group>"; };
 		5B32EB331FC9ADF6001BE82D /* fonts.conf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = fonts.conf; path = ../../share/filement/fonts.conf; sourceTree = "<group>"; };
 		5B32EB341FC9ADF6001BE82D /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = logo.png; path = ../../share/filement/logo.png; sourceTree = "<group>"; };
+		5B40454C1FE3EFED005E02EC /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		5B40454E1FE3EFF6005E02EC /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		5B4045501FE3F012005E02EC /* VideoDecodeAcceleration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = VideoDecodeAcceleration.framework; path = System/Library/Frameworks/VideoDecodeAcceleration.framework; sourceTree = SDKROOT; };
 		5BB470DD16A960AA00B5A5C4 /* filement.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = filement.icns; sourceTree = "<group>"; };
 		5BD9D0F418631AAD001D3C80 /* filement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = filement.h; path = ../../include/filement.h; sourceTree = "<group>"; };
 		5BD9D0F518631AAD001D3C80 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = types.h; path = ../../include/types.h; sourceTree = "<group>"; };
@@ -109,6 +112,9 @@
 		5B1581AD162C956A00321533 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				5B4045501FE3F012005E02EC /* VideoDecodeAcceleration.framework */,
+				5B40454E1FE3EFF6005E02EC /* CoreServices.framework */,
+				5B40454C1FE3EFED005E02EC /* CoreFoundation.framework */,
 				5BD9D10418631B1B001D3C80 /* libfilement.dylib */,
 				5BD9D0FF18631AF2001D3C80 /* ffmpeg */,
 				5B1581AE162C956A00321533 /* Cocoa.framework */,

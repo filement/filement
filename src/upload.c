@@ -94,7 +94,7 @@ static int transfer(struct stream *restrict input, int output, int64_t length)
 
 #if !defined(OS_WINDOWS)
 // WARNING: filename must be non-empty NUL-terminated string
-int create_directory(const struct string *restrict filename)
+static int create_directory(const struct string *restrict filename)
 {
 	char *path = memdup(filename->data, filename->length);
 	if (!path)
@@ -171,7 +171,13 @@ static int create_file(struct string *restrict filename)
 	}
 
 	// Create file's parent directory.
+	char *separator = strrchr(filename->data, '/');
+	size_t length = filename->length;
+	*separator = 0;
+	filename->length = separator - filename->data;
 	int status = create_directory(filename);
+	*separator = '/';
+	filename->length = length;
 	if (status < 0) return status;
 
 finally:
@@ -1194,7 +1200,12 @@ static int http_transfer_internal(struct stream *restrict input, const struct di
 
 		while (length = context->total - context->progress)
 		{
-			if (status = stream_read(input, &buffer, (length > BUFFER_SIZE_MAX) ? BUFFER_SIZE_MAX : length)) return status;
+			//debug(logs("before "), logi(length), logs(" | done "), logi(context->progress));
+			if (status = stream_read(input, &buffer, (length > BUFFER_SIZE_MAX) ? BUFFER_SIZE_MAX : length))
+			{
+				debug(logs("now"));
+				return status;
+			}
 			if (!writeall(context->output, buffer.data, buffer.length)) return ERROR_WRITE;
 			stream_read_flush(input, buffer.length);
 			context->progress += buffer.length;
@@ -1342,6 +1353,9 @@ int http_transfer(struct stream *restrict input, const struct string *restrict h
 	request.length = http_request(request.data, &method, host, uri) - request.data;
 	status = http_response(input, &request, version, &headers);
 	free(request.data);
+
+	if (status < 0)
+		return status;
 
 	struct transfer_context context;
 	context.output = -1;

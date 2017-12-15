@@ -10,6 +10,9 @@
 
 // TODO: is the icon for retina display OK?
 
+extern bool startup_mac_add(const struct string *file);
+extern bool startup_mac_remove(const struct string *file);
+
 bool startup_mac_add(const struct string *file)
 {
 	// Get application path

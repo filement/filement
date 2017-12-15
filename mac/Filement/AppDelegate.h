@@ -1,8 +1,5 @@
 #import <Cocoa/Cocoa.h>
 
-extern bool startup_mac_add(const struct string *file);
-extern bool startup_mac_remove(const struct string *file);
-
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 {
     IBOutlet NSPanel *finish_sheet;

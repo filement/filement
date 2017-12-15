@@ -22,9 +22,9 @@ filement.deb: filement filement-gtk
 	cp -rL `pwd`/lib '/tmp/filement-@{VERSION}@{PREFIX}/lib/@{ARCHITECTURE}-linux-gnu'
 	cp -rL `pwd`/data/* '/tmp/filement-@{VERSION}/usr/share'
 	find /tmp/filement-@{VERSION} -name .gitkeep -delete
-	tar -czf /tmp/data.tar.gz --numeric-owner --owner 0 --group 0 -C '/tmp/filement-@{VERSION}' .
 	tar -czf /tmp/control.tar.gz --numeric-owner --owner 0 --group 0 -C 'linux' control
-	cd linux && ar -cr "../filement_@{VERSION}-1_@{ARCHITECTURE}.deb" debian-binary /tmp/data.tar.gz /tmp/control.tar.gz
+	tar -czf /tmp/data.tar.gz --numeric-owner --owner 0 --group 0 -C '/tmp/filement-@{VERSION}' .
+	cd linux && ar -cr "../filement_@{VERSION}-1_@{ARCHITECTURE}.deb" debian-binary /tmp/control.tar.gz /tmp/data.tar.gz
 	rm -rf '/tmp/filement-@{VERSION}' '/tmp/data.tar.gz' '/tmp/control.tar.gz'
 
 filement.rpm: filement filement-gtk

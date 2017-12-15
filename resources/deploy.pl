@@ -4,6 +4,7 @@
 
 # location must contain failsafe and a directory named files
 # cp filement.dmg /tmp && cd /tmp && 7z x filement.dmg && 7z x 4.hfsx && cd - && cp /tmp/Filement/Filement.app files
+# requires: cpan install File::Copy::Recursive
 
 use strict;
 use warnings;
@@ -14,7 +15,7 @@ use DBI;
 use Digest::SHA;
 use File::Copy::Recursive;
 
-use constant SQL_SERVER => 'DBI:mysql:filement;host=127.0.0.1';
+use constant SQL_SERVER => 'DBI:mysql:filement_distribute;host=127.0.0.1';
 use constant SQL_USERNAME => 'filement';
 use constant SQL_PASSWORD => 'parola';
 

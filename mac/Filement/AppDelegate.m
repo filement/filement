@@ -112,13 +112,6 @@ static void serve(NSMenu *menu)
 	_exit(0);
 }
 
-// TODO:error 2013-04-27 17:06:26.360 Filement[9965:203] Could not connect the action quit1: to target of class AppDelegate
-// maybe this happens when the menu is not loaded
-/*- (IBAction)quit1
-{
-	_exit(0);
-}*/
-
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
 	extern bool registered;

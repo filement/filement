@@ -10,6 +10,7 @@ src/actions_sorted.h
 src/actions.out
 
 mac/build
+mac/Filement/Filement-Info.plist
 
 android/Filement.androidstudio/build
 android/Filement.androidstudio/local.properties

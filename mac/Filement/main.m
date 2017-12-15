@@ -1,6 +1,7 @@
 #define _BSD_SOURCE
 
 #import <Cocoa/Cocoa.h>
+#import <stdio.h>
 #import <string.h>
 
 #import "filement.h"
@@ -25,7 +26,7 @@ int main(int argc, char *argv[])
 	// Check for new version of the Filement device software.
 	// TODO maybe do this after the interface is started
 	if (registered && !filement_upgrade(PREFIX "/Contents/MacOS/Filement"))
-		error(logs("Upgrade failed"));
+		fprintf(stderr, "Upgrade failed\n");
 #endif
 
     return NSApplicationMain(argc, (const char **)argv);

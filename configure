@@ -153,7 +153,7 @@ $target = 'pubcloud' if (defined($clouds{$uuid}));
 
 my ($cc, $shared, $suffix, $storage, $storage_flags, $root, $libs, $libs_, $strip, $soname, $gmp, $setup);
 my $flags = ($flag_debug ? ' -O0 -g -fstack-protector-all' : ' -fomit-frame-pointer');
-my $definitions = ($flag_dev ? '-DTEST=-10' : '').($flag_debug ? ' -DRUN_MODE=1 -DDEBUG' : ' -DRUN_MODE=2').($flag_upgrade ? ' -DUPGRADE' : '').($flag_upgrade_test ? ' -DUPGRADE_TEST' : '');
+my $definitions = ($flag_dev ? '-DTEST=-10' : '').($flag_debug ? ' -DRUN_MODE=1 -DDEBUG' : ' -DRUN_MODE=2 -DNDEBUG').($flag_upgrade ? ' -DUPGRADE' : '').($flag_upgrade_test ? ' -DUPGRADE_TEST' : '');
 my $cflags = '';
 my $link = '';
 
@@ -392,7 +392,7 @@ $cflags .= ' -D'.uc($target);
 # Preprocess actions.
 system qq("$root/bin/$cc" -E -x c $cflags -o src/actions.out src/actions.in);
 
-my $mac = $definitions;
+my $mac = "$definitions $features";
 $mac =~ s/-D//g;
 
 $storage_flags //= '';
@@ -538,6 +538,15 @@ open STDOUT, '>', 'src/Makefile';
 system 'sed', @replace, 'src/Makefile.in';
 chmod 0444, 'src/Makefile';
 
+# mac/Filement-Info.plist
+if ($platform eq 'darwin')
+{
+	unlink 'mac/Filement/Filement-Info.plist';
+	open STDOUT, '>', 'mac/Filement/Filement-Info.plist';
+	system 'sed', '-e', "s/\@{VERSION}/$version/", 'mac/Filement-Info.plist.in';
+	chmod 0444, 'mac/Filement/Filement-Info.plist';
+}
+
 # linux/control
 if ($platform eq 'linux')
 {
@@ -550,12 +559,6 @@ if ($platform eq 'linux')
 	open STDOUT, '>', 'linux/filement.spec';
 	system 'sed', '-e', "s/\@{VERSION}/$version/", '-e', "s/\@{ARCH}/$arch/", 'linux/filement.spec.in';
 	chmod 0444, 'linux/filement.spec';
-
-	# TODO unused
-	#unlink 'linux/';
-	#open STDOUT, '>', 'linux/filement.spec';
-	#system 'sed', '-e', "s/\@{PREFIX}/$prefix/", '-e', "s/\@{VERSION}/$version/", '-e', "s/\@{ARCH}/$arch/", 'linux/filement.spec.in';
-	#chmod 0544, 'linux/rpm.pl';
 }
 
 # Configure public cloud if UUID is specified.

@@ -43,7 +43,20 @@ The executable will be in the bin directory.
 
 	gdb bin/filement
 
+You'll probably want to set some gdb options.
+
+	handle SIGPIPE nostop
+	set follow-fork-mode child
+
 ## Debugging on Mac
+
+You can generate the necessary debug symbols on mac with:
+
+	dsymutil lib/libfilement.dylib -o lib/libfilement.dylib.dSYM
+
+On Mac, the LD_LIBRARY_PATH is of no use. You'll need to set another variable from inside gdb:
+
+	set env DYLD_LIBRARY_PATH <path_to_filement>/lib
 
 # Development for Android
 

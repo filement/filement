@@ -19,6 +19,8 @@ For Android, you'll also need to add the android-ndk option.
 
 ## Creating RPM package
 
+	dnf install rpm-build
+
 	make filement.rpm
 
 ## Creating dmg archive

@@ -163,6 +163,17 @@ Finally, you can remove the copy of the sdk.
 
 	rm -r /tmp/filement_android-sdk
 
+# Installation from deb on Debian
+
+	sudo apt-get install libgnutls30 libavformat57 libavutil55
+	sudo dpkg -i filement_0.21.0-1_amd64.deb
+
+# Installation from rpm on Fedora
+
+	sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+	sudo dnf install gnutls ffmpeg
+	sudo rpm -i filement-0.21.0-1.x86_64.rpm
+
 # Running Filement
 
 In order to start using Filement, you need to create an account in filement.com and then register your device.

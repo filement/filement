@@ -7,7 +7,7 @@ Vendor: Filement
 Source: %{name}-%{version}.@{ARCH}.tar.gz
 License: GPLv3+
 Group: Applications/Internet
-Requires: libc6 >= 2.5, libgnutls30 libavformat57 libavutil55
+Requires: libc6 >= 2.5, gnutls ffmpeg
 Packager: Martin Kunev <martinkunev@gmail.com>
 BuildRoot: %{_tmppath}/%{name}-%{version}.@{ARCH}
 

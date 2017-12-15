@@ -24,7 +24,8 @@ filement.deb: filement filement-gtk
 	find /tmp/filement-@{VERSION} -name .gitkeep -delete
 	tar -czf /tmp/control.tar.gz --numeric-owner --owner 0 --group 0 -C 'linux' control
 	tar -czf /tmp/data.tar.gz --numeric-owner --owner 0 --group 0 -C '/tmp/filement-@{VERSION}' .
-	cd linux && ar -cr "../filement_@{VERSION}-1_@{ARCHITECTURE}.deb" debian-binary /tmp/control.tar.gz /tmp/data.tar.gz
+	cd linux && test "@{ARCHITECTURE}" = 'x86_64' || ar -cr "../filement_@{VERSION}-1_@{ARCHITECTURE}.deb" debian-binary /tmp/control.tar.gz /tmp/data.tar.gz
+	cd linux && test "@{ARCHITECTURE}" != 'x86_64' || ar -cr "../filement_@{VERSION}-1_amd64.deb" debian-binary /tmp/control.tar.gz /tmp/data.tar.gz
 	rm -rf '/tmp/filement-@{VERSION}' '/tmp/data.tar.gz' '/tmp/control.tar.gz'
 
 filement.rpm: filement filement-gtk

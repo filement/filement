@@ -1,6 +1,22 @@
 ---- HIGH ----
 
-line for each log output
+command line app
+	version information
+	reset while a device is running
+gui app
+	version information
+	more robust code (create directories in the path, make sure there are no memory leaks and concurrency problems, etc.)
+? modify filement_stop() to cancel server_listen()
+
+add suggestion to deb package for filement-index
+https://www.debian.org/doc/manuals/distribute-deb/distribute-deb.html
+
+read about libc dependencies on debian and fedora
+
+fix distribute server and proxy bugs (events not reflected in the interface, etc.); one bug is android device still shown as active after being shut down
+
+line number for each log output
+simplify log.h (no need to customly set level? just debug/no_debug)
 
 Title																				Status
 send RST on download error															partial

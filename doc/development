@@ -11,7 +11,7 @@ If you need to create an installation package, the option --public is normally s
 
 	./configure --public
 
-For Android, you'll also need to add the android-ndk option.
+For Android, you'll also need other options (as described in INSTALL).
 
 ## Creating deb package
 

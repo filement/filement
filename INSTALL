@@ -227,20 +227,3 @@ On the target machine, you'll need several libraries:
 # Notes
 
 Some platforms and targets haven't been adapted since the project was released as open source. These include the Windows and various router versions of the device application and the targets pubcloud, ftp proxy and cloud proxy.
-
-##
-
-TODO
-	command line app
-		version information
-		reset while a device is running
-	gui app
-		version information
-		more robust code (create directories in the path, make sure there are no memory leaks and concurrency problems, etc.)
-	? modify filement_stop() to cancel server_listen()
-
-	1 make sure rpm and deb can be generated on the existing vms (or update instructions)
-	3 test rpm and deb on clean systems (1)
-
-	add suggestion to deb package for filement-index
-	https://www.debian.org/doc/manuals/distribute-deb/distribute-deb.html

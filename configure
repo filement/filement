@@ -272,7 +272,7 @@ elsif ($platform eq 'android')
 {
 	if ($public)
 	{
-		$prefix = '';
+		$prefix = '/';
 		$flag_upgrade = 0;
 		$android_key = '';
 	}
@@ -287,7 +287,7 @@ elsif ($platform eq 'android')
 
 	$flags .= " --sysroot=$android_ndk/platforms/android-21/arch-arm -pthread -marm -Wno-unused-result"; # https://developer.android.com/about/dashboards/index.html
 	$flags .= ' -O2 -fstrict-aliasing' if !$flag_debug;
-	$definitions .= ' -DPLATFORM_ID=10 -DOS_ANDROID -D_GNU_SOURCE -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700'; # TODO set prefix
+	$definitions .= ' -DPLATFORM_ID=10 -DOS_ANDROID -D_GNU_SOURCE -D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700';
 	$cflags .= ' -I../android -Wno-unused-value'; # replace with -Wno-unused-result
 	$link .= ' -lz -lm -ldl -Wl,-unresolved-symbols=ignore-in-shared-libs';
 

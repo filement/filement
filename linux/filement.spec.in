@@ -27,7 +27,7 @@ cp -a * %{buildroot}
 
 %post
 echo
-echo "Start filement-gtk or use `filement <email> <device_name>` from the command line to register the device"
+echo "Start filement-gtk or use filement from the command line to register the device"
 
 %clean
 rm -rf %{buildroot}

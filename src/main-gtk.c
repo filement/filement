@@ -29,12 +29,12 @@
 #define DIALOG_WIDTH 400
 #define DIALOG_HEIGHT 150
 
-#define ICON_SMALL "/usr/share/icons/hicolor/48x48/apps/filement.png"
-#define SHARE_LOGO (STARTUP_PREFIX "share/filement/logo.png")
-#define SHARE_BACKGROUND (STARTUP_PREFIX "share/filement/background.png")
-
 #define STARTUP_PREFIX "/.config/autostart/"
 #define STARTUP_SUFFIX ".desktop"
+
+#define ICON_SMALL "/usr/share/icons/hicolor/48x48/apps/filement.png"
+#define SHARE_LOGO (PREFIX "/share/filement/logo.png")
+#define SHARE_BACKGROUND (PREFIX "/share/filement/background.png")
 
 #define STARTUP_HEAD \
 	"[Desktop Entry]\n" \
@@ -259,6 +259,8 @@ static bool interface_register(void)
 	gtk_widget_set_size_request(window, WINDOW_WIDTH, WINDOW_HEIGHT);
 	gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+
+	printf("%s\n", SHARE_BACKGROUND);
 
 	// Set window background.
 	pixbuf = gdk_pixbuf_new_from_file_at_scale(SHARE_BACKGROUND, WINDOW_WIDTH, WINDOW_HEIGHT, FALSE, 0);

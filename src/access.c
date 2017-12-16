@@ -64,8 +64,7 @@ static ssize_t normalize(unsigned char *restrict path, const char *relative, siz
 
 	// assert(length && (relative[0] == '/'));
 
-	// Instead of / as path separator, put the offset from the previous path separator.
-	// This allows easy handling of .. path component.
+	// Instead of / as path separator, put the offset from the previous path separator (this allows easy handling of .. path component).
 
 	size_t offset = 0;
 	for(; 1; ++offset)
@@ -212,11 +211,11 @@ struct string *access_path_compose(struct string *restrict prefix, struct string
 	if (!prefix || !suffix) return 0;
 
 	if (!prefix->length || (prefix->data[0] != '/')) return 0;
-	if (!suffix->length || (suffix->data[0] != '/')) return 0;
+	if (suffix->length && (suffix->data[0] != '/')) return 0;
 
 	// remove terminating / from prefix and suffix
 	if (prefix->data[prefix->length - 1] == '/') prefix->length -= 1;
-	if (suffix->data[suffix->length - 1] == '/') suffix->length -= 1;
+	if (suffix->length && (suffix->data[suffix->length - 1] == '/')) suffix->length -= 1;
 
 	// allocate memory for path; make sure there is space for . if the path is the root directory
 	struct string *path = malloc(sizeof(struct string) + prefix->length + 1 + suffix->length + 1);

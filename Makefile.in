@@ -19,7 +19,7 @@ filement-gtk:
 filement.deb: filement filement-gtk
 	mkdir -p '/tmp/filement-@{VERSION}@{PREFIX}/lib' '/tmp/filement-@{VERSION}/usr/share'
 	cp -rL `pwd`/bin `pwd`/share '/tmp/filement-@{VERSION}@{PREFIX}'
-	cp -rL `pwd`/lib '/tmp/filement-@{VERSION}@{PREFIX}/lib/@{ARCHITECTURE_DEB}-linux-gnu'
+	cp -rL `pwd`/lib '/tmp/filement-@{VERSION}@{PREFIX}/lib/@{ARCHITECTURE}-linux-gnu'
 	cp -rL `pwd`/data/* '/tmp/filement-@{VERSION}/usr/share'
 	find /tmp/filement-@{VERSION} -name .gitkeep -delete
 	tar -czf /tmp/control.tar.gz --numeric-owner --owner 0 --group 0 -C 'linux' control

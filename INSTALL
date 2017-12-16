@@ -155,7 +155,7 @@ Due to a bug in gradle, write permission is required in the android-sdk director
 	mkdir -p "$ANDROID_HOME/licenses"
 	echo -e "\nd56f5187479451eabf01fb78af6dfcb131a6481e" > "$ANDROID_HOME/licenses/android-sdk-license"
 
-Create the apk package.
+Create the apk package. You'll be asked for the keystore password you provided while generating the sign key.
 
 	make filement.apk
 

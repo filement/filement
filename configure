@@ -120,6 +120,7 @@ for (@ARGV)
 	}
 	elsif (/^--android-key=(.*)$/)
 	{
+		$platform = 'android';
 		$android_key = $1;
 	}
 	elsif (/^--public$/)

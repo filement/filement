@@ -12,6 +12,8 @@ import Cookie
 from getpass import getpass
 from Crypto.Cipher import AES
 
+# TODO don't crash on socket.error
+
 production = True
 if production:
 	HOST_PASSPORT = "filement.com"
@@ -189,53 +191,7 @@ class Filement():
 		conn.close()
 		return body(response)["device"]
 
-	def device_login(self, uuid, host, port, password):
-		conn = httplib.HTTPSConnection(HOST_WEB)
-		conn.request("GET", "/private/requests/sessions/generateFsToken.php?session_id=" + self.session + "&security_key=" + self.security_key + "&jsonversion=2", urllib.urlencode({}), self.headers)
-		redirect = conn.getresponse()
-		token = re.search(r'"OK ([0-9a-f]+)"', redirect.read()).group(1)
-		conn.close()
-
-		cipher = AES.new(self.security_key.decode("hex"), AES.MODE_CBC, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")
-
-		conn = httplib.HTTPConnection(host, port)
-		conn.request("GET", query("session.login", {"token": token}, uuid, security_key=self.security_key), urllib.urlencode({}), self.headers)
-		response = conn.getresponse()
-		response = body(response.read())
-
-		result = {}
-
-		result["session_id"] = response["session_id"]
-		result["encrypt"] = ("encryption" in response)
-		conn.request("GET", query("session.grant_login", {"hash": cipher.encrypt(password + (16 - len(password)) * "\0").encode("hex")}, uuid, self["session_id"], enc=self["encrypt"], security_key=self.security_key))
-		response = conn.getresponse()
-		conn.close()
-
-		return result
-
-	def device_request(self, uuid, host, port, action, arguments, session_id, encrypt):
-		request_query = query(action, arguments, uuid, session_id, enc=encrypt, security_key=self.security_key)
-
-		conn = httplib.HTTPConnection(self["host"], self["port"])
-		conn.request("GET", request_query, urllib.urlencode({}), self["filement"].headers)
-		response = conn.getresponse()
-		if (response.status == 403):
-			self.login()
-			conn = httplib.HTTPConnection(self["host"], self["port"])
-			conn.request("GET", request_query, urllib.urlencode({}), self["filement"].headers)
-			response = conn.getresponse()
-			if (response.status >= 400):
-				return
-
-		result = (response.status, response.read(), {item[0]: item[1] for item in response.getheaders()})
-		conn.close()
-
-		return result
-
-	def device(self, uuid):
-		return Device(uuid, self)
-
-class Device_():
+class Device():
 	def __init__(self, filement, uuid, host, port, password):
 		self.filement = filement
 		self.uuid = uuid
@@ -265,7 +221,7 @@ class Device_():
 		response = conn.getresponse()
 		conn.close()
 
-	def request(self, action, arguments):
+	def request(self, action, arguments, raw=False):
 		request_query = query(action, arguments, self.uuid, self.session_id, enc=self.encrypt, security_key=self.filement.security_key)
 
 		conn = httplib.HTTPConnection(self.host, self.port)
@@ -279,88 +235,10 @@ class Device_():
 			if (response.status >= 400):
 				return
 
-		result = (response.status, body(response.read()), {item[0]: item[1] for item in response.getheaders()})
-		conn.close()
-
-		return result
-
-class Device(dict):
-	# TODO self["encrypt"]
-
-	def __init__(self, uuid, filement):
-		self["uuid"] = uuid
-		self["filement"] = filement
-
-	#def __repr__(self):
-	#	return self["uuid"]
-
-	def on(self, address):
-		address = re.search(r"(.*):(.*),(.*)", address)
-		self["host"] = address.group(1)
-		self["port"] = int(address.group(2))
-		self["port_https"] = int(address.group(3))
-
-	def off(self):
-		del self["host"]
-		del self["port"]
-		if production: del self["port_https"]
-
-	def __eq__(self, device):
-		self["uuid"] == device["uuid"]
-
-	def __hash__(self):
-		h = 0
-		index = 0
-		while (index < len(self["uuid"])):
-			h = h * 256 + ord(self["uuid"][index:index+2].decode("hex"))
-			index += 2
-		return h
-
-	def __str__(self):
-		return "dr-" + ("x" if ("host" in self) else "-")
-
-	#def _connect(self):
-	#	self["_conn"] = httplib.HTTPConnection(self["host"], self["port"])
-
-	def login(self, password):
-		conn = httplib.HTTPSConnection(HOST_WEB)
-		conn.request("GET", "/private/requests/sessions/generateFsToken.php?session_id=" + self["filement"].session + "&security_key=" + self["filement"].security_key + "&jsonversion=2", urllib.urlencode({}), self["filement"].headers)
-		redirect = conn.getresponse()
-		token = re.search(r'"OK ([0-9a-f]+)"', redirect.read()).group(1)
-		conn.close()
-
-		cipher = AES.new(self["filement"].security_key.decode("hex"), AES.MODE_CBC, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")
-
-		conn = httplib.HTTPConnection(self["host"], self["port"])
-
-		conn.request("GET", query("session.login", {"token": token}, self["uuid"], security_key=self["filement"].security_key), urllib.urlencode({}), self["filement"].headers)
-		response = conn.getresponse()
-		response = body(response.read())
-		self["session_id"] = response["session_id"]
-		self["encrypt"] = ("encryption" in response)
-		conn.request("GET", query("session.grant_login", {"hash": cipher.encrypt(password + (16 - len(password)) * "\0").encode("hex")}, self["uuid"], self["session_id"], enc=self["encrypt"], security_key=self["filement"].security_key))
-		response = conn.getresponse()
-		conn.close()
-
-	def request(self, action, arguments):
-		if ("host" not in self): return # TODO handle non-connected devices
-
-		if ("session_id" not in self): self.login("test") # TODO ask user for password
-
-		request_query = query(action, arguments, self["uuid"], self["session_id"], enc=self["encrypt"], security_key=self["filement"].security_key)
-
-		conn = httplib.HTTPConnection(self["host"], self["port"])
-		conn.request("GET", request_query, urllib.urlencode({}), self["filement"].headers)
-		response = conn.getresponse()
-		if (response.status == 403):
-			self.login()
-			conn = httplib.HTTPConnection(self["host"], self["port"])
-			conn.request("GET", request_query, urllib.urlencode({}), self["filement"].headers)
-			response = conn.getresponse()
-			if (response.status >= 400):
-				return
-
-		result = (response.status, response.read(), {item[0]: item[1] for item in response.getheaders()})
+		if raw:
+			result = (response.status, response.read(), {item[0]: item[1] for item in response.getheaders()})
+		else:
+			result = (response.status, body(response.read()), {item[0]: item[1] for item in response.getheaders()})
 		conn.close()
 
 		return result
@@ -369,27 +247,27 @@ class Device(dict):
 		action = None
 		parameters = None
 
-		if (source["uuid"] == self["uuid"]):
+		if (source.uuid == self.uuid):
 			action = "ffs.copy"
 			parameters = {"src": entry, "dest": {"block_id": dest_block, "path": dest_path}}
 		else:
 			# Create authorization key for the source file in the source server.
 			auth = source.request("auth.grant", {"count": 1, "rw": 0, "blocks": entry})
-			auth = body(auth[1])
-			args = query("ffs.archive", [{"block_id": auth["locations"][0]["id"], "path": ""}], source["uuid"], auth_id=auth["auth_id"], enc=False, security_key=self["filement"].security_key)
+			auth = auth[1]
+			args = query("ffs.archive", [{"block_id": auth["locations"][0]["id"], "path": ""}], source.uuid, auth_id=auth["auth_id"], enc=False, security_key=self.filement.security_key)
 
 			action = "ffs.transfer"
-			parameters = {"host": source["host"], "port": source["port"], "uuid": source["uuid"], "args": args, "src": [e["path"] for e in entry], "dest": {"block_id": dest_block, "path": dest_path}}
+			parameters = {"host": source.host, "port": source.port, "uuid": source.uuid, "args": args, "src": [e["path"] for e in entry], "dest": {"block_id": dest_block, "path": dest_path}}
 
 		response = self.request(action, parameters)
-		cache = body(response[1])
+		cache = response[1]
 
 		# Wait until the copying is finished. On error, display message to the user.
 		# TODO this should be asyncrhonous?
 		while True:
-			b = body(self.request("cache.get", cache)[1])
+			b = self.request("cache.get", cache)[1]
 			print(b)
-			status = ["status"]
+			status = b["status"]
 			if (status <= 0): break
 			time.sleep(1)
 		return ERROR[-status]

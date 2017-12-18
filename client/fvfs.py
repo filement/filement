@@ -8,7 +8,7 @@ import os
 import re
 import json
 
-from filement import Device_
+from filement import Device
 
 ROOT = 0
 DEVICE = 1
@@ -17,8 +17,7 @@ FILE = 3
 
 class Fs():
 	def __init__(self, filement):
-		self.fs = {"": {"type": ROOT}}
-		self.cwd = "/" # always ends in /
+		self.tree = {"": {"type": ROOT}}
 		self.filement = filement
 
 	def populate(self, absolutepath):
@@ -30,7 +29,7 @@ class Fs():
 		nodes = absolutepath.split("/")
 		nodes_len = len(nodes)
 		node_index = 0
-		tree = self.fs
+		tree = self.tree
 		while node_index < nodes_len:
 			component = nodes[node_index]
 			if component not in tree:
@@ -40,7 +39,7 @@ class Fs():
 			if "children" not in tree:
 				if tree["type"] == ROOT:
 					devices = self.filement.devices() # TODO what if this fails
-					devices = {devices[index]["device_code"]: {"type": DEVICE} for index in devices if devices[index]["type"] == "pc"}
+					devices = {devices[index]["device_code"]: {"type": DEVICE, "mode": "d---"} for index in devices if devices[index]["type"] == "pc"}
 
 					locations = self.filement.locations(devices.keys()) # TODO what if this fails
 					for uuid in locations:
@@ -48,6 +47,7 @@ class Fs():
 						devices[uuid]["host"] = address.group(1)
 						devices[uuid]["port_http"] = int(address.group(2))
 						devices[uuid]["port_https"] = int(address.group(3))
+						devices[uuid]["mode"] = "drwx"
 
 					# TODO start a thread to monitor connectivity change
 
@@ -56,14 +56,14 @@ class Fs():
 					if "host" not in tree:
 						return False # device offline
 
-					tree["device"] = Device_(self.filement, component, tree["host"], tree["port_http"], "test") # TODO dynamic password
+					tree["device"] = Device(self.filement, component, tree["host"], tree["port_http"], "test") # TODO dynamic password
 
 					config = tree["device"].request("config.info", None)
 					#if (not config): continue
 					#config = config[1]
 					#if (not config): continue
 
-					blocks = {str(block["block_id"]): {"type": BLOCK, "device": tree["device"]} for block in config[1]["fs.get_blocks"]["blocks"]}
+					blocks = {str(block["block_id"]): {"type": BLOCK, "device": tree["device"], "mode": "drwx"} for block in config[1]["fs.get_blocks"]["blocks"]}
 
 					tree["children"] = blocks
 				elif tree["type"] in (BLOCK, FILE):
@@ -86,9 +86,3 @@ class Fs():
 			node_index += 1
 
 		return tree
-
-	def ls(self, path):
-		if path[0] != "/": # convert relative path to absolute
-			path = self.cwd + path
-		result = self.populate(path)
-		return result

@@ -1,0 +1,22 @@
+filement virtual filesystem (fvfs)
+	a tree where each node is characterized by a type
+	types:
+		root
+		device
+		block
+		entry
+
+	each node has name; the name of the root node is empty - ""
+	when forming a path, nodes are separated by /
+	each node has metainformation associated with it
+
+metainformation
+	device
+		host, port, friendly name, ?
+	block
+		?
+	entry
+		?
+
+{"type": "ROOT", "meta": {...}, "children": [{"uuid0": {"type": "DEVICE", "meta": {"host": "...", "port": ..., "label": "..."}, "children": [...]}}]}
+

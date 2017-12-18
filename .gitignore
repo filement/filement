@@ -50,3 +50,5 @@ share/filement/background.png
 share/filement/logo.png
 data/applications
 data/icons
+
+*.pyc
